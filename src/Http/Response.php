@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http;
 
 use Engelsystem\Renderer\Renderer;
@@ -14,13 +12,31 @@ class Response extends SymfonyResponse implements ResponseInterface
 {
     use MessageTrait;
 
+    /**
+     * @var SessionInterface
+     */
+    protected $session;
+
+    /** @var Renderer */
+    protected $renderer;
+
+    /**
+     * @param string           $content
+     * @param int              $status
+     * @param array            $headers
+     * @param Renderer         $renderer
+     * @param SessionInterface $session
+     */
     public function __construct(
-        string $content = '',
+        $content = '',
         int $status = 200,
         array $headers = [],
-        protected ?Renderer $renderer = null,
-        protected ?SessionInterface $session = null
+        Renderer $renderer = null,
+        SessionInterface $session = null
     ) {
+        $this->renderer = $renderer;
+        $this->session = $session;
+
         parent::__construct($content, $status, $headers);
     }
 
@@ -44,7 +60,7 @@ class Response extends SymfonyResponse implements ResponseInterface
      * @return static
      * @throws InvalidArgumentException For invalid status code arguments.
      */
-    public function withStatus(mixed $code, mixed $reasonPhrase = ''): static
+    public function withStatus($code, $reasonPhrase = '')
     {
         $new = clone $this;
         $new->setStatusCode($code, !empty($reasonPhrase) ? $reasonPhrase : null);
@@ -65,7 +81,7 @@ class Response extends SymfonyResponse implements ResponseInterface
      * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
      * @return string Reason phrase; must return an empty string if none present.
      */
-    public function getReasonPhrase(): string
+    public function getReasonPhrase()
     {
         return $this->statusText;
     }
@@ -80,7 +96,7 @@ class Response extends SymfonyResponse implements ResponseInterface
      * @param mixed $content Content that can be cast to string
      * @return static
      */
-    public function withContent(mixed $content): static
+    public function withContent($content)
     {
         $new = clone $this;
         $new->setContent($content);
@@ -94,9 +110,13 @@ class Response extends SymfonyResponse implements ResponseInterface
      * This method retains the immutability of the message and returns
      * an instance with the updated status and headers
      *
+     * @param string              $view
+     * @param array               $data
+     * @param int                 $status
      * @param string[]|string[][] $headers
+     * @return Response
      */
-    public function withView(string $view, array $data = [], int $status = 200, array $headers = []): Response
+    public function withView($view, $data = [], $status = 200, $headers = [])
     {
         if (!$this->renderer instanceof Renderer) {
             throw new InvalidArgumentException('Renderer not defined');
@@ -118,8 +138,13 @@ class Response extends SymfonyResponse implements ResponseInterface
      *
      * This method retains the immutability of the message and returns
      * an instance with the updated status and headers
+     *
+     * @param string $path
+     * @param int    $status
+     * @param array  $headers
+     * @return Response
      */
-    public function redirectTo(string $path, int $status = 302, array $headers = []): Response
+    public function redirectTo($path, $status = 302, $headers = [])
     {
         $response = $this->withStatus($status);
         $response = $response->withHeader('location', $path);
@@ -133,16 +158,22 @@ class Response extends SymfonyResponse implements ResponseInterface
 
     /**
      * Set the renderer to use
+     *
+     * @param Renderer $renderer
      */
-    public function setRenderer(Renderer $renderer): void
+    public function setRenderer(Renderer $renderer)
     {
         $this->renderer = $renderer;
     }
 
     /**
      * Sets a session attribute (which is mutable)
+     *
+     * @param string        $key
+     * @param mixed|mixed[] $value
+     * @return Response
      */
-    public function with(string $key, mixed $value): Response
+    public function with(string $key, $value)
     {
         if (!$this->session instanceof SessionInterface) {
             throw new InvalidArgumentException('Session not defined');
@@ -160,16 +191,17 @@ class Response extends SymfonyResponse implements ResponseInterface
 
     /**
      * Sets form data to the mutable session
+     *
+     * @param array $input
+     * @return Response
      */
-    public function withInput(array $input): Response
+    public function withInput(array $input)
     {
         if (!$this->session instanceof SessionInterface) {
             throw new InvalidArgumentException('Session not defined');
         }
 
-        foreach ($input as $name => $value) {
-            $this->session->set('form-data-' . $name, $value);
-        }
+        $this->session->set('form-data', $input);
 
         return $this;
     }

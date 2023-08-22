@@ -2,15 +2,14 @@
 <html lang="{{ session_get('locale')|split('_')[0]|escape('html_attr') }}">
 <head>
     {% block head %}
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <meta name="csrf-token" content="{{ csrf_token() }}"/>
-
         <title>{% block title %}{{ title }}{% endblock %} - {{ config('app_name') }}</title>
 
-        <link rel="icon" href="{{ asset('assets/angel.svg') }}"/>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
         <link rel="stylesheet" type="text/css" href="{{ asset('assets/theme' ~ themeId ~ '.css') }}"/>
-        <script src="{{ asset('assets/vendor.js') }}"></script>
+        <script type="text/javascript" src="{{ asset('assets/vendor.js') }}"></script>
 
         {% if page() in ['news', 'meetings'] and is_user() and has_permission_to('atom') -%}
             {% set parameters = {'key': user.api_key} -%}
@@ -18,8 +17,7 @@
                 {% set parameters = {'meetings': 1}|merge(parameters) -%}
             {% endif %}
             <link href="{{ url('atom', parameters) }}" type="application/atom+xml" rel="alternate" title="Atom Feed">
-            <link href="{{ url('rss', parameters) }}" type="application/rss+xml" rel="alternate" title="RSS Feed" />
-        {%- endif %}
+        {% endif %}
 
     {% endblock %}
 </head>

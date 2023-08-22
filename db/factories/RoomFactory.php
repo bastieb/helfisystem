@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories\Engelsystem\Models;
 
 use Engelsystem\Models\Room;
@@ -10,9 +8,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class RoomFactory extends Factory
 {
     /** @var string */
-    protected $model = Room::class; // phpcs:ignore
+    protected $model = Room::class;
 
-    public function definition(): array
+    /**
+     * @return array
+     */
+    public function definition()
     {
         return [
             'name'        => $this->faker->unique()->firstName(),

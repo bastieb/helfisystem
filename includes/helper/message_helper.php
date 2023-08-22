@@ -1,15 +1,18 @@
 <?php
 
-use Engelsystem\Controllers\NotificationType;
-
 /**
- * Returns messages from session and removes them from the stack by rendering the messages twig template
+ * Returns messages from session and removes them from the stack
+ *
  * @return string
- * @see \Engelsystem\Controllers\HasUserNotifications
  */
 function msg()
 {
-    return view('layouts/parts/messages.twig');
+    $session = session();
+
+    $message = $session->get('msg', '');
+    $session->set('msg', '');
+
+    return $message;
 }
 
 /**
@@ -21,7 +24,7 @@ function msg()
  */
 function info($msg, $immediately = false)
 {
-    return alert(NotificationType::INFORMATION, $msg, $immediately);
+    return alert('info', $msg, $immediately);
 }
 
 /**
@@ -33,7 +36,7 @@ function info($msg, $immediately = false)
  */
 function warning($msg, $immediately = false)
 {
-    return alert(NotificationType::WARNING, $msg, $immediately);
+    return alert('warning', $msg, $immediately);
 }
 
 /**
@@ -45,7 +48,7 @@ function warning($msg, $immediately = false)
  */
 function error($msg, $immediately = false)
 {
-    return alert(NotificationType::ERROR, $msg, $immediately);
+    return alert('danger', $msg, $immediately);
 }
 
 /**
@@ -57,44 +60,31 @@ function error($msg, $immediately = false)
  */
 function success($msg, $immediately = false)
 {
-    return alert(NotificationType::MESSAGE, $msg, $immediately);
+    return alert('success', $msg, $immediately);
 }
 
 /**
- * Renders an alert message with the given alert-* class or sets it in session
+ * Renders an alert message with the given alert-* class.
  *
- * @see \Engelsystem\Controllers\HasUserNotifications
- *
- * @param NotificationType $type
- * @param string           $msg
- * @param bool             $immediately
+ * @param string $class
+ * @param string $msg
+ * @param bool   $immediately
  * @return string
  */
-function alert(NotificationType $type, $msg, $immediately = false)
+function alert($class, $msg, $immediately = false)
 {
     if (empty($msg)) {
         return '';
     }
 
     if ($immediately) {
-        $type = str_replace(
-            [
-                NotificationType::ERROR->value,
-                NotificationType::WARNING->value,
-                NotificationType::INFORMATION->value,
-                NotificationType::MESSAGE->value,
-            ],
-            ['danger', 'warning', 'info', 'success'],
-            $type->value
-        );
-        return '<div class="alert alert-' . $type . '" role="alert">' . $msg . '</div>';
+        return '<div class="alert alert-' . $class . '">' . $msg . '</div>';
     }
 
-    $type = 'messages.' . $type->value;
     $session = session();
-    $messages = $session->get($type, []);
-    $messages[] = $msg;
-    $session->set($type, $messages);
+    $message = $session->get('msg', '');
+    $message .= alert($class, $msg, true);
+    $session->set('msg', $message);
 
     return '';
 }

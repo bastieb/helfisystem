@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Helpers\Translation;
 
 use Engelsystem\Config\Config;
@@ -10,13 +8,13 @@ use Engelsystem\Http\Request;
 use Gettext\Loader\MoLoader;
 use Gettext\Loader\PoLoader;
 use Gettext\Translations;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class TranslationServiceProvider extends ServiceProvider
 {
-    protected GettextTranslator|array $translators = [];
+    /** @var GettextTranslator */
+    protected $translators = [];
 
     public function register(): void
     {
@@ -56,6 +54,7 @@ class TranslationServiceProvider extends ServiceProvider
     }
 
     /**
+     * @param string $locale
      * @codeCoverageIgnore
      */
     public function setLocale(string $locale): void
@@ -70,6 +69,10 @@ class TranslationServiceProvider extends ServiceProvider
         setlocale(LC_NUMERIC, 'C');
     }
 
+    /**
+     * @param string $locale
+     * @return GettextTranslator
+     */
     public function getTranslator(string $locale): GettextTranslator
     {
         if (!isset($this->translators[$locale])) {
@@ -77,14 +80,18 @@ class TranslationServiceProvider extends ServiceProvider
 
             /** @var Translations $translations */
             $translations = $this->app->call([Translations::class, 'create']);
-            $path = $this->app->get('path.lang');
             foreach ($names as $name) {
-                $file = $this->getFile($locale, $path, $name);
-                $translations = $this->loadFile($file, $translations);
-            }
+                $file = $this->getFile($locale, $name);
+                if (Str::endsWith($file, '.mo')) {
+                    /** @var MoLoader $loader */
+                    $loader = $this->app->make(MoLoader::class);
+                } else {
+                    /** @var PoLoader $loader */
+                    $loader = $this->app->make(PoLoader::class);
+                }
 
-            $file = $this->getFile($locale, $this->app->get('path.config') . '/lang', 'custom');
-            $translations = $this->loadFile($file, $translations);
+                $translations = $loader->loadFile($file, $translations);
+            }
 
             $translator = GettextTranslator::createFromTranslations($translations);
             $this->translators[$locale] = $translator;
@@ -93,20 +100,14 @@ class TranslationServiceProvider extends ServiceProvider
         return $this->translators[$locale];
     }
 
-    protected function loadFile(string $file, Translations $translations): Translations
+    /**
+     * @param string $locale
+     * @param string $name
+     * @return string
+     */
+    protected function getFile(string $locale, string $name = 'default'): string
     {
-        if (!file_exists($file)) {
-            return $translations;
-        }
-
-        $loader = $this->getFileLoader($file);
-
-        return $loader->loadFile($file, $translations);
-    }
-
-    protected function getFile(string $locale, string $basePath, string $name = 'default'): string
-    {
-        $filepath = $basePath . '/' . $locale . '/' . $name;
+        $filepath = $file = $this->app->get('path.lang') . '/' . $locale . '/' . $name;
         $file = $filepath . '.mo';
 
         if (!file_exists($file)) {
@@ -114,19 +115,5 @@ class TranslationServiceProvider extends ServiceProvider
         }
 
         return $file;
-    }
-
-    /**
-     * @throws BindingResolutionException
-     */
-    protected function getFileLoader(string $file): MoLoader|PoLoader
-    {
-        if (Str::endsWith($file, '.mo')) {
-            /** @var MoLoader $loader */
-            return $this->app->make(MoLoader::class);
-        } else {
-            /** @var PoLoader $loader */
-            return $this->app->make(PoLoader::class);
-        }
     }
 }

@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Application;
 use Engelsystem\Controllers\BaseController;
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Http\Exceptions\HttpForbidden;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -17,21 +16,28 @@ class RequestHandler implements MiddlewareInterface
 {
     use ResolvesMiddlewareTrait;
 
-    public function __construct(protected Application $container)
+    /** @var Application */
+    protected $container;
+
+    /**
+     * @param Application $container
+     */
+    public function __construct(Application $container)
     {
+        $this->container = $container;
     }
 
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
+     *
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $requestHandler = $request->getAttribute('route-request-handler');
-        $this->container->instance(ServerRequestInterface::class, $request);
-        $this->container->instance('request', $request);
-
-        /** @var CallableHandler|MiddlewareInterface|RequestHandlerInterface $requestHandler */
         $requestHandler = $this->resolveRequestHandler($requestHandler);
 
         if ($requestHandler instanceof CallableHandler) {
@@ -46,19 +52,21 @@ class RequestHandler implements MiddlewareInterface
             return $requestHandler->process($request, $handler);
         }
 
-        /**
-         * Is RequestHandlerInterface
-         * @see RequestHandlerInterface
-         */
-        return $requestHandler->handle($request);
+        if ($requestHandler instanceof RequestHandlerInterface) {
+            return $requestHandler->handle($request);
+        }
+
+        throw new InvalidArgumentException('Unable to process request handler of type ' . gettype($requestHandler));
     }
 
     /**
      * Resolve the given class
+     *
+     * @param string|callable|MiddlewareInterface|RequestHandlerInterface $handler
+     * @return MiddlewareInterface|RequestHandlerInterface
      */
-    protected function resolveRequestHandler(
-        string|callable|MiddlewareInterface|RequestHandlerInterface $handler
-    ): MiddlewareInterface|RequestHandlerInterface {
+    protected function resolveRequestHandler($handler)
+    {
         if (is_string($handler) && mb_strpos($handler, '@') !== false) {
             list($class, $method) = explode('@', $handler, 2);
             if (!class_exists($class) && !$this->container->has($class)) {
@@ -84,6 +92,10 @@ class RequestHandler implements MiddlewareInterface
 
     /**
      * Check required page permissions
+     *
+     * @param BaseController $controller
+     * @param string         $method
+     * @return bool
      */
     protected function checkPermissions(BaseController $controller, string $method): bool
     {
@@ -93,7 +105,7 @@ class RequestHandler implements MiddlewareInterface
 
         // Merge action permissions
         if (isset($permissions[$method])) {
-            $permissions = array_merge($permissions, (array) $permissions[$method]);
+            $permissions = array_merge($permissions, (array)$permissions[$method]);
         }
 
         foreach ($permissions as $key => $permission) {

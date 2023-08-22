@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,9 +10,9 @@ class CreateLogEntriesTable extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
-        $this->schema->create('log_entries', function (Blueprint $table): void {
+        $this->schema->create('log_entries', function (Blueprint $table) {
             $table->increments('id');
             $table->string('level', 20);
             $table->text('message');
@@ -34,9 +32,9 @@ class CreateLogEntriesTable extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
-        $this->schema->create('LogEntries', function (Blueprint $table): void {
+        $this->schema->create('LogEntries', function (Blueprint $table) {
             $table->increments('id');
             $table->string('level', 20);
             $table->text('message');

@@ -1,23 +1,27 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\SessionHandlers;
 
 use Engelsystem\Database\Database;
-use Engelsystem\Helpers\Carbon;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class DatabaseHandler extends AbstractHandler
 {
-    public function __construct(protected Database $database)
+    /** @var Database */
+    protected $database;
+
+    /**
+     * @param Database $database
+     */
+    public function __construct(Database $database)
     {
+        $this->database = $database;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function read(string $id): string
+    public function read($id): string
     {
         $session = $this->getQuery()
             ->where('id', '=', $id)
@@ -29,11 +33,11 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function write(string $id, string $data): bool
+    public function write($id, $data): bool
     {
         $values = [
             'payload'       => $data,
-            'last_activity' => Carbon::now(),
+            'last_activity' => $this->getCurrentTimestamp(),
         ];
 
         $session = $this->getQuery()
@@ -58,7 +62,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function destroy(string $id): bool
+    public function destroy($id): bool
     {
         $this->getQuery()
             ->where('id', '=', $id)
@@ -70,20 +74,35 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function gc(int $max_lifetime): int|false
+    public function gc($maxLifetime)
     {
-        $sessionDays = config('session')['lifetime'];
-        $deleteBefore = Carbon::now()->subDays($sessionDays);
+        $timestamp = $this->getCurrentTimestamp(-$maxLifetime);
 
-        return $this->getQuery()
-            ->where('last_activity', '<', $deleteBefore)
+        $this->getQuery()
+            ->where('last_activity', '<', $timestamp)
             ->delete();
+
+        return true;
     }
 
+    /**
+     * @return QueryBuilder
+     */
     protected function getQuery(): QueryBuilder
     {
         return $this->database
             ->getConnection()
             ->table('sessions');
+    }
+
+    /**
+     * Format the SQL timestamp
+     *
+     * @param int $diff
+     * @return string
+     */
+    protected function getCurrentTimestamp(int $diff = 0): string
+    {
+        return date('Y-m-d H:i:s', strtotime(sprintf('%+d seconds', $diff)));
     }
 }

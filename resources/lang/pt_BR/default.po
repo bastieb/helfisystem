@@ -139,6 +139,7 @@ msgid "The buildup start date has to be before the teardown end date."
 msgstr "A data de montagem deve ser anterior a data de desmontagem do evento."
 
 #: includes/controller/event_config_controller.php:92
+#: includes/pages/user_settings.php:77
 msgid "Settings saved."
 msgstr "Configurações salvas."
 
@@ -514,26 +515,28 @@ msgid "Token is not correct."
 msgstr "O token não está correto."
 
 #: includes/controller/users_controller.php:227
-#: includes/pages/guest_login.php:102
+#: includes/pages/guest_login.php:102 includes/pages/user_settings.php:97
 msgid "Your passwords don't match."
 msgstr "Suas senhas não correspondem."
 
 #: includes/controller/users_controller.php:231
+#: includes/pages/user_settings.php:95
 msgid "Your password is to short (please use at least 6 characters)."
 msgstr "Sua senha é muito curta (por favor use no mínimo 6 caracteres)."
 
 #: includes/controller/users_controller.php:236
+#: includes/pages/user_settings.php:99
 msgid "Password saved."
 msgstr "Sua senha foi salva."
 
 #: includes/controller/users_controller.php:257
 #: includes/controller/users_controller.php:261
-#: includes/pages/guest_login.php:67
+#: includes/pages/guest_login.php:67 includes/pages/user_settings.php:21
 msgid "E-mail address is not correct."
 msgstr "E-mail não está correto."
 
 #: includes/controller/users_controller.php:265
-#: includes/pages/guest_login.php:71
+#: includes/pages/guest_login.php:71 includes/pages/user_settings.php:25
 msgid "Please enter your e-mail."
 msgstr "Por favor digite seu e-mail."
 
@@ -1060,6 +1063,11 @@ msgstr "Autor"
 msgid "Subject"
 msgstr "Assunto"
 
+#: includes/pages/admin_news.php:33 includes/pages/user_messages.php:79
+#: includes/pages/user_news.php:106 includes/pages/user_news.php:162
+msgid "Message"
+msgstr "Mensagem"
+
 #: includes/pages/admin_news.php:34 includes/pages/user_news.php:163
 msgid "Meeting"
 msgstr "Reunião"
@@ -1296,15 +1304,15 @@ msgstr "Logout"
 
 #: includes/pages/guest_login.php:56
 #, php-format
-msgid "Your nick \"%s\" already exists."
-msgstr "Seu apelido \"%s\" já existe."
+msgid "Your nick &quot;%s&quot; already exists."
+msgstr "Seu apelido &quot;%s&quot; já existe."
 
 #: includes/pages/guest_login.php:60
 #, php-format
 msgid "Your nick &quot;%s&quot; is too short (min. 2 characters)."
 msgstr "Seu apelido &quot;%s&quot; é muito pequeno (mínimo 2 caracteres)."
 
-#: includes/pages/guest_login.php:86
+#: includes/pages/guest_login.php:86 includes/pages/user_settings.php:36
 msgid "Please check your jabber account information."
 msgstr "Por favor verifique a informação da sua conta jabber."
 
@@ -1317,7 +1325,7 @@ msgstr "Por favor escolha o tamanho da camisa."
 msgid "Your password is too short (please use at least %s characters)."
 msgstr "Sua senha é muito curta (por favor use pelo menos %s caracteres)."
 
-#: includes/pages/guest_login.php:115
+#: includes/pages/guest_login.php:115 includes/pages/user_settings.php:52
 msgid ""
 "Please enter your planned date of arrival. It should be after the buildup "
 "start date and before teardown end date."
@@ -1339,7 +1347,8 @@ msgstr ""
 
 #: includes/pages/guest_login.php:229 includes/view/User_view.php:50
 #, php-format
-msgid "settings.profile.email_shiftinfo"
+msgid ""
+"The %s is allowed to send me an email (e.g. when my shifts change)"
 msgstr ""
 "Permito que o %s me envie emails (por exemplo, quando meus turnos "
 "mudam)"
@@ -1444,6 +1453,10 @@ msgstr "Por favor leia sobre as tarefas que pode realizar para nos ajudar."
 msgid "Please sign up, if you want to help us!"
 msgstr "Se você quer nos ajudar, por favor se registre!"
 
+#: includes/pages/user_messages.php:4
+msgid "Messages"
+msgstr "Mensagens"
+
 #: includes/pages/user_messages.php:26
 msgid "Select recipient..."
 msgstr "Selecionar recipiente..."
@@ -1499,13 +1512,13 @@ msgstr "Resetar a chave API"
 
 #: includes/pages/user_myshifts.php:27
 msgid ""
-"If you reset the key, the url to your iCal- and JSON-export and your atom/rss "
+"If you reset the key, the url to your iCal- and JSON-export and your atom "
 "feed changes! You have to update it in every application using one of these "
 "exports."
 msgstr ""
 "Se você reconfigurar a chave, as urls para seu iCal, a exportação em formato "
 "JSON \n"
-"e seu feed atom/rss será alterada! Você precisará atualizá-las em todas as "
+"e seu feed atom será alterada! Você precisará atualizá-las em todas as "
 "aplicações que estiverem \n"
 "usando uma delas."
 
@@ -1589,10 +1602,11 @@ msgstr "Chamada incompletada, falta o ID da pergunta."
 msgid "No question found."
 msgstr "Nenhuma dúvida encontrada."
 
-#: includes/view/User_view.php:332
+#: includes/pages/user_settings.php:4 includes/view/User_view.php:332
 msgid "Settings"
 msgstr "Configurações"
 
+#: includes/pages/user_settings.php:62
 msgid ""
 "Please enter your planned date of departure. It should be after your planned "
 "arrival date and after buildup start date and before teardown end date."
@@ -1601,11 +1615,17 @@ msgstr ""
 "chegada\n"
 "e ao início da montagem, e anterior à data de desmontagem."
 
+#: includes/pages/user_settings.php:93
 msgid "-> not OK. Please try again."
 msgstr "-> não OK. Por favor tente novamente."
 
+#: includes/pages/user_settings.php:101
 msgid "Failed setting password."
 msgstr "A alteração da senha falhaou."
+
+#: includes/pages/user_settings.php:126
+msgid "Theme changed."
+msgstr "Tema alterado."
 
 #: includes/pages/user_shifts.php:82
 msgid "The administration has not configured any rooms yet."
@@ -1801,8 +1821,8 @@ msgid "7,5t Truck"
 msgstr "Caminhão 7,5t"
 
 #: includes/view/AngelTypes_view.php:184
-msgid "12t Truck"
-msgstr "Caminhão 12t"
+msgid "12,5t Truck"
+msgstr "Caminhão 12,5t"
 
 #: includes/view/AngelTypes_view.php:185
 #: includes/view/UserDriverLicenses_view.php:31
@@ -2164,11 +2184,11 @@ msgid "Truck 7,5t"
 msgstr "Caminhão 7,5t"
 
 #: includes/view/UserDriverLicenses_view.php:30
-msgid "Truck 12t"
-msgstr "Caminhão 12t"
+msgid "Truck 12,5t"
+msgstr "Caminhão 12,5t"
 
 #: includes/view/User_view.php:7
-msgid "form.select_placeholder"
+msgid "Please select..."
 msgstr "Por favor selecione..."
 
 #: includes/view/User_view.php:38
@@ -2199,6 +2219,22 @@ msgstr "Nova senha:"
 #: includes/view/User_view.php:64
 msgid "Password confirmation:"
 msgstr "Confirmação de senha:"
+
+#: includes/view/User_view.php:68
+msgid "Here you can choose your color settings:"
+msgstr "Aqui você pode selecionar sua configuração de cor:"
+
+#: includes/view/User_view.php:69
+msgid "Color settings:"
+msgstr "Configuração de cor:"
+
+#: includes/view/User_view.php:73
+msgid "Here you can choose your language:"
+msgstr "Aqui você pode selecionar seu idioma:"
+
+#: includes/view/User_view.php:74
+msgid "Language:"
+msgstr "Idioma:"
 
 #: includes/view/User_view.php:88
 msgid "Registration successful"

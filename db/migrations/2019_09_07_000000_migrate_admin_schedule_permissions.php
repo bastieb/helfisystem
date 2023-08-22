@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -11,7 +9,7 @@ class MigrateAdminSchedulePermissions extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
         if (!$this->schema->hasTable('Privileges')) {
             return;
@@ -31,7 +29,7 @@ class MigrateAdminSchedulePermissions extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
         if (!$this->schema->hasTable('Privileges')) {
             return;

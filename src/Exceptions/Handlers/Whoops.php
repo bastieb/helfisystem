@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Exceptions\Handlers;
 
 use Engelsystem\Application;
+use Engelsystem\Container\Container;
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Http\Request;
 use Throwable;
@@ -14,14 +13,24 @@ use Whoops\Run as WhoopsRunner;
 
 class Whoops extends Legacy implements HandlerInterface
 {
+    /** @var Application */
+    protected $app;
+
     /**
      * Whoops constructor.
+     *
+     * @param Container $app
      */
-    public function __construct(protected Application $app)
+    public function __construct(Container $app)
     {
+        $this->app = $app;
     }
 
-    public function render(Request $request, Throwable $e): void
+    /**
+     * @param Request   $request
+     * @param Throwable $e
+     */
+    public function render($request, Throwable $e)
     {
         $whoops = $this->app->make(WhoopsRunner::class);
         $handler = $this->getPrettyPageHandler($e);
@@ -37,19 +46,16 @@ class Whoops extends Legacy implements HandlerInterface
         echo $whoops->handleException($e);
     }
 
-    protected function getPrettyPageHandler(Throwable $e): PrettyPageHandler
+    /**
+     * @param Throwable $e
+     * @return PrettyPageHandler
+     */
+    protected function getPrettyPageHandler(Throwable $e)
     {
-        /** @var PrettyPageHandler $handler */
         $handler = $this->app->make(PrettyPageHandler::class);
 
         $handler->setPageTitle('Just another ' . get_class($e) . ' to fix :(');
-        $handler->setApplicationPaths([
-            realpath(__DIR__ . '/../..'),
-            realpath(__DIR__ . '/../../../includes/'),
-            realpath(__DIR__ . '/../../../db/'),
-            realpath(__DIR__ . '/../../../tests/'),
-            realpath(__DIR__ . '/../../../public/'),
-        ]);
+        $handler->setApplicationPaths([realpath(__DIR__ . '/../..')]);
 
         $data = $this->getData();
         $handler->addDataTable('Application', $data);
@@ -57,7 +63,10 @@ class Whoops extends Legacy implements HandlerInterface
         return $handler;
     }
 
-    protected function getJsonResponseHandler(): JsonResponseHandler
+    /**
+     * @return JsonResponseHandler
+     */
+    protected function getJsonResponseHandler()
     {
         $handler = $this->app->make(JsonResponseHandler::class);
         $handler->setJsonApi(true);
@@ -68,8 +77,10 @@ class Whoops extends Legacy implements HandlerInterface
 
     /**
      * Aggregate application data
+     *
+     * @return array
      */
-    protected function getData(): array
+    protected function getData()
     {
         $data = [];
         $user = null;

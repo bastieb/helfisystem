@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http;
 
 use Engelsystem\Config\Config;
@@ -16,7 +14,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 class SessionServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
         $sessionStorage = $this->getSessionStorage();
         $this->app->instance('session.storage', $sessionStorage);
@@ -40,8 +38,10 @@ class SessionServiceProvider extends ServiceProvider
 
     /**
      * Returns the session storage
+     *
+     * @return SessionStorageInterface
      */
-    protected function getSessionStorage(): SessionStorageInterface
+    protected function getSessionStorage()
     {
         if ($this->isCli()) {
             return $this->app->make(MockArraySessionStorage::class);
@@ -51,17 +51,17 @@ class SessionServiceProvider extends ServiceProvider
         $config = $this->app->get('config');
         $sessionConfig = $config->get('session');
 
-        $handler = match ($sessionConfig['driver']) {
-            'pdo'   => $this->app->make(DatabaseHandler::class),
-            default => null,
-        };
+        $handler = null;
+        switch ($sessionConfig['driver']) {
+            case 'pdo':
+                $handler = $this->app->make(DatabaseHandler::class);
+                break;
+        }
 
         return $this->app->make(NativeSessionStorage::class, [
             'options' => [
-                'cookie_secure'   => true,
                 'cookie_httponly' => true,
                 'name'            => $sessionConfig['name'],
-                'cookie_lifetime' => (int) ($sessionConfig['lifetime'] * 24 * 60 * 60),
             ],
             'handler' => $handler,
         ]);
@@ -69,8 +69,10 @@ class SessionServiceProvider extends ServiceProvider
 
     /**
      * Test if is called from cli
+     *
+     * @return bool
      */
-    protected function isCli(): bool
+    protected function isCli()
     {
         return PHP_SAPI == 'cli' || PHP_SAPI == 'phpdbg';
     }

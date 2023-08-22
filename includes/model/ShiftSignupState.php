@@ -2,25 +2,72 @@
 
 namespace Engelsystem;
 
-use Engelsystem\Models\Shifts\ShiftSignupStatus;
-
 /**
  * BO to represent if there are free slots on a shift for a given angeltype
  * and if signup for a given user is possible (or not, because of collisions, etc.)
  */
 class ShiftSignupState
 {
+    /**
+     * Shift has free places
+     */
+    const FREE = 'FREE';
+
+    /**
+     * Shift collides with users shifts
+     */
+    const COLLIDES = 'COLLIDES';
+
+    /**
+     * User cannot join because of a restricted angeltype or user is not in the angeltype
+     */
+    const ANGELTYPE = 'ANGELTYPE';
+
+    /**
+     * Shift is full
+     */
+    const OCCUPIED = 'OCCUPIED';
+
+    /**
+     * User is admin and can do what he wants.
+     */
+    const ADMIN = 'ADMIN';
+
+    /**
+     * Shift has already ended, no signup
+     */
+    const SHIFT_ENDED = 'SHIFT_ENDED';
+
+    /**
+     * Shift is not available yet
+     */
+    const NOT_YET = 'NOT_YET';
+
+    /**
+     * User is already signed up
+     */
+    const SIGNED_UP = 'SIGNED_UP';
+
+    /**
+     * User has to be arrived
+     */
+    const NOT_ARRIVED = 'NOT_ARRIVED';
+
+    /** @var string */
+    private $state;
+
     /** @var int */
     private $freeEntries;
 
     /**
      * ShiftSignupState constructor.
      *
-     * @param ShiftSignupStatus $state
-     * @param int               $free_entries
+     * @param string $state
+     * @param int    $free_entries
      */
-    public function __construct(private ShiftSignupStatus $state, $free_entries)
+    public function __construct($state, $free_entries)
     {
+        $this->state = $state;
         $this->freeEntries = $free_entries;
     }
 
@@ -39,19 +86,34 @@ class ShiftSignupState
     }
 
     /**
-     * @param ShiftSignupStatus $state
+     * @param string $state
      * @return int
      */
-    private function valueForState(ShiftSignupStatus $state)
+    private function valueForState($state)
     {
-        return match ($state) {
-            ShiftSignupStatus::NOT_ARRIVED, ShiftSignupStatus::NOT_YET, ShiftSignupStatus::SHIFT_ENDED => 100,
-            ShiftSignupStatus::SIGNED_UP => 90,
-            ShiftSignupStatus::FREE      => 80,
-            ShiftSignupStatus::ANGELTYPE, ShiftSignupStatus::COLLIDES => 70,
-            ShiftSignupStatus::OCCUPIED,  ShiftSignupStatus::ADMIN    => 60,
-            default => 0,
-        };
+        switch ($state) {
+            case ShiftSignupState::NOT_ARRIVED:
+            case ShiftSignupState::NOT_YET:
+            case ShiftSignupState::SHIFT_ENDED:
+                return 100;
+
+            case ShiftSignupState::SIGNED_UP:
+                return 90;
+
+            case ShiftSignupState::FREE:
+                return 80;
+
+            case ShiftSignupState::ANGELTYPE:
+            case ShiftSignupState::COLLIDES:
+                return 70;
+
+            case ShiftSignupState::OCCUPIED:
+            case ShiftSignupState::ADMIN:
+                return 60;
+
+            default:
+                return 0;
+        }
     }
 
     /**
@@ -61,18 +123,21 @@ class ShiftSignupState
      */
     public function isSignupAllowed()
     {
-        return match ($this->state) {
-            ShiftSignupStatus::FREE, ShiftSignupStatus::ADMIN => true,
-            default => false,
-        };
+        switch ($this->state) {
+            case ShiftSignupState::FREE:
+            case ShiftSignupState::ADMIN:
+                return true;
+        }
+
+        return false;
     }
 
     /**
      * Return the shift signup state
      *
-     * @return ShiftSignupStatus
+     * @return string
      */
-    public function getState(): ShiftSignupStatus
+    public function getState()
     {
         return $this->state;
     }

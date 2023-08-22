@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Translation\Translator;
@@ -11,10 +9,20 @@ use Twig\TwigFunction;
 
 class Translation extends TwigExtension
 {
-    public function __construct(protected Translator $translator)
+    /** @var Translator */
+    protected $translator;
+
+    /**
+     * @param Translator $translator
+     */
+    public function __construct(Translator $translator)
     {
+        $this->translator = $translator;
     }
 
+    /**
+     * @return array
+     */
     public function getFilters(): array
     {
         return [

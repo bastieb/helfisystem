@@ -1,11 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Exceptions;
 
 class HttpRedirect extends HttpException
 {
+    /**
+     * @param string $url
+     * @param int    $statusCode
+     * @param array  $headers
+     */
     public function __construct(
         string $url,
         int $statusCode = 302,

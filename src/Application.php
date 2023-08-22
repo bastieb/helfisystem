@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem;
 
 use Engelsystem\Config\Config;
@@ -14,22 +12,28 @@ use Psr\Http\Server\MiddlewareInterface;
 
 class Application extends Container
 {
-    protected ?string $appPath = null;
+    /** @var string|null */
+    protected $appPath = null;
 
-    protected bool $isBootstrapped = false;
+    /** @var bool */
+    protected $isBootstrapped = false;
 
     /** @var MiddlewareInterface[]|string[] */
-    protected array $middleware;
+    protected $middleware;
 
     /**
      * Registered service providers
+     *
+     * @var array
      */
-    protected array $serviceProviders = [];
+    protected $serviceProviders = [];
 
     /**
      * Application constructor.
+     *
+     * @param string $appPath
      */
-    public function __construct(string $appPath = null)
+    public function __construct($appPath = null)
     {
         if (!is_null($appPath)) {
             $this->setAppPath($appPath);
@@ -38,7 +42,7 @@ class Application extends Container
         $this->registerBaseBindings();
     }
 
-    protected function registerBaseBindings(): void
+    protected function registerBaseBindings()
     {
         static::setInstance($this);
         Container::setInstance($this);
@@ -51,7 +55,11 @@ class Application extends Container
         $this->bind(ContainerInterface::class, self::class);
     }
 
-    public function register(string|ServiceProvider $provider): ServiceProvider
+    /**
+     * @param string|ServiceProvider $provider
+     * @return ServiceProvider
+     */
+    public function register($provider)
     {
         if (is_string($provider)) {
             $provider = $this->make($provider);
@@ -73,7 +81,7 @@ class Application extends Container
      *
      * @param Config|null $config
      */
-    public function bootstrap(Config $config = null): void
+    public function bootstrap(Config $config = null)
     {
         if ($this->isBootstrapped) {
             return;
@@ -94,16 +102,14 @@ class Application extends Container
         $this->isBootstrapped = true;
     }
 
-    protected function registerPaths(): void
+    protected function registerPaths()
     {
         $appPath = $this->appPath;
 
         $this->instance('path', $appPath);
         $this->instance('path.config', $appPath . DIRECTORY_SEPARATOR . 'config');
         $this->instance('path.resources', $appPath . DIRECTORY_SEPARATOR . 'resources');
-        $this->instance('path.public', $appPath . DIRECTORY_SEPARATOR . 'public');
         $this->instance('path.assets', $this->get('path.resources') . DIRECTORY_SEPARATOR . 'assets');
-        $this->instance('path.assets.public', $this->get('path.public') . DIRECTORY_SEPARATOR . 'assets');
         $this->instance('path.lang', $this->get('path.resources') . DIRECTORY_SEPARATOR . 'lang');
         $this->instance('path.views', $this->get('path.resources') . DIRECTORY_SEPARATOR . 'views');
         $this->instance('path.storage', $appPath . DIRECTORY_SEPARATOR . 'storage');
@@ -116,9 +122,10 @@ class Application extends Container
     /**
      * Set app base path
      *
+     * @param string $appPath
      * @return static
      */
-    public function setAppPath(string $appPath): static
+    public function setAppPath($appPath)
     {
         $appPath = realpath($appPath);
         $appPath = rtrim($appPath, DIRECTORY_SEPARATOR);
@@ -130,12 +137,18 @@ class Application extends Container
         return $this;
     }
 
-    public function path(): ?string
+    /**
+     * @return string|null
+     */
+    public function path()
     {
         return $this->appPath;
     }
 
-    public function isBooted(): bool
+    /**
+     * @return bool
+     */
+    public function isBooted()
     {
         return $this->isBootstrapped;
     }
@@ -143,7 +156,7 @@ class Application extends Container
     /**
      * @return MiddlewareInterface[]|string[]
      */
-    public function getMiddleware(): array
+    public function getMiddleware()
     {
         return $this->middleware;
     }

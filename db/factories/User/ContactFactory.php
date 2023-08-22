@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories\Engelsystem\Models\User;
 
 use Engelsystem\Models\User\Contact;
@@ -10,9 +8,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class ContactFactory extends Factory
 {
     /** @var string */
-    protected $model = Contact::class; // phpcs:ignore
+    protected $model = Contact::class;
 
-    public function definition(): array
+    /**
+     * @return array
+     */
+    public function definition()
     {
         return [
             'dect'   => $this->faker->optional()->numberBetween(1000, 9999),

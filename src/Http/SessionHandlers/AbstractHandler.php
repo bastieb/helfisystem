@@ -1,30 +1,36 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\SessionHandlers;
 
 use SessionHandlerInterface;
 
 abstract class AbstractHandler implements SessionHandlerInterface
 {
-    protected string $name;
+    /** @var string */
+    protected $name;
 
-    protected string $sessionPath;
+    /** @var string */
+    protected $sessionPath;
 
     /**
      * Bootstrap the session handler
+     *
+     * @param string $sessionPath
+     * @param string $name
+     * @return bool
      */
-    public function open(string $path, string $name): bool
+    public function open($sessionPath, $name): bool
     {
         $this->name = $name;
-        $this->sessionPath = $path;
+        $this->sessionPath = $sessionPath;
 
         return true;
     }
 
     /**
      * Shutdown the session handler
+     *
+     * @return bool
      */
     public function close(): bool
     {
@@ -33,24 +39,38 @@ abstract class AbstractHandler implements SessionHandlerInterface
 
     /**
      * Remove old sessions
+     *
+     * @param int $maxLifetime
+     * @return bool
      */
-    public function gc(int $max_lifetime): int|false
+    #[\ReturnTypeWillChange]
+    public function gc($maxLifetime)
     {
-        return 0;
+        return true;
     }
 
     /**
      * Read session data
+     *
+     * @param string $id
+     * @return string
      */
-    abstract public function read(string $id): string;
+    abstract public function read($id): string;
 
     /**
      * Write session data
+     *
+     * @param string $id
+     * @param string $data
+     * @return bool
      */
-    abstract public function write(string $id, string $data): bool;
+    abstract public function write($id, $data): bool;
 
     /**
      * Delete a session
+     *
+     * @param string $id
+     * @return bool
      */
-    abstract public function destroy(string $id): bool;
+    abstract public function destroy($id): bool;
 }

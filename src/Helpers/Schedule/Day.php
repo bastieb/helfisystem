@@ -9,23 +9,27 @@ use Carbon\Carbon;
 class Day
 {
     /** @var string required */
-    protected string $date;
+    protected $date;
 
     /** @var Carbon required */
-    protected Carbon $start;
+    protected $start;
 
     /** @var Carbon required */
-    protected Carbon $end;
+    protected $end;
 
     /** @var int required */
-    protected int $index;
+    protected $index;
 
     /** @var Room[] */
-    protected array $room;
+    protected $room;
 
     /**
      * Day constructor.
      *
+     * @param string $date
+     * @param Carbon $start
+     * @param Carbon $end
+     * @param int    $index
      * @param Room[] $rooms
      */
     public function __construct(
@@ -42,21 +46,33 @@ class Day
         $this->room = $rooms;
     }
 
+    /**
+     * @return string
+     */
     public function getDate(): string
     {
         return $this->date;
     }
 
+    /**
+     * @return Carbon
+     */
     public function getStart(): Carbon
     {
         return $this->start;
     }
 
+    /**
+     * @return Carbon
+     */
     public function getEnd(): Carbon
     {
         return $this->end;
     }
 
+    /**
+     * @return int
+     */
     public function getIndex(): int
     {
         return $this->index;

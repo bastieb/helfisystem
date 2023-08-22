@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Authenticator;
@@ -10,8 +8,15 @@ use Twig\TwigFunction;
 
 class Authentication extends TwigExtension
 {
-    public function __construct(protected Authenticator $auth)
+    /** @var Authenticator */
+    protected $auth;
+
+    /**
+     * @param Authenticator $auth
+     */
+    public function __construct(Authenticator $auth)
     {
+        $this->auth = $auth;
     }
 
     /**
@@ -26,11 +31,17 @@ class Authentication extends TwigExtension
         ];
     }
 
+    /**
+     * @return bool
+     */
     public function isAuthenticated(): bool
     {
-        return (bool) $this->auth->user();
+        return (bool)$this->auth->user();
     }
 
+    /**
+     * @return bool
+     */
     public function isGuest(): bool
     {
         return !$this->isAuthenticated();

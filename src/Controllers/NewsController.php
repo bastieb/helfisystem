@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers;
 
 use Engelsystem\Config\Config;
@@ -18,57 +16,110 @@ class NewsController extends BaseController
 {
     use HasUserNotifications;
 
-    /** @var array<string, string> */
-    protected array $permissions = [
+    /** @var Authenticator */
+    protected $auth;
+
+    /** @var NewsComment */
+    protected $comment;
+
+    /** @var Config */
+    protected $config;
+
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var News */
+    protected $news;
+
+    /** @var Redirector */
+    protected $redirect;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var Request */
+    protected $request;
+
+    /** @var array */
+    protected $permissions = [
         'news',
         'meetings'      => 'user_meetings',
         'comment'       => 'news_comments',
         'deleteComment' => 'news_comments',
     ];
 
+    /**
+     * @param Authenticator   $auth
+     * @param Config          $config
+     * @param NewsComment     $comment
+     * @param LoggerInterface $log
+     * @param News            $news
+     * @param Redirector      $redirector
+     * @param Response        $response
+     * @param Request         $request
+     */
     public function __construct(
-        protected Authenticator $auth,
-        protected NewsComment $comment,
-        protected Config $config,
-        protected LoggerInterface $log,
-        protected News $news,
-        protected Redirector $redirect,
-        protected Response $response,
-        protected Request $request
+        Authenticator $auth,
+        NewsComment $comment,
+        Config $config,
+        LoggerInterface $log,
+        News $news,
+        Redirector $redirector,
+        Response $response,
+        Request $request
     ) {
+        $this->auth = $auth;
+        $this->comment = $comment;
+        $this->config = $config;
+        $this->log = $log;
+        $this->news = $news;
+        $this->redirect = $redirector;
+        $this->response = $response;
+        $this->request = $request;
     }
 
-    public function index(): Response
+    /**
+     * @return Response
+     */
+    public function index()
     {
         return $this->showOverview();
     }
 
+    /**
+     * @return Response
+     */
     public function meetings(): Response
     {
         return $this->showOverview(true);
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function show(Request $request): Response
     {
-        $newsId = (int) $request->getAttribute('news_id');
-
         $news = $this->news
             ->with('user')
             ->with('comments')
-            ->findOrFail($newsId);
+            ->findOrFail($request->getAttribute('id'));
 
         return $this->renderView('pages/news/news.twig', ['news' => $news]);
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function comment(Request $request): Response
     {
-        $newsId = (int) $request->getAttribute('news_id');
-
         $data = $this->validate($request, [
             'comment' => 'required',
         ]);
         $user = $this->auth->user();
-        $news = $this->news->findOrFail($newsId);
+        $news = $this->news
+            ->findOrFail($request->getAttribute('id'));
 
         /** @var NewsComment $comment */
         $comment = $news->comments()->create([
@@ -89,10 +140,14 @@ class NewsController extends BaseController
         return $this->redirect->back();
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function deleteComment(Request $request): Response
     {
-        $commentId = (int) $request->getAttribute('comment_id');
-
+        $id = $request->getAttribute('id');
         $this->validate(
             $request,
             [
@@ -100,7 +155,7 @@ class NewsController extends BaseController
             ]
         );
 
-        $comment = $this->comment->findOrFail($commentId);
+        $comment = $this->comment->findOrFail($id);
         if (
             $comment->user->id != $this->auth->user()->id
             && !$this->auth->can('admin_news')
@@ -120,6 +175,10 @@ class NewsController extends BaseController
         return $this->redirect->to('/news/' . $comment->news->id);
     }
 
+    /**
+     * @param bool $onlyMeetings
+     * @return Response
+     */
     protected function showOverview(bool $onlyMeetings = false): Response
     {
         $query = $this->news;
@@ -130,27 +189,22 @@ class NewsController extends BaseController
             $query = $query->where('is_meeting', true);
         }
 
-        $count = $query->count();
-        $pagesCount = max(1, ceil($count / $perPage));
-        $page = max(1, min($page, $pagesCount));
-
         $news = $query
             ->with('user')
             ->withCount('comments')
             ->orderByDesc('is_pinned')
-            ->orderByDesc('is_important')
             ->orderByDesc('updated_at')
-            ->orderByDesc('id')
             ->limit($perPage)
             ->offset(($page - 1) * $perPage)
             ->get();
+        $pagesCount = ceil($query->count() / $perPage);
 
         return $this->renderView(
             'pages/news/overview.twig',
             [
                 'news'          => $news,
-                'pages'         => $pagesCount,
-                'page'          => $page,
+                'pages'         => max(1, $pagesCount),
+                'page'          => max(1, min($page, $pagesCount)),
                 'only_meetings' => $onlyMeetings,
                 'is_overview'   => true,
             ]
@@ -158,10 +212,14 @@ class NewsController extends BaseController
     }
 
     /**
+     * @param string $page
      * @param array $data
+     * @return Response
      */
     protected function renderView(string $page, array $data): Response
     {
+        $data += $this->getNotifications();
+
         return $this->response->withView($page, $data);
     }
 }

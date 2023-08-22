@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\User;
 
 use Carbon\Carbon;
@@ -20,17 +18,13 @@ class PasswordReset extends HasUserModel
     use HasFactory;
 
     /** @var bool enable timestamps for created_at */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
     /** @var null Disable updated_at */
     public const UPDATED_AT = null;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
-    protected $fillable = [ // phpcs:ignore
+    /** The attributes that are mass assignable */
+    protected $fillable = [
         'user_id',
         'token',
     ];

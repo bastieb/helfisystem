@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -18,5 +16,5 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 abstract class BaseModel extends Model
 {
     /** @var bool Disable timestamps by default because of "Datensparsamkeit" */
-    public $timestamps = false; // phpcs:ignore
+    public $timestamps = false;
 }

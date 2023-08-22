@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Config;
 
 use Engelsystem\Application;
@@ -12,14 +10,24 @@ use Illuminate\Database\QueryException;
 
 class ConfigServiceProvider extends ServiceProvider
 {
-    protected array $configFiles = ['app.php', 'config.default.php', 'config.php'];
+    /** @var array */
+    protected $configFiles = ['app.php', 'config.default.php', 'config.php'];
 
-    public function __construct(Application $app, protected ?EventConfig $eventConfig = null)
+    /** @var EventConfig */
+    protected $eventConfig;
+
+    /**
+     * @param Application $app
+     * @param EventConfig $eventConfig
+     */
+    public function __construct(Application $app, EventConfig $eventConfig = null)
     {
         parent::__construct($app);
+
+        $this->eventConfig = $eventConfig;
     }
 
-    public function register(): void
+    public function register()
     {
         $config = $this->app->make(Config::class);
         $this->app->instance(Config::class, $config);
@@ -44,7 +52,7 @@ class ConfigServiceProvider extends ServiceProvider
         }
     }
 
-    public function boot(): void
+    public function boot()
     {
         if (!$this->eventConfig) {
             return;
@@ -75,8 +83,11 @@ class ConfigServiceProvider extends ServiceProvider
 
     /**
      * Get the config path
+     *
+     * @param string $path
+     * @return string
      */
-    protected function getConfigPath(string $path = ''): string
+    protected function getConfigPath($path = ''): string
     {
         return config_path($path);
     }

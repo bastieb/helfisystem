@@ -1,17 +1,15 @@
-const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
-const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
-
 const nodeEnv = (process.env.NODE_ENV || 'development').trim();
+const fs = require('fs');
 
 // eslint-disable-next-line
 const __DEV__ = nodeEnv !== 'production';
 
-const devtool = __DEV__ ? 'source-map' : undefined;
+const devtool = __DEV__ ? 'source-map' : undefined
 
 const plugins = [
   new webpack.DefinePlugin({
@@ -20,19 +18,12 @@ const plugins = [
     },
   }),
   new MiniCssExtractPlugin({
-    filename: '[name]-[contenthash].css',
-    chunkFilename: '[id]-[contenthash].css',
+    filename: '[name].css',
+    chunkFilename: '[id]-[hash].css',
   }),
-  new WebpackManifestPlugin({}),
 ];
 
-let themeFileNameRegex = /theme\d+/;
-
-if (process.env.THEMES) {
-  const themes = process.env.THEMES.replace(/,/g, '|');
-  themeFileNameRegex = new RegExp(`theme(${themes})\\.`);
-}
-
+const themeFileNameRegex = /theme\d+/;
 const themePath = path.resolve('resources/assets/themes');
 const themeEntries = fs
   .readdirSync(themePath)
@@ -46,7 +37,7 @@ module.exports = {
   mode: __DEV__ ? 'development' : 'production',
   context: __dirname,
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.js', '.jsx'],
   },
   entry: {
     ...themeEntries,
@@ -54,7 +45,7 @@ module.exports = {
   },
   output: {
     path: path.resolve('public/assets'),
-    filename: '[name]-[contenthash].js',
+    filename: '[name].js',
     publicPath: '',
     clean: true,
   },
@@ -64,39 +55,35 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         exclude: /(node_modules)/,
         loader: 'babel-loader',
       },
-      { test: /\.(jpg|eot|ttf|otf|svg|woff2?)(\?.*)?$/, type: 'asset/resource' },
+      { test: /\.(jpg|eot|ttf|otf|svg|woff2?)(\?.*)?$/, loader: 'file-loader' },
       { test: /\.json$/, loader: 'json-loader' },
       {
         test: /\.(scss|css)$/,
         use: [
           { loader: MiniCssExtractPlugin.loader },
-          { loader: 'css-loader' },
+          { loader: 'css-loader', options: { importLoaders: 1 } },
           {
             loader: 'postcss-loader',
             options: {
               postcssOptions: {
-                plugins: [['autoprefixer']],
+                plugins: [ [ 'autoprefixer', ], ],
               },
             },
-          },
-          {
-            loader: 'resolve-url-loader',
           },
           {
             loader: 'sass-loader',
             options: {
-              sourceMap: true,
               sassOptions: {
-                quietDeps: true,
-              },
-            },
+                quietDeps: true
+              }
+            }
           },
-        ],
-      },
+        ]
+      }
     ],
   },
   plugins,

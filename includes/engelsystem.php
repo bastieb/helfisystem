@@ -18,7 +18,6 @@ require __DIR__ . '/includes.php';
 /**
  * Check for maintenance
  */
-/** @var \Engelsystem\Application $app */
 if ($app->get('config')->get('maintenance')) {
     http_response_code(503);
     $url = $app->get(UrlGeneratorInterface::class);

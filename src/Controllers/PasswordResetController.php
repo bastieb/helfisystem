@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers;
 
 use Engelsystem\Http\Exceptions\HttpNotFound;
@@ -17,27 +15,56 @@ class PasswordResetController extends BaseController
 {
     use HasUserNotifications;
 
-    /** @var array<string, string> */
-    protected array $permissions = [
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var EngelsystemMailer */
+    protected $mail;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var SessionInterface */
+    protected $session;
+
+    /** @var array */
+    protected $permissions = [
         'reset'             => 'login',
         'postReset'         => 'login',
         'resetPassword'     => 'login',
         'postResetPassword' => 'login',
     ];
 
+    /**
+     * @param Response          $response
+     * @param SessionInterface  $session
+     * @param EngelsystemMailer $mail
+     * @param LoggerInterface   $log
+     */
     public function __construct(
-        protected Response $response,
-        protected SessionInterface $session,
-        protected EngelsystemMailer $mail,
-        protected LoggerInterface $log
+        Response $response,
+        SessionInterface $session,
+        EngelsystemMailer $mail,
+        LoggerInterface $log
     ) {
+        $this->log = $log;
+        $this->mail = $mail;
+        $this->response = $response;
+        $this->session = $session;
     }
 
+    /**
+     * @return Response
+     */
     public function reset(): Response
     {
         return $this->showView('pages/password/reset');
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function postReset(Request $request): Response
     {
         $data = $this->validate($request, [
@@ -49,7 +76,7 @@ class PasswordResetController extends BaseController
         if ($user) {
             $reset = (new PasswordReset())->findOrNew($user->id);
             $reset->user_id = $user->id;
-            $reset->token = bin2hex(random_bytes(16));
+            $reset->token = md5(random_bytes(64));
             $reset->save();
 
             $this->log->info(
@@ -61,13 +88,17 @@ class PasswordResetController extends BaseController
                 $user,
                 'Password recovery',
                 'emails/password-reset',
-                ['username' => $user->displayName, 'reset' => $reset]
+                ['username' => $user->name, 'reset' => $reset]
             );
         }
 
         return $this->showView('pages/password/reset-success', ['type' => 'email']);
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function resetPassword(Request $request): Response
     {
         $this->requireToken($request);
@@ -78,6 +109,10 @@ class PasswordResetController extends BaseController
         );
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function postResetPassword(Request $request): Response
     {
         $reset = $this->requireToken($request);
@@ -88,7 +123,7 @@ class PasswordResetController extends BaseController
         ]);
 
         if ($data['password'] !== $data['password_confirmation']) {
-            $this->addNotification('validation.password.confirmed', NotificationType::ERROR);
+            $this->addNotification('validation.password.confirmed', 'errors');
 
             return $this->showView('pages/password/reset-form');
         }
@@ -99,15 +134,26 @@ class PasswordResetController extends BaseController
         return $this->showView('pages/password/reset-success', ['type' => 'reset']);
     }
 
-    protected function showView(string $view = 'pages/password/reset', array $data = []): Response
+    /**
+     * @param string $view
+     * @param array  $data
+     * @return Response
+     */
+    protected function showView($view = 'pages/password/reset', $data = []): Response
     {
-        return $this->response->withView($view, $data);
+        return $this->response->withView(
+            $view,
+            array_merge_recursive($this->getNotifications(), $data)
+        );
     }
 
+    /**
+     * @param Request $request
+     * @return PasswordReset
+     */
     protected function requireToken(Request $request): PasswordReset
     {
         $token = $request->getAttribute('token');
-
         /** @var PasswordReset|null $reset */
         $reset = PasswordReset::whereToken($token)->first();
 

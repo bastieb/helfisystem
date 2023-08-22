@@ -1,8 +1,9 @@
 [![pipeline status](https://chaos.expert/engelsystem/engelsystem/badges/main/pipeline.svg)](https://chaos.expert/engelsystem/engelsystem/commits/main)
 [![coverage report](https://chaos.expert/engelsystem/engelsystem/badges/main/coverage.svg)](https://chaos.expert/engelsystem/engelsystem/commits/main)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/20b3b0b4e93344a29da6bec77f329e7a)](https://www.codacy.com/app/engelsystem/engelsystem)
 [![GPL](https://img.shields.io/github/license/engelsystem/engelsystem.svg?maxAge=2592000)](LICENSE)
 
-# Helfisystem for Saunasplash
+# Engelsystem
 Please visit [engelsystem.de](https://engelsystem.de) for a feature list.
 
 To report bugs use [engelsystem/issues](https://github.com/engelsystem/engelsystem/issues).
@@ -15,7 +16,7 @@ Please read the [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPM
 The Engelsystem may be installed manually or by using the provided [docker setup](#docker).
 
 ### Requirements
- * PHP >= 8.1
+ * PHP >= 7.3
    * Required modules:
      * dom
      * json
@@ -33,16 +34,16 @@ The Engelsystem may be installed manually or by using the provided [docker setup
  * Extract the files to your webroot and continue with the directions for configurations and setup.
 
 ### Configuration and Setup
- * The webserver must have write access to the `storage` directory and read access for all other directories
- * The webserver must point to the `public` directory.
- * The webserver must read the `.htaccess` file and `mod_rewrite` must be enabled
+ * The webserver must have write access to the ```storage``` directory and read access for all other directories
+ * The webserver must point to the ```public``` directory.
+ * The webserver must read the ```.htaccess``` file and ```mod_rewrite``` must be enabled
 
  * Recommended: Directory Listing should be disabled.
  * There must be a MySQL database set up with a user who has full rights to that database.
- * If necessary, create a `config/config.php` to override values from `config/config.default.php`.
-   * To edit values from the `footer_items`, `themes`, `locales`, `tshirt_sizes` or `headers` lists, directly modify the `config/config.default.php` file or rename it to `config/config.php`.
- * To import the database, the `bin/migrate` script has to be run. If you can't execute scripts, you can use the `initial-install.sql` file from the release zip.
- * In the browser, login with credentials `admin` : `asdfasdf` and change the password.
+ * If necessary, create a ```config/config.php``` to override values from ```config/config.default.php```.
+   * To remove values from the `footer_items`, `themes`, `locales`, `tshirt_sizes` or `headers` lists the config file has to be renamed.
+ * To import the database, the ```bin/migrate``` script has to be run. If you can't execute scripts, you can use the `initial-install.sql` file from the release zip.
+ * In the browser, login with credentials ```admin``` : ```asdfasdf``` and change the password.
 
 The Engelsystem can now be used.
 
@@ -52,29 +53,30 @@ The Engelsystem can now be used.
 
 ### Docker
 #### Build
-To build the `es_server` container:
+To build the `es_nginx` and the `es_php_fpm` containers:
 ```bash
 cd docker
-docker compose build
+docker-compose build
 ```
 
-or to build the container by its own:
+or to build the containers separately
 ```bash
-docker build -f docker/Dockerfile . -t es_server
+docker build -f docker/nginx/Dockerfile . -t es_nginx
+docker build -f docker/Dockerfile . -t es_php_fpm
 ```
 
 #### Run
 Start the Engelsystem
 ```bash
 cd docker
-docker compose up -d
+docker-compose up -d
 ```
 
 #### Migrate
 Import database changes to migrate it to the newest version
 ```bash
 cd docker
-docker compose exec es_server bin/migrate
+docker-compose exec es_php_fpm bin/migrate
 ```
 
 ### Scripts
@@ -87,7 +89,3 @@ For usage see `./bin/deploy.sh -h`
 The `bin/migrate` script can be used to import and update the database of the Engelsystem.
 
 For more information on how to use it call `./bin/migrate help`
-
-### Documentation
-
-More documentation can be found at: https://engelsystem.de/doc/

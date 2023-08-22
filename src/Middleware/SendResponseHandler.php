@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
@@ -15,6 +13,10 @@ class SendResponseHandler implements MiddlewareInterface
      * Send the server response to the client
      *
      * This should be the first middleware
+     *
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
     public function process(
         ServerRequestInterface $request,
@@ -44,9 +46,10 @@ class SendResponseHandler implements MiddlewareInterface
     /**
      * Checks if headers have been sent
      *
+     * @return bool
      * @codeCoverageIgnore
      */
-    protected function headersSent(): bool
+    protected function headersSent()
     {
         return headers_sent();
     }
@@ -54,9 +57,12 @@ class SendResponseHandler implements MiddlewareInterface
     /**
      * Send a raw HTTP header
      *
+     * @param string $content
+     * @param bool   $replace
+     * @param int    $code
      * @codeCoverageIgnore
      */
-    protected function sendHeader(string $content, bool $replace = true, int $code = null): void
+    protected function sendHeader($content, $replace = true, $code = null)
     {
         if (is_null($code)) {
             header($content, $replace);

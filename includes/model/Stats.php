@@ -1,7 +1,6 @@
 <?php
 
 use Engelsystem\Database\Db;
-use Engelsystem\Helpers\Carbon;
 use Engelsystem\ShiftsFilter;
 
 /**
@@ -17,14 +16,14 @@ function stats_currently_working(ShiftsFilter $filter = null)
         '
         SELECT SUM((
                 SELECT COUNT(*)
-                FROM `shift_entries`
-                WHERE `shift_entries`.`shift_id`=`shifts`.`id`
+                FROM `ShiftEntry`
+                WHERE `ShiftEntry`.`SID`=`Shifts`.`SID`
                 AND `freeloaded`=0
-                ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                ' . ($filter ? 'AND ShiftEntry.TID IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
             )) AS `count`
-        FROM `shifts`
-        WHERE (`end` >=  NOW() AND `start` <=  NOW())
-        ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '')
+        FROM `Shifts`
+        WHERE (`end` >= UNIX_TIMESTAMP() AND `start` <= UNIX_TIMESTAMP())
+        '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '')
     );
 
     return $result['count'] ?: '-';
@@ -43,24 +42,24 @@ function stats_hours_to_work(ShiftsFilter $filter = null)
         '
         SELECT ROUND(SUM(`count`)) AS `count` FROM (
             SELECT
-                (SELECT SUM(`count`) FROM `needed_angel_types` WHERE `needed_angel_types`.`shift_id`=`shifts`.`id`' . ($filter ? ' AND needed_angel_types.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . ')
-                * TIMESTAMPDIFF(MINUTE, `shifts`.`start`, `shifts`.`end`) / 60 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
-            WHERE `shifts`.`end` >= NOW()
+                (SELECT SUM(`count`) FROM `NeededAngelTypes` WHERE `NeededAngelTypes`.`shift_id`=`Shifts`.`SID`' . ($filter ? ' AND NeededAngelTypes.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . ')
+                * (`Shifts`.`end` - `Shifts`.`start`)/3600 AS `count`
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
+            WHERE `end` >= UNIX_TIMESTAMP()
             AND s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
 
             UNION ALL
 
             SELECT
-                (SELECT SUM(`count`) FROM `needed_angel_types` WHERE `needed_angel_types`.`room_id`=`shifts`.`room_id`' . ($filter ? ' AND needed_angel_types.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . ')
-                * TIMESTAMPDIFF(MINUTE, `shifts`.`start`, `shifts`.`end`) / 60 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
-            WHERE shifts.`end` >=  NOW()
+                (SELECT SUM(`count`) FROM `NeededAngelTypes` WHERE `NeededAngelTypes`.`room_id`=`Shifts`.`RID`' . ($filter ? ' AND NeededAngelTypes.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . ')
+                * (`Shifts`.`end` - `Shifts`.`start`)/3600 AS `count`
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
+            WHERE `end` >= UNIX_TIMESTAMP()
             AND NOT s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
         ) AS `tmp`
         '
     );
@@ -77,64 +76,63 @@ function stats_hours_to_work(ShiftsFilter $filter = null)
  */
 function stats_angels_needed_three_hours(ShiftsFilter $filter = null)
 {
-    $in3hours = Carbon::now()->addHours(3)->toDateTimeString();
+    $in3hours = time() + 3 * 60 * 60;
     $result = Db::selectOne('
         SELECT SUM(`count`) AS `count` FROM (
             SELECT
                 GREATEST(0,
                     (
-                    SELECT SUM(needed_angel_types.`count`)
-                    FROM `needed_angel_types`
-                    JOIN `angel_types` ON `angel_types`.`id`=`needed_angel_types`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `needed_angel_types`.`shift_id`=`shifts`.`id`
-                        ' . ($filter ? 'AND needed_angel_types.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                    SELECT SUM(`count`)
+                    FROM `NeededAngelTypes`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`NeededAngelTypes`.`angel_type_id`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `NeededAngelTypes`.`shift_id`=`Shifts`.`SID`
+                        ' . ($filter ? 'AND NeededAngelTypes.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     ) - (
-                    SELECT COUNT(*) FROM `shift_entries`
-                    JOIN `angel_types` ON `angel_types`.`id`=`shift_entries`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `shift_entries`.`shift_id`=`shifts`.`id`
+                    SELECT COUNT(*) FROM `ShiftEntry`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`ShiftEntry`.`TID`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `ShiftEntry`.`SID`=`Shifts`.`SID`
                         AND `freeloaded`=0
-                        ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                        ' . ($filter ? 'AND ShiftEntry.TID IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     )
                 )
                 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
-            WHERE shifts.`end` > NOW() AND shifts.`start` < ?
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
+            WHERE `end` > UNIX_TIMESTAMP() AND `start` < ?
             AND s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
 
             UNION ALL
 
             SELECT
                 GREATEST(0,
                     (
-                    SELECT SUM(needed_angel_types.`count`)
-                    FROM `needed_angel_types`
-                    JOIN `angel_types` ON `angel_types`.`id`=`needed_angel_types`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `needed_angel_types`.`room_id`=`shifts`.`room_id`
-                        ' . ($filter ? 'AND needed_angel_types.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                    SELECT SUM(`count`)
+                    FROM `NeededAngelTypes`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`NeededAngelTypes`.`angel_type_id`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `NeededAngelTypes`.`room_id`=`Shifts`.`RID`
+                        ' . ($filter ? 'AND NeededAngelTypes.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     ) - (
-                    SELECT COUNT(*)
-                    FROM `shift_entries`
-                    JOIN `angel_types` ON `angel_types`.`id`=`shift_entries`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `shift_entries`.`shift_id`=`shifts`.`id`
+                    SELECT COUNT(*) FROM `ShiftEntry`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`ShiftEntry`.`TID`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `ShiftEntry`.`SID`=`Shifts`.`SID`
                         AND `freeloaded`=0
-                        ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                        ' . ($filter ? 'AND ShiftEntry.TID IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     )
                 )
                 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
-            WHERE `end` > NOW() AND `start` < ?
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
+            WHERE `end` > UNIX_TIMESTAMP() AND `start` < ?
             AND NOT s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
         ) AS `tmp`', [
         $in3hours,
-        $in3hours,
+        $in3hours
     ]);
 
     return $result['count'] ?: '-';
@@ -158,66 +156,64 @@ function stats_angels_needed_for_nightshifts(ShiftsFilter $filter = null)
         date('Y-m-d', time() + 12 * 60 * 60) . ' ' . $nightStartTime . ':00'
     );
     $night_end = $night_start + ($nightEndTime - $nightStartTime) * 60 * 60;
-    $night_start = Carbon::createFromTimestamp($night_start)->toDateTimeString();
-    $night_end = Carbon::createFromTimestamp($night_end)->toDateTimeString();
     $result = Db::selectOne('
         SELECT SUM(`count`) AS `count` FROM (
             SELECT
                 GREATEST(0,
                     (
-                    SELECT SUM(needed_angel_types.`count`)
-                    FROM `needed_angel_types`
-                    JOIN `angel_types` ON `angel_types`.`id`=`needed_angel_types`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `needed_angel_types`.`shift_id`=`shifts`.`id`
-                        ' . ($filter ? 'AND needed_angel_types.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                    SELECT SUM(`count`)
+                    FROM `NeededAngelTypes`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`NeededAngelTypes`.`angel_type_id`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `NeededAngelTypes`.`shift_id`=`Shifts`.`SID`
+                        ' . ($filter ? 'AND NeededAngelTypes.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     ) - (
-                    SELECT COUNT(*) FROM `shift_entries`
-                    JOIN `angel_types` ON `angel_types`.`id`=`shift_entries`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `shift_entries`.`shift_id`=`shifts`.`id`
-                        AND shift_entries.`freeloaded`=0
-                        ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                    SELECT COUNT(*) FROM `ShiftEntry`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`ShiftEntry`.`TID`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `ShiftEntry`.`SID`=`Shifts`.`SID`
+                        AND `freeloaded`=0
+                        ' . ($filter ? 'AND ShiftEntry.TID IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     )
                 )
                 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
-            WHERE shifts.`end` > ? AND shifts.`start` < ?
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
+            WHERE `end` > ? AND `start` < ?
             AND s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
 
             UNION ALL
 
             SELECT
                 GREATEST(0,
                     (
-                    SELECT SUM(needed_angel_types.`count`)
-                    FROM `needed_angel_types`
-                    JOIN `angel_types` ON `angel_types`.`id`=`needed_angel_types`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `needed_angel_types`.`room_id`=`shifts`.`room_id`
-                        ' . ($filter ? 'AND angel_types.id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                    SELECT SUM(`count`)
+                    FROM `NeededAngelTypes`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`NeededAngelTypes`.`angel_type_id`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `NeededAngelTypes`.`room_id`=`Shifts`.`RID`
+                        ' . ($filter ? 'AND AngelTypes.id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     ) - (
-                    SELECT COUNT(*) FROM `shift_entries`
-                    JOIN `angel_types` ON `angel_types`.`id`=`shift_entries`.`angel_type_id`
-                    WHERE `angel_types`.`show_on_dashboard`=TRUE
-                        AND `shift_entries`.`shift_id`=`shifts`.`id`
+                    SELECT COUNT(*) FROM `ShiftEntry`
+                    JOIN `AngelTypes` ON `AngelTypes`.`id`=`ShiftEntry`.`TID`
+                    WHERE `AngelTypes`.`show_on_dashboard`=TRUE
+                        AND `ShiftEntry`.`SID`=`Shifts`.`SID`
                         AND `freeloaded`=0
-                        ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                        ' . ($filter ? 'AND ShiftEntry.TID IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
                     )
                 )
                 AS `count`
-            FROM `shifts`
-            LEFT JOIN schedule_shift AS s on shifts.id = s.shift_id
+            FROM `Shifts`
+            LEFT JOIN schedule_shift AS s on Shifts.SID = s.shift_id
             WHERE `end` > ? AND `start` < ?
             AND NOT s.shift_id IS NULL
-            ' . ($filter ? 'AND shifts.room_id IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
+            '. ($filter ? 'AND Shifts.RID IN (' . implode(',', $filter->getRooms()) . ')' : '') . '
         ) AS `tmp`', [
         $night_start,
         $night_end,
         $night_start,
-        $night_end,
+        $night_end
     ]);
 
     return $result['count'] ?: '-';

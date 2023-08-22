@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Http\Exceptions\HttpAuthExpired;
@@ -13,12 +11,23 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class VerifyCsrfToken implements MiddlewareInterface
 {
-    public function __construct(protected SessionInterface $session)
+    /** @var SessionInterface */
+    protected $session;
+
+    /**
+     * @param SessionInterface $session
+     */
+    public function __construct(SessionInterface $session)
     {
+        $this->session = $session;
     }
 
     /**
      * Verify csrf tokens
+     *
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -32,6 +41,10 @@ class VerifyCsrfToken implements MiddlewareInterface
         throw new HttpAuthExpired('Authentication Token Mismatch');
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return bool
+     */
     protected function isReading(ServerRequestInterface $request): bool
     {
         return in_array(
@@ -40,6 +53,10 @@ class VerifyCsrfToken implements MiddlewareInterface
         );
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return bool
+     */
     protected function tokensMatch(ServerRequestInterface $request): bool
     {
         $token = null;

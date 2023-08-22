@@ -7,14 +7,15 @@ namespace Engelsystem\Helpers\Schedule;
 class Room
 {
     /** @var string required */
-    protected string $name;
+    protected $name;
 
     /** @var Event[] */
-    protected array $event;
+    protected $event;
 
     /**
      * Room constructor.
      *
+     * @param string  $name
      * @param Event[] $events
      */
     public function __construct(
@@ -25,6 +26,9 @@ class Room
         $this->event = $events;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;

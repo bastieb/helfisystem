@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Exceptions;
 
 use Engelsystem\Container\ServiceProvider;
-use Engelsystem\Environment;
 use Engelsystem\Exceptions\Handlers\HandlerInterface;
 use Engelsystem\Exceptions\Handlers\Legacy;
 use Engelsystem\Exceptions\Handlers\LegacyDevelopment;
@@ -15,7 +12,7 @@ use Whoops\Run as WhoopsRunner;
 
 class ExceptionsServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
         $errorHandler = $this->app->make(Handler::class);
         $this->addProductionHandler($errorHandler);
@@ -25,7 +22,7 @@ class ExceptionsServiceProvider extends ServiceProvider
         $errorHandler->register();
     }
 
-    public function boot(): void
+    public function boot()
     {
         /** @var Handler $handler */
         $handler = $this->app->get('error.handler');
@@ -35,15 +32,21 @@ class ExceptionsServiceProvider extends ServiceProvider
         $this->addLogger($handler);
     }
 
-    protected function addProductionHandler(Handler $errorHandler): void
+    /**
+     * @param Handler $errorHandler
+     */
+    protected function addProductionHandler($errorHandler)
     {
         $handler = $this->app->make(Legacy::class);
         $this->app->instance('error.handler.production', $handler);
-        $errorHandler->setHandler(Environment::PRODUCTION, $handler);
+        $errorHandler->setHandler(Handler::ENV_PRODUCTION, $handler);
         $this->app->bind(HandlerInterface::class, 'error.handler.production');
     }
 
-    protected function addDevelopmentHandler(Handler $errorHandler): void
+    /**
+     * @param Handler $errorHandler
+     */
+    protected function addDevelopmentHandler($errorHandler)
     {
         $handler = $this->app->make(LegacyDevelopment::class);
 
@@ -52,10 +55,13 @@ class ExceptionsServiceProvider extends ServiceProvider
         }
 
         $this->app->instance('error.handler.development', $handler);
-        $errorHandler->setHandler(Environment::DEVELOPMENT, $handler);
+        $errorHandler->setHandler(Handler::ENV_DEVELOPMENT, $handler);
     }
 
-    protected function addLogger(Handler $handler): void
+    /**
+     * @param Handler $handler
+     */
+    protected function addLogger(Handler $handler)
     {
         foreach ($handler->getHandler() as $h) {
             if (!method_exists($h, 'setLogger')) {

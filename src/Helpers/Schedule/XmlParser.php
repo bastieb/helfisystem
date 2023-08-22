@@ -9,20 +9,26 @@ use SimpleXMLElement;
 
 class XmlParser
 {
-    protected SimpleXMLElement $scheduleXML;
+    /** @var SimpleXMLElement */
+    protected $scheduleXML;
 
-    protected Schedule $schedule;
+    /** @var Schedule */
+    protected $schedule;
 
+    /**
+     * @param string $xml
+     * @return bool
+     */
     public function load(string $xml): bool
     {
-        $scheduleXML = simplexml_load_string($xml);
+        $this->scheduleXML = simplexml_load_string($xml);
 
-        if (!$scheduleXML) {
+        if (!$this->scheduleXML) {
             return false;
         }
 
-        $this->scheduleXML = $scheduleXML;
         $this->parseXml();
+
         return true;
     }
 
@@ -39,7 +45,7 @@ class XmlParser
             $this->getFirstXpathContent('conference/acronym'),
             $this->getFirstXpathContent('conference/start'),
             $this->getFirstXpathContent('conference/end'),
-            (int) $this->getFirstXpathContent('conference/days'),
+            (int)$this->getFirstXpathContent('conference/days'),
             $this->getFirstXpathContent('conference/timeslot_duration'),
             $this->getFirstXpathContent('conference/base_url')
         );
@@ -50,7 +56,7 @@ class XmlParser
 
             foreach ($day->xpath('room') as $roomElement) {
                 $room = new Room(
-                    (string) $roomElement->attributes()['name']
+                    (string)$roomElement->attributes()['name']
                 );
 
                 $events = $this->parseEvents($roomElement->xpath('event'), $room);
@@ -59,10 +65,10 @@ class XmlParser
             }
 
             $days[] = new Day(
-                (string) $day->attributes()['date'],
+                (string)$day->attributes()['date'],
                 new Carbon($day->attributes()['start']),
                 new Carbon($day->attributes()['end']),
-                (int) $day->attributes()['index'],
+                (int)$day->attributes()['index'],
                 $rooms
             );
         }
@@ -76,6 +82,8 @@ class XmlParser
 
     /**
      * @param SimpleXMLElement[] $eventElements
+     * @param Room               $room
+     * @return array
      */
     protected function parseEvents(array $eventElements, Room $room): array
     {
@@ -93,8 +101,8 @@ class XmlParser
             }
 
             $events[] = new Event(
-                (string) $event->attributes()['guid'],
-                (int) $event->attributes()['id'],
+                (string)$event->attributes()['guid'],
+                (int)$event->attributes()['id'],
                 $room,
                 $this->getFirstXpathContent('title', $event),
                 $this->getFirstXpathContent('subtitle', $event),
@@ -120,15 +128,26 @@ class XmlParser
         return $events;
     }
 
+    /**
+     * @param string                $path
+     * @param SimpleXMLElement|null $xml
+     * @return string
+     */
     protected function getFirstXpathContent(string $path, ?SimpleXMLElement $xml = null): string
     {
         $element = ($xml ?: $this->scheduleXML)->xpath($path);
 
-        return $element ? (string) $element[0] : '';
+        return $element ? (string)$element[0] : '';
     }
 
     /**
      * Resolves a list from a sequence of elements
+     *
+     * @param SimpleXMLElement $element
+     * @param string           $firstElement
+     * @param string           $secondElement
+     * @param string           $idAttribute
+     * @return array
      */
     protected function getListFromSequence(
         SimpleXMLElement $element,
@@ -140,13 +159,16 @@ class XmlParser
 
         foreach ($element->xpath($firstElement) as $element) {
             foreach ($element->xpath($secondElement) as $item) {
-                $items[(string) $item->attributes()[$idAttribute]] = (string) $item;
+                $items[(string)$item->attributes()[$idAttribute]] = (string)$item;
             }
         }
 
         return $items;
     }
 
+    /**
+     * @return Schedule
+     */
     public function getSchedule(): Schedule
     {
         return $this->schedule;

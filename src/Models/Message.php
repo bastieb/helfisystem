@@ -20,10 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string      $text
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User   $sender
  * @property-read User   $receiver
  * @method static Builder|Message whereId($value)
- * @method static Builder|Message whereUserId($value)
  * @method static Builder|Message whereReceiverId($value)
  * @method static Builder|Message whereRead($value)
  * @method static Builder|Message whereText($value)
@@ -36,33 +34,31 @@ class Message extends BaseModel
     use UsesUserModel;
 
     /** @var bool enable timestamps */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
-    /** @var array<string, string> */
-    protected $casts = [ // phpcs:ignore
+    /** @var string[] */
+    protected $casts = [
         'user_id'     => 'integer',
         'receiver_id' => 'integer',
         'read'        => 'boolean',
     ];
 
-    /** @var array<string> */
-    protected $fillable = [ // phpcs:ignore
+    /** @var string[] */
+    protected $fillable = [
         'user_id',
         'receiver_id',
         'read',
         'text',
     ];
 
-    /** @var array<string, bool> */
-    protected $attributes = [ // phpcs:ignore
+    /** @var array */
+    protected $attributes = [
         'read' => false,
     ];
 
-    public function sender(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
+    /**
+     * @return BelongsTo
+     */
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'receiver_id');

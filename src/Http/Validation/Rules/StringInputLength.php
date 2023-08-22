@@ -1,19 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Validation\Rules;
 
 use DateTime;
-use Exception;
 use Illuminate\Support\Str;
+use Throwable;
 
 trait StringInputLength
 {
     /**
      * Use the input length of a string
+     *
+     * @param mixed $input
+     * @return bool
      */
-    public function validate(mixed $input): bool
+    public function validate($input): bool
     {
         if (
             is_string($input)
@@ -26,16 +27,18 @@ trait StringInputLength
         return parent::validate($input);
     }
 
-    protected function isDateTime(mixed $input): bool
+    /**
+     * @param mixed $input
+     * @return bool
+     */
+    protected function isDateTime($input): bool
     {
         try {
-            $input = new DateTime($input);
-            // Min 1s diff to exclude any not auto-detected dates / times like ...
-            return abs((int) (new DateTime())->diff($input)->format('%s')) > 1;
-        } catch (Exception $e) {
-            // Ignore it
+            new DateTime($input);
+        } catch (Throwable $e) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 }

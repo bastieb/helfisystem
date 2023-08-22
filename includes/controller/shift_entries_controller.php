@@ -1,11 +1,7 @@
 <?php
 
-use Engelsystem\Models\AngelType;
-use Engelsystem\Models\Shifts\Shift;
-use Engelsystem\Models\Shifts\ShiftEntry;
-use Engelsystem\Models\Shifts\ShiftSignupStatus;
+use Engelsystem\Models\Room;
 use Engelsystem\Models\User\User;
-use Engelsystem\Models\UserAngelType;
 use Engelsystem\ShiftSignupState;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -26,11 +22,14 @@ function shift_entries_controller(): array
         throw_redirect(user_link($user->id));
     }
 
-    return match ($action) {
-        'create' => shift_entry_create_controller(),
-        'delete' => shift_entry_delete_controller(),
-        default => ['', ''],
-    };
+    switch ($action) {
+        case 'create':
+            return shift_entry_create_controller();
+        case 'delete':
+            return shift_entry_delete_controller();
+    }
+
+    return ['', ''];
 }
 
 /**
@@ -43,7 +42,7 @@ function shift_entry_create_controller(): array
     $user = auth()->user();
     $request = request();
 
-    if ($user->isFreeloader()) {
+    if (User_is_freeloader($user)) {
         throw_redirect(page_link_to('user_myshifts'));
     }
 
@@ -52,7 +51,7 @@ function shift_entry_create_controller(): array
         throw_redirect(user_link($user->id));
     }
 
-    $angeltype = AngelType::find($request->input('angeltype_id'));
+    $angeltype = AngelType($request->input('angeltype_id'));
 
     if (auth()->can('user_shifts_admin')) {
         return shift_entry_create_controller_admin($shift, $angeltype);
@@ -62,7 +61,7 @@ function shift_entry_create_controller(): array
         throw_redirect(user_link($user->id));
     }
 
-    if ($user->isAngelTypeSupporter($angeltype) || auth()->can('admin_user_angeltypes')) {
+    if (User_is_AngelType_supporter($user, $angeltype)) {
         return shift_entry_create_controller_supporter($shift, $angeltype);
     }
 
@@ -73,11 +72,11 @@ function shift_entry_create_controller(): array
  * Sign up for a shift.
  * Case: Admin
  *
- * @param Shift          $shift
- * @param AngelType|null $angeltype
+ * @param array $shift
+ * @param array $angeltype
  * @return array
  */
-function shift_entry_create_controller_admin(Shift $shift, ?AngelType $angeltype): array
+function shift_entry_create_controller_admin($shift, $angeltype): array
 {
     $signup_user = auth()->user();
     $request = request();
@@ -89,9 +88,9 @@ function shift_entry_create_controller_admin(Shift $shift, ?AngelType $angeltype
         throw_redirect(shift_link($shift));
     }
 
-    $angeltypes = AngelType::all();
+    $angeltypes = AngelTypes();
     if ($request->hasPostData('angeltype_id')) {
-        $angeltype = AngelType::find($request->postData('angeltype_id'));
+        $angeltype = AngelType($request->postData('angeltype_id'));
     }
     if (empty($angeltype)) {
         if (count($angeltypes) == 0) {
@@ -101,14 +100,16 @@ function shift_entry_create_controller_admin(Shift $shift, ?AngelType $angeltype
     }
 
     if ($request->hasPostData('submit')) {
-        $shiftEntry = new ShiftEntry();
-        $shiftEntry->shift()->associate($shift);
-        $shiftEntry->angelType()->associate($angeltype);
-        $shiftEntry->user()->associate($signup_user);
-        $shiftEntry->save();
-        ShiftEntry_onCreate($shiftEntry);
+        ShiftEntry_create([
+            'SID'              => $shift['SID'],
+            'TID'              => $angeltype['id'],
+            'UID'              => $signup_user->id,
+            'Comment'          => '',
+            'freeloaded'       => false,
+            'freeload_comment' => ''
+        ]);
 
-        success(sprintf(__('%s has been subscribed to the shift.'), $signup_user->displayName));
+        success(sprintf(__('%s has been subscribed to the shift.'), User_Nick_render($signup_user)));
         throw_redirect(shift_link($shift));
     }
 
@@ -116,14 +117,18 @@ function shift_entry_create_controller_admin(Shift $shift, ?AngelType $angeltype
     $users = User::query()->orderBy('name')->get();
     $users_select = [];
     foreach ($users as $user) {
-        $users_select[$user->id] = $user->displayName;
+        $users_select[$user->id] = $user->name;
     }
 
-    $angeltypes_select = $angeltypes->pluck('name', 'id')->toArray();
-    $room = $shift->room;
+    $angeltypes_select = [];
+    foreach ($angeltypes as $a) {
+        $angeltypes_select[$a['id']] = $a['name'];
+    }
+
+    $room = Room::find($shift['RID']);
     return [
         ShiftEntry_create_title(),
-        ShiftEntry_create_view_admin($shift, $room, $angeltype, $angeltypes_select, $signup_user, $users_select),
+        ShiftEntry_create_view_admin($shift, $room, $angeltype, $angeltypes_select, $signup_user, $users_select)
     ];
 }
 
@@ -131,11 +136,11 @@ function shift_entry_create_controller_admin(Shift $shift, ?AngelType $angeltype
  * Sign up for a shift.
  * Case: Supporter
  *
- * @param Shift     $shift
- * @param AngelType $angeltype
+ * @param array $shift
+ * @param array $angeltype
  * @return array
  */
-function shift_entry_create_controller_supporter(Shift $shift, AngelType $angeltype): array
+function shift_entry_create_controller_supporter($shift, $angeltype): array
 {
     $request = request();
     $signup_user = auth()->user();
@@ -143,34 +148,35 @@ function shift_entry_create_controller_supporter(Shift $shift, AngelType $angelt
     if ($request->has('user_id')) {
         $signup_user = User::find($request->input('user_id'));
     }
-
-    if (!$signup_user->userAngelTypes()->wherePivot('angel_type_id', $angeltype->id)->exists()) {
+    if (!UserAngelType_exists($signup_user->id, $angeltype)) {
         error(__('User is not in angeltype.'));
         throw_redirect(shift_link($shift));
     }
 
     if ($request->hasPostData('submit')) {
-        $shiftEntry = new ShiftEntry();
-        $shiftEntry->shift()->associate($shift);
-        $shiftEntry->angelType()->associate($angeltype);
-        $shiftEntry->user()->associate($signup_user);
-        $shiftEntry->save();
-        ShiftEntry_onCreate($shiftEntry);
+        ShiftEntry_create([
+            'SID'              => $shift['SID'],
+            'TID'              => $angeltype['id'],
+            'UID'              => $signup_user->id,
+            'Comment'          => '',
+            'freeloaded'       => false,
+            'freeload_comment' => ''
+        ]);
 
-        success(sprintf(__('%s has been subscribed to the shift.'), $signup_user->displayName));
+        success(sprintf(__('%s has been subscribed to the shift.'), User_Nick_render($signup_user)));
         throw_redirect(shift_link($shift));
     }
 
-    $users = $angeltype->userAngelTypes->sortBy('name');
+    $users = Users_by_angeltype($angeltype);
     $users_select = [];
     foreach ($users as $u) {
-        $users_select[$u->id] = $u->displayName;
+        $users_select[$u->id] = $u->name;
     }
 
-    $room = $shift->room;
+    $room = Room::find($shift['RID']);
     return [
         ShiftEntry_create_title(),
-        ShiftEntry_create_view_supporter($shift, $room, $angeltype, $signup_user, $users_select),
+        ShiftEntry_create_view_supporter($shift, $room, $angeltype, $signup_user, $users_select)
     ];
 }
 
@@ -181,35 +187,38 @@ function shift_entry_create_controller_supporter(Shift $shift, AngelType $angelt
  */
 function shift_entry_error_message(ShiftSignupState $shift_signup_state)
 {
-    match ($shift_signup_state->getState()) {
-        ShiftSignupStatus::ANGELTYPE   => error(__('You need be accepted member of the angeltype.')),
-        ShiftSignupStatus::COLLIDES    => error(__('This shift collides with one of your shifts.')),
-        ShiftSignupStatus::OCCUPIED    => error(__('This shift is already occupied.')),
-        ShiftSignupStatus::SHIFT_ENDED => error(__('This shift ended already.')),
-        ShiftSignupStatus::NOT_ARRIVED => error(__('You are not marked as arrived.')),
-        ShiftSignupStatus::NOT_YET     => error(__('You are not allowed to sign up yet.')),
-        ShiftSignupStatus::SIGNED_UP   => error(__('You are signed up for this shift.')),
-        default => null, // ShiftSignupStatus::FREE|ShiftSignupStatus::ADMIN
-    };
+    if ($shift_signup_state->getState() == ShiftSignupState::ANGELTYPE) {
+        error(__('You need be accepted member of the angeltype.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::COLLIDES) {
+        error(__('This shift collides with one of your shifts.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::OCCUPIED) {
+        error(__('This shift is already occupied.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::SHIFT_ENDED) {
+        error(__('This shift ended already.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::NOT_ARRIVED) {
+        error(__('You are not marked as arrived.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::NOT_YET) {
+        error(__('You are not allowed to sign up yet.'));
+    } elseif ($shift_signup_state->getState() == ShiftSignupState::SIGNED_UP) {
+        error(__('You are signed up for this shift.'));
+    }
 }
 
 /**
  * Sign up for a shift.
  * Case: User
  *
- * @param Shift     $shift
- * @param AngelType $angeltype
+ * @param array $shift
+ * @param array $angeltype
  * @return array
  */
-function shift_entry_create_controller_user(Shift $shift, AngelType $angeltype): array
+function shift_entry_create_controller_user($shift, $angeltype): array
 {
     $request = request();
 
     $signup_user = auth()->user();
-    $needed_angeltype = (new AngelType())->forceFill(NeededAngeltype_by_Shift_and_Angeltype($shift, $angeltype));
-    $shift_entries = $shift->shiftEntries()
-        ->where('angel_type_id', $angeltype->id)
-        ->get();
+    $needed_angeltype = NeededAngeltype_by_Shift_and_Angeltype($shift, $angeltype);
+    $shift_entries = ShiftEntries_by_shift_and_angeltype($shift['SID'], $angeltype['id']);
     $shift_signup_state = Shift_signup_allowed(
         $signup_user,
         $shift,
@@ -227,50 +236,44 @@ function shift_entry_create_controller_user(Shift $shift, AngelType $angeltype):
     $comment = '';
     if ($request->hasPostData('submit')) {
         $comment = strip_request_item_nl('comment');
+        ShiftEntry_create([
+            'SID'              => $shift['SID'],
+            'TID'              => $angeltype['id'],
+            'UID'              => $signup_user->id,
+            'Comment'          => $comment,
+            'freeloaded'       => false,
+            'freeload_comment' => ''
+        ]);
 
-        $shiftEntry = new ShiftEntry();
-        $shiftEntry->shift()->associate($shift);
-        $shiftEntry->angelType()->associate($angeltype);
-        $shiftEntry->user()->associate($signup_user);
-        $shiftEntry->user_comment = $comment;
-        $shiftEntry->save();
-        ShiftEntry_onCreate($shiftEntry);
-
-        if (
-            !$angeltype->restricted
-            && !$angeltype->userAngelTypes()->wherePivot('user_id', $signup_user->id)->exists()
-        ) {
-            $userAngelType = new UserAngelType();
-            $userAngelType->user()->associate($signup_user);
-            $userAngelType->angelType()->associate($angeltype);
-            $userAngelType->save();
+        if ($angeltype['restricted'] == false && !UserAngelType_exists($signup_user->id, $angeltype)) {
+            UserAngelType_create($signup_user->id, $angeltype);
         }
 
         success(__('You are subscribed. Thank you!'));
         throw_redirect(shift_link($shift));
     }
 
-    $room = $shift->room;
+    $room = Room::find($shift['RID']);
     return [
         ShiftEntry_create_title(),
-        ShiftEntry_create_view_user($shift, $room, $angeltype, $comment),
+        ShiftEntry_create_view_user($shift, $room, $angeltype, $comment)
     ];
 }
 
 /**
  * Link to create a shift entry.
  *
- * @param Shift     $shift
- * @param AngelType $angeltype
- * @param array     $params
+ * @param array $shift
+ * @param array $angeltype
+ * @param array $params
  * @return string URL
  */
-function shift_entry_create_link(Shift $shift, AngelType $angeltype, $params = [])
+function shift_entry_create_link($shift, $angeltype, $params = [])
 {
     $params = array_merge([
         'action'       => 'create',
-        'shift_id'     => $shift->id,
-        'angeltype_id' => $angeltype->id,
+        'shift_id'     => $shift['SID'],
+        'angeltype_id' => $angeltype['id']
     ], $params);
     return page_link_to('shift_entries', $params);
 }
@@ -278,15 +281,15 @@ function shift_entry_create_link(Shift $shift, AngelType $angeltype, $params = [
 /**
  * Link to create a shift entry as admin.
  *
- * @param Shift $shift
+ * @param array $shift
  * @param array $params
  * @return string URL
  */
-function shift_entry_create_link_admin(Shift $shift, $params = [])
+function shift_entry_create_link_admin($shift, $params = [])
 {
     $params = array_merge([
         'action'   => 'create',
-        'shift_id' => $shift->id,
+        'shift_id' => $shift['SID']
     ], $params);
     return page_link_to('shift_entries', $params);
 }
@@ -294,7 +297,7 @@ function shift_entry_create_link_admin(Shift $shift, $params = [])
 /**
  * Load a shift entry from get parameter shift_entry_id.
  *
- * @return ShiftEntry
+ * @return array
  */
 function shift_entry_load()
 {
@@ -303,7 +306,11 @@ function shift_entry_load()
     if (!$request->has('shift_entry_id') || !test_request_int('shift_entry_id')) {
         throw_redirect(page_link_to('user_shifts'));
     }
-    $shiftEntry = ShiftEntry::findOrFail($request->input('shift_entry_id'));
+    $shiftEntry = ShiftEntry($request->input('shift_entry_id'));
+    if (empty($shiftEntry)) {
+        error(__('Shift entry not found.'));
+        throw_redirect(page_link_to('user_shifts'));
+    }
 
     return $shiftEntry;
 }
@@ -319,9 +326,9 @@ function shift_entry_delete_controller()
     $request = request();
     $shiftEntry = shift_entry_load();
 
-    $shift = Shift($shiftEntry->shift);
-    $angeltype = $shiftEntry->angelType;
-    $signout_user = $shiftEntry->user;
+    $shift = Shift($shiftEntry['SID']);
+    $angeltype = AngelType($shiftEntry['TID']);
+    $signout_user = User::find($shiftEntry['UID']);
     if (!Shift_signout_allowed($shift, $angeltype, $signout_user->id)) {
         error(__(
             'You are not allowed to remove this shift entry. If necessary, ask your supporter or heaven to do so.'
@@ -330,8 +337,7 @@ function shift_entry_delete_controller()
     }
 
     if ($request->hasPostData('delete')) {
-        $shiftEntry->delete();
-        ShiftEntry_onDelete($shiftEntry);
+        ShiftEntry_delete($shiftEntry);
         success(__('Shift entry removed.'));
         throw_redirect(shift_link($shift));
     }
@@ -339,28 +345,28 @@ function shift_entry_delete_controller()
     if ($user->id == $signout_user->id) {
         return [
             ShiftEntry_delete_title(),
-            ShiftEntry_delete_view($shift, $angeltype, $signout_user),
+            ShiftEntry_delete_view($shift, $angeltype, $signout_user->id)
         ];
     }
 
     return [
         ShiftEntry_delete_title(),
-        ShiftEntry_delete_view_admin($shift, $angeltype, $signout_user),
+        ShiftEntry_delete_view_admin($shift, $angeltype, $signout_user)
     ];
 }
 
 /**
  * Link to delete a shift entry.
  *
- * @param Shift|ShiftEntry $shiftEntry
- * @param array            $params
+ * @param array $shiftEntry
+ * @param array $params
  * @return string URL
  */
 function shift_entry_delete_link($shiftEntry, $params = [])
 {
     $params = array_merge([
         'action'         => 'delete',
-        'shift_entry_id' => $shiftEntry['shift_entry_id'] ?? $shiftEntry['id'],
+        'shift_entry_id' => $shiftEntry['id']
     ], $params);
     return page_link_to('shift_entries', $params);
 }

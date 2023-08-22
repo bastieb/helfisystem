@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Symfony\Component\HttpFoundation\Session\Session as SymfonySession;
@@ -10,8 +8,15 @@ use Twig\TwigFunction;
 
 class Session extends TwigExtension
 {
-    public function __construct(protected SymfonySession $session)
+    /** @var SymfonySession */
+    protected $session;
+
+    /**
+     * @param SymfonySession $session
+     */
+    public function __construct(SymfonySession $session)
     {
+        $this->session = $session;
     }
 
     /**
@@ -22,18 +27,6 @@ class Session extends TwigExtension
         return [
             new TwigFunction('session_get', [$this->session, 'get']),
             new TwigFunction('session_set', [$this->session, 'set']),
-            new TwigFunction('session_pop', [$this, 'sessionPop']),
         ];
-    }
-
-    /**
-     * Returns the requested attribute and removes it from the session
-     */
-    public function sessionPop(string $name, mixed $default = null): mixed
-    {
-        $value = $this->session->get($name, $default);
-        $this->session->remove($name);
-
-        return $value;
     }
 }

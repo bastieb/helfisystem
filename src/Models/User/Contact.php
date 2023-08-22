@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\User;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,14 +19,10 @@ class Contact extends HasUserModel
     use HasFactory;
 
     /** @var string The table associated with the model */
-    protected $table = 'users_contact'; // phpcs:ignore
+    protected $table = 'users_contact';
 
-    /**
-     * The attributes that are mass assignable
-     *
-     * @var array<string>
-     */
-    protected $fillable = [ // phpcs:ignore
+    /** The attributes that are mass assignable */
+    protected $fillable = [
         'user_id',
         'dect',
         'email',

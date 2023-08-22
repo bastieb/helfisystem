@@ -7,6 +7,4 @@ if (!is_readable(__DIR__ . '/../vendor/autoload.php')) {
 }
 
 // Include composer autoloader
-// phpcs:disable SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable
 $loader = require __DIR__ . '/../vendor/autoload.php';
-// phpcs:enable

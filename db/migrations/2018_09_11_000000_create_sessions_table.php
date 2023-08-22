@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,9 +10,9 @@ class CreateSessionsTable extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
-        $this->schema->create('sessions', function (Blueprint $table): void {
+        $this->schema->create('sessions', function (Blueprint $table) {
             $table->string('id')->unique();
             $table->text('payload');
             $table->dateTime('last_activity')->useCurrent();
@@ -24,7 +22,7 @@ class CreateSessionsTable extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
         $this->schema->dropIfExists('sessions');
     }

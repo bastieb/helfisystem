@@ -17,6 +17,9 @@ class CreateQuestionsTable extends Migration
     use ChangesReferences;
     use Reference;
 
+    /**
+     * @return void
+     */
     public function up(): void
     {
         $hasPreviousQuestionsTable = $this->schema->hasTable('Questions');
@@ -40,6 +43,9 @@ class CreateQuestionsTable extends Migration
         }
     }
 
+    /**
+     * @return void
+     */
     public function down(): void
     {
         // Rename as some SQL DBMS handle identifiers case insensitive
@@ -57,17 +63,28 @@ class CreateQuestionsTable extends Migration
         $this->schema->drop('new_questions');
     }
 
+    /**
+     * @return void
+     */
     private function createNewQuestionsTable(): void
     {
-        $this->schema->create('questions', function (Blueprint $table): void {
-            $table->increments('id');
-            $this->referencesUser($table);
-            $table->text('text');
-            $table->text('answer')->nullable();
-            $this->references($table, 'users', 'answerer_id')->nullable();
-        });
+        $this->schema->create(
+            'questions',
+            function (Blueprint $table) {
+                $table->increments('id');
+                $this->referencesUser($table);
+                $table->text('text');
+                $table->text('answer')
+                    ->nullable();
+                $this->references($table, 'users', 'answerer_id')
+                    ->nullable();
+            }
+        );
     }
 
+    /**
+     * @return void
+     */
     private function copyPreviousToNewQuestionsTable(): void
     {
         $connection = $this->schema->getConnection();
@@ -87,17 +104,28 @@ class CreateQuestionsTable extends Migration
         }
     }
 
+    /**
+     * @return void
+     */
     private function createPreviousQuestionsTable(): void
     {
-        $this->schema->create('Questions', function (Blueprint $table): void {
-            $table->increments('QID');
-            $this->references($table, 'users', 'UID');
-            $table->text('Question');
-            $this->references($table, 'users', 'AID')->nullable();
-            $table->text('Answer')->nullable();
-        });
+        $this->schema->create(
+            'Questions',
+            function (Blueprint $table) {
+                $table->increments('QID');
+                $this->references($table, 'users', 'UID');
+                $table->text('Question');
+                $this->references($table, 'users', 'AID')
+                    ->nullable();
+                $table->text('Answer')
+                    ->nullable();
+            }
+        );
     }
 
+    /**
+     * @return void
+     */
     private function copyNewToPreviousQuestionsTable(): void
     {
         $connection = $this->schema->getConnection();

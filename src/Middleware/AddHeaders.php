@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Config\Config;
@@ -12,12 +10,23 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class AddHeaders implements MiddlewareInterface
 {
-    public function __construct(protected Config $config)
+    /** @var Config */
+    protected $config;
+
+    /**
+     * @param Config $config
+     */
+    public function __construct(Config $config)
     {
+        $this->config = $config;
     }
 
     /**
      * Process an incoming server request and setting the locale if required
+     *
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

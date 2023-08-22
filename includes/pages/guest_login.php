@@ -1,20 +1,14 @@
 <?php
 
 use Carbon\Carbon;
-use Engelsystem\Database\Database;
+use Engelsystem\Database\Db;
 use Engelsystem\Events\Listener\OAuth2;
-use Engelsystem\Config\GoodieType;
-use Engelsystem\Http\Validation\Rules\Username;
-use Engelsystem\Models\AngelType;
-use Engelsystem\Models\Group;
 use Engelsystem\Models\OAuth;
 use Engelsystem\Models\User\Contact;
 use Engelsystem\Models\User\PersonalData;
 use Engelsystem\Models\User\Settings;
 use Engelsystem\Models\User\State;
 use Engelsystem\Models\User\User;
-use Illuminate\Database\Connection;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * @return string
@@ -33,22 +27,15 @@ function guest_register()
 {
     $authUser = auth()->user();
     $tshirt_sizes = config('tshirt_sizes');
-    $goodie = GoodieType::from(config('goodie_type'));
-    $goodie_enabled = $goodie !== GoodieType::None;
-    $goodie_tshirt = $goodie === GoodieType::Tshirt;
+    $enable_tshirt_size = config('enable_tshirt_size');
     $enable_user_name = config('enable_user_name');
     $enable_dect = config('enable_dect');
     $enable_planned_arrival = config('enable_planned_arrival');
     $min_password_length = config('min_password_length');
-    $enable_password = config('enable_password');
     $enable_pronoun = config('enable_pronoun');
-    $enable_mobile_show = config('enable_mobile_show');
     $config = config();
     $request = request();
     $session = session();
-    /** @var Connection $db */
-    $db = app(Database::class)->getConnection();
-    $is_oauth = $session->has('oauth2_connect_provider');
 
     $msg = '';
     $nick = '';
@@ -56,12 +43,10 @@ function guest_register()
     $preName = '';
     $dect = '';
     $mobile = '';
-    $mobile_show = false;
     $email = '';
     $pronoun = '';
     $email_shiftinfo = false;
     $email_by_human_allowed = false;
-    $email_messages = false;
     $email_news = false;
     $email_goody = false;
     $tshirt_size = '';
@@ -69,8 +54,7 @@ function guest_register()
     $selected_angel_types = [];
     $planned_arrival_date = null;
 
-    /** @var AngelType[]|Collection $angel_types_source */
-    $angel_types_source = AngelType::all();
+    $angel_types_source = AngelTypes();
     $angel_types = [];
     if (!empty($session->get('oauth2_groups'))) {
         /** @var OAuth2 $oauth */
@@ -83,26 +67,16 @@ function guest_register()
         }
     }
     foreach ($angel_types_source as $angel_type) {
-        if ($angel_type->hide_register) {
-            continue;
+        $angel_types[$angel_type['id']] = $angel_type['name']
+            . ($angel_type['restricted'] ? ' (' . __('Requires introduction') . ')' : '');
+        if (!$angel_type['restricted']) {
+            $selected_angel_types[] = $angel_type['id'];
         }
-        $angel_types[$angel_type->id] = $angel_type->name
-            . ($angel_type->restricted ? ' (' . __('Requires introduction') . ')' : '');
-        if (!$angel_type->restricted) {
-            $selected_angel_types[] = $angel_type->id;
-        }
-    }
-
-    $oauth_enable_password = $session->get('oauth2_enable_password');
-    if (!is_null($oauth_enable_password)) {
-        $enable_password = $oauth_enable_password;
     }
 
     if (
-        !auth()->can('register') // No registration permission
-        // Not authenticated and
-        || (!$authUser && !config('registration_enabled') && !$session->get('oauth2_allow_registration')) // Registration disabled
-        || (!$authUser && !$enable_password && !$is_oauth) // Password disabled and not oauth
+        !auth()->can('register')
+        || (!$authUser && !config('registration_enabled') && !$session->get('oauth2_allow_registration'))
     ) {
         error(__('Registration is disabled.'));
 
@@ -115,27 +89,21 @@ function guest_register()
         $valid = true;
 
         if ($request->has('username')) {
-            $nick = trim($request->get('username'));
-            $nickValid = (new Username())->validate($nick);
+            $nickValidation = User_validate_Nick($request->input('username'));
+            $nick = $nickValidation->getValue();
 
-            if (!$nickValid) {
+            if (!$nickValidation->isValid()) {
                 $valid = false;
-                $msg .= error(sprintf(
-                    __('Please enter a valid nick.') . ' ' . __('Use up to 24 letters, numbers or connecting punctuations for your nickname.'),
-                    $nick
-                ), true);
+                $msg .= error(sprintf(__('Please enter a valid nick.') . ' ' . __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.'),
+                    $nick), true);
             }
             if (User::whereName($nick)->count() > 0) {
                 $valid = false;
-                $msg .= error(sprintf(__('Your nick "%s" already exists.'), htmlspecialchars($nick)), true);
+                $msg .= error(sprintf(__('Your nick &quot;%s&quot; already exists.'), $nick), true);
             }
         } else {
             $valid = false;
             $msg .= error(__('Please enter a nickname.'), true);
-        }
-
-        if ($request->has('mobile_show') && $enable_mobile_show) {
-            $mobile_show = true;
         }
 
         if ($request->has('email') && strlen(strip_request_item('email')) > 0) {
@@ -161,10 +129,6 @@ function guest_register()
             $email_by_human_allowed = true;
         }
 
-        if ($request->has('email_messages')) {
-            $email_messages = true;
-        }
-
         if ($request->has('email_news')) {
             $email_news = true;
         }
@@ -173,7 +137,7 @@ function guest_register()
             $email_goody = true;
         }
 
-        if ($goodie_tshirt) {
+        if ($enable_tshirt_size) {
             if ($request->has('tshirt_size') && isset($tshirt_sizes[$request->input('tshirt_size')])) {
                 $tshirt_size = $request->input('tshirt_size');
             } else {
@@ -182,12 +146,12 @@ function guest_register()
             }
         }
 
-        if ($enable_password && $request->has('password') && strlen($request->postData('password')) >= $min_password_length) {
+        if ($request->has('password') && strlen($request->postData('password')) >= $min_password_length) {
             if ($request->postData('password') != $request->postData('password2')) {
                 $valid = false;
                 $msg .= error(__('Your passwords don\'t match.'), true);
             }
-        } elseif ($enable_password) {
+        } else {
             $valid = false;
             $msg .= error(sprintf(
                 __('Your password is too short (please use at least %s characters).'),
@@ -233,14 +197,15 @@ function guest_register()
                 error(__('For dect numbers are only 40 digits allowed.'));
             }
         }
-        if ($request->has('mobile')) {
+        if ($request->has('mobile') && strlen(strip_request_item('mobile')) > 0) {
             $mobile = strip_request_item('mobile');
+        }else {
+            $valid = false;
+            $msg .= error(__('Please enter your mobile.'), true);
         }
 
-        if ($valid) {
-            // Safeguard against partially created user data
-            $db->beginTransaction();
 
+        if ($valid) {
             $user = new User([
                 'name'          => $nick,
                 'password'      => $password_hash,
@@ -273,11 +238,9 @@ function guest_register()
                 'language'        => $session->get('locale'),
                 'theme'           => config('theme'),
                 'email_human'     => $email_by_human_allowed,
-                'email_messages'  => $email_messages,
                 'email_goody'     => $email_goody,
                 'email_shiftinfo' => $email_shiftinfo,
                 'email_news'      => $email_news,
-                'mobile_show'     => $mobile_show,
             ]);
             $settings->user()
                 ->associate($user)
@@ -312,22 +275,18 @@ function guest_register()
             }
 
             // Assign user-group and set password
-            $defaultGroup = Group::find(auth()->getDefaultRole());
-            $user->groups()->attach($defaultGroup);
-            if ($enable_password) {
-                auth()->setPassword($user, $request->postData('password'));
-            }
+            DB::insert('INSERT INTO `UserGroups` (`uid`, `group_id`) VALUES (?, -20)', [$user->id]);
+            auth()->setPassword($user, $request->postData('password'));
 
             // Assign angel-types
             $user_angel_types_info = [];
             foreach ($selected_angel_types as $selected_angel_type_id) {
-                $angelType = AngelType::findOrFail($selected_angel_type_id);
-                $user->userAngelTypes()->attach($angelType);
-                $user_angel_types_info[] = $angelType->name;
+                DB::insert(
+                    'INSERT INTO `UserAngelTypes` (`user_id`, `angeltype_id`, `supporter`) VALUES (?, ?, FALSE)',
+                    [$user->id, $selected_angel_type_id]
+                );
+                $user_angel_types_info[] = $angel_types[$selected_angel_type_id];
             }
-
-            // Commit complete user data
-            $db->commit();
 
             engelsystem_log(
                 'User ' . User_Nick_render($user, true)
@@ -341,8 +300,8 @@ function guest_register()
             }
 
             // If a welcome message is present, display it on the next page
-            if ($config->get('welcome_msg')) {
-                $session->set('show_welcome', true);
+            if ($message = $config->get('welcome_msg')) {
+                info((new Parsedown())->text($message));
             }
 
             // Login the user
@@ -402,24 +361,22 @@ function guest_register()
                         24,
                         'nickname'
                     ),
-                    form_info(
-                        '',
-                        __('Use up to 24 letters, numbers or connecting punctuations for your nickname.')
-                    ),
+                    form_info('',
+                        __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.'))
                 ]),
 
                 $enable_pronoun ? div('col', [
-                    form_text('pronoun', __('Pronoun'), $pronoun, false, 15),
+                    form_text('pronoun', __('Pronoun'), $pronoun, false, 15)
                 ]) : '',
             ]),
 
             $enable_user_name ? div('row', [
                 div('col', [
-                    form_text('prename', __('First name'), $preName, false, 64, 'given-name'),
+                    form_text('prename', __('First name'), $preName, false, 64, 'given-name')
                 ]),
                 div('col', [
-                    form_text('lastname', __('Last name'), $lastName, false, 64, 'family-name'),
-                ]),
+                    form_text('lastname', __('Last name'), $lastName, false, 64, 'family-name')
+                ])
             ]) : '',
 
             div('row', [
@@ -435,7 +392,7 @@ function guest_register()
                     form_checkbox(
                         'email_shiftinfo',
                         __(
-                            'settings.profile.email_shiftinfo',
+                            'The %s is allowed to send me an email (e.g. when my shifts change)',
                             [config('app_name')]
                         ),
                         $email_shiftinfo
@@ -446,16 +403,11 @@ function guest_register()
                         $email_news
                     ),
                     form_checkbox(
-                        'email_messages',
-                        __('settings.profile.email_messages'),
-                        $email_messages
-                    ),
-                    form_checkbox(
                         'email_by_human_allowed',
                         __('Allow heaven angels to contact you by e-mail.'),
                         $email_by_human_allowed
                     ),
-                    $goodie_enabled ?
+                    config('enable_goody') ?
                         form_checkbox(
                             'email_goody',
                             __('To receive vouchers, give consent that nick, email address, worked hours and shirt size will be stored until the next similar event.')
@@ -465,48 +417,37 @@ function guest_register()
                 ]),
 
                 $enable_dect ? div('col', [
-                    form_text('dect', __('DECT'), $dect, false, 40, 'tel-local'),
+                    form_text('dect', __('DECT'), $dect, false, 40, 'tel-local')
                 ]) : '',
 
                 div('col', [
-                    form_text('mobile', __('Mobile'), $mobile, false, 40, 'tel-national'),
-                    $enable_mobile_show ? form_checkbox(
-                        'mobile_show',
-                        __('Show mobile number to other users to contact me'),
-                        $mobile_show
-                    ) : '',
-                ]),
+                    form_text('mobile', __('Mobile') . ' ' . entry_required(), $mobile, false, 40, 'tel-national')
+                ])
             ]),
 
             div('row', [
-                $enable_password ? div('col', [
-                    form_password('password', __('Password') . ' ' . entry_required(), 'new-password'),
-                ]) : '',
+                div('col', [
+                    form_password('password', __('Password') . ' ' . entry_required())
+                ]),
 
                 $enable_planned_arrival ? div('col', [
                     form_date(
                         'planned_arrival_date',
                         __('Planned date of arrival') . ' ' . entry_required(),
-                        $planned_arrival_date,
-                        $buildup_start_date,
-                        $teardown_end_date
-                    ),
+                        $planned_arrival_date, $buildup_start_date, $teardown_end_date
+                    )
                 ]) : '',
             ]),
 
             div('row', [
-                $enable_password ? div('col', [
-                    form_password('password2', __('Confirm password') . ' ' . entry_required(), 'new-password'),
-                ]) : '',
+                div('col', [
+                    form_password('password2', __('Confirm password') . ' ' . entry_required())
+                ]),
 
                 div('col', [
-                    $goodie_tshirt ? form_select(
-                        'tshirt_size',
+                    $enable_tshirt_size ? form_select('tshirt_size',
                         __('Shirt size') . ' ' . entry_required(),
-                        $tshirt_sizes,
-                        $tshirt_size,
-                        __('form.select_placeholder')
-                    ) : '',
+                        $tshirt_sizes, $tshirt_size, __('Please select...')) : ''
                 ]),
             ]),
 
@@ -516,7 +457,7 @@ function guest_register()
                         'angel_types',
                         __('What do you want to do?') . sprintf(
                             ' (<a href="%s">%s</a>)',
-                            url('/angeltypes/about'),
+                            page_link_to('angeltypes', ['action' => 'about']),
                             __('Description of job types')
                         ),
                         $angel_types,
@@ -525,12 +466,12 @@ function guest_register()
                     form_info(
                         '',
                         __('Some angel types have to be confirmed later by a supporter at an introduction meeting. You can change your selection in the options section.')
-                    ),
-                ]),
+                    )
+                ])
             ]),
 
-            form_submit('submit', __('Register')),
-        ]),
+            form_submit('submit', __('Register'))
+        ])
     ]);
 }
 

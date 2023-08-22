@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models;
 
 use Carbon\Carbon;
@@ -24,23 +22,26 @@ use Illuminate\Support\Collection as SupportCollection;
 class LogEntry extends BaseModel
 {
     /** @var bool enable timestamps for created_at */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
     /** @var null Disable updated_at */
     public const UPDATED_AT = null;
 
     /**
      * The attributes that are mass assignable.
+     *
+     * @var array
      */
-    protected $fillable = [ // phpcs:ignore
+    protected $fillable = [
         'level',
         'message',
     ];
 
     /**
+     * @param $keyword
      * @return Builder[]|Collection|SupportCollection|LogEntry[]
      */
-    public static function filter(string $keyword = null): array|Collection|SupportCollection
+    public static function filter($keyword = null)
     {
         $query = self::query()
             ->select()

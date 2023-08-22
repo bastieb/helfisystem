@@ -1,27 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Mail;
 
 use Engelsystem\Helpers\Translation\Translator;
 use Engelsystem\Models\User\User;
 use Engelsystem\Renderer\Renderer;
-use Symfony\Component\Mailer\MailerInterface;
+use Swift_Mailer as SwiftMailer;
 
 class EngelsystemMailer extends Mailer
 {
-    protected ?Renderer $view = null;
+    /** @var Renderer|null */
+    protected $view;
 
-    protected ?Translator $translation = null;
+    /** @var Translator|null */
+    protected $translation;
 
-    protected ?string $subjectPrefix = null;
+    /** @var string */
+    protected $subjectPrefix = null;
 
     /**
-     * @param Renderer|null   $view
-     * @param Translator|null $translation
+     * @param SwiftMailer $mailer
+     * @param Renderer    $view
+     * @param Translator  $translation
      */
-    public function __construct(MailerInterface $mailer, Renderer $view = null, Translator $translation = null)
+    public function __construct(SwiftMailer $mailer, Renderer $view = null, Translator $translation = null)
     {
         parent::__construct($mailer);
 
@@ -31,17 +33,22 @@ class EngelsystemMailer extends Mailer
 
     /**
      * @param string|string[]|User $to
+     * @param string               $subject
+     * @param string               $template
+     * @param array                $data
+     * @param string|null          $locale
+     * @return int
      */
     public function sendViewTranslated(
-        string|array|User $to,
+        $to,
         string $subject,
         string $template,
         array $data = [],
         ?string $locale = null
-    ): void {
+    ): int {
         if ($to instanceof User) {
             $locale = $locale ?: $to->settings->language;
-            $to = $to->contact->email ?: $to->email;
+            $to = $to->contact->email ? $to->contact->email : $to->email;
         }
 
         $activeLocale = null;
@@ -55,45 +62,60 @@ class EngelsystemMailer extends Mailer
         }
 
         $subject = $this->translation ? $this->translation->translate($subject, $data) : $subject;
-        $this->sendView($to, $subject, $template, $data);
+        $sentMails = $this->sendView($to, $subject, $template, $data);
 
         if ($activeLocale) {
             $this->translation->setLocale($activeLocale);
         }
+
+        return $sentMails;
     }
 
     /**
      * Send a template
      *
      * @param string|string[] $to
+     * @param string          $subject
+     * @param string          $template
+     * @param array           $data
+     * @return int
      */
-    public function sendView(string|array $to, string $subject, string $template, array $data = []): void
+    public function sendView($to, string $subject, string $template, array $data = []): int
     {
         $body = $this->view->render($template, $data);
 
-        $this->send($to, $subject, $body);
+        return $this->send($to, $subject, $body);
     }
 
     /**
      * Send the mail
      *
      * @param string|string[] $to
+     * @param string          $subject
+     * @param string          $body
+     * @return int
      */
-    public function send(string|array $to, string $subject, string $body): void
+    public function send($to, string $subject, string $body): int
     {
         if ($this->subjectPrefix) {
-            $subject = sprintf('[%s] %s', $this->subjectPrefix, trim($subject));
+            $subject = sprintf('[%s] %s', $this->subjectPrefix, $subject);
         }
 
-        parent::send($to, $subject, $body);
+        return parent::send($to, $subject, $body);
     }
 
+    /**
+     * @return string
+     */
     public function getSubjectPrefix(): string
     {
         return $this->subjectPrefix;
     }
 
-    public function setSubjectPrefix(string $subjectPrefix): void
+    /**
+     * @param string $subjectPrefix
+     */
+    public function setSubjectPrefix(string $subjectPrefix)
     {
         $this->subjectPrefix = $subjectPrefix;
     }

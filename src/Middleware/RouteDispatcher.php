@@ -1,12 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Http\Request;
 use FastRoute\Dispatcher as FastRouteDispatcher;
-use Nyholm\Psr7\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -14,27 +11,41 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class RouteDispatcher implements MiddlewareInterface
 {
-    protected ?MiddlewareInterface $notFound = null;
+    /** @var FastRouteDispatcher */
+    protected $dispatcher;
+
+    /** @var ResponseInterface */
+    protected $response;
+
+    /** @var MiddlewareInterface|null */
+    protected $notFound;
 
     /**
+     * @param FastRouteDispatcher      $dispatcher
      * @param ResponseInterface        $response Default response
      * @param MiddlewareInterface|null $notFound Handles any requests if the route can't be found
      */
     public function __construct(
-        protected FastRouteDispatcher $dispatcher,
-        protected ResponseInterface $response,
+        FastRouteDispatcher $dispatcher,
+        ResponseInterface $response,
         MiddlewareInterface $notFound = null
     ) {
+        $this->dispatcher = $dispatcher;
+        $this->response = $response;
         $this->notFound = $notFound;
     }
 
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
+     *
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $path = (new Uri((string) $request->getUri()))->getPath();
+        $path = $request->getUri()->getPath();
         if ($request instanceof Request) {
             $path = $request->getPathInfo();
         }

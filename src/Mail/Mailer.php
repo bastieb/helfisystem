@@ -1,54 +1,74 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Mail;
 
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+use Swift_Mailer as SwiftMailer;
+use Swift_Message as SwiftMessage;
 
 class Mailer
 {
-    protected string $fromAddress = '';
+    /** @var SwiftMailer */
+    protected $mailer;
 
-    protected ?string $fromName = null;
+    /** @var string */
+    protected $fromAddress = '';
 
-    public function __construct(protected MailerInterface $mailer)
+    /** @var string */
+    protected $fromName = null;
+
+    public function __construct(SwiftMailer $mailer)
     {
+        $this->mailer = $mailer;
     }
 
     /**
      * Send the mail
      *
      * @param string|string[] $to
+     * @param string          $subject
+     * @param string          $body
+     * @return int
      */
-    public function send(string|array $to, string $subject, string $body): void
+    public function send($to, string $subject, string $body): int
     {
-        $message = (new Email())
-            ->to(...(array) $to)
-            ->from(sprintf('%s <%s>', $this->fromName, $this->fromAddress))
-            ->subject($subject)
-            ->text($body);
+        /** @var SwiftMessage $message */
+        $message = $this->mailer->createMessage();
+        $message->setTo((array)$to)
+            ->setFrom($this->fromAddress, $this->fromName)
+            ->setSubject($subject)
+            ->setBody($body);
 
-        $this->mailer->send($message);
+        return $this->mailer->send($message);
     }
 
+    /**
+     * @return string
+     */
     public function getFromAddress(): string
     {
         return $this->fromAddress;
     }
 
-    public function setFromAddress(string $fromAddress): void
+    /**
+     * @param string $fromAddress
+     */
+    public function setFromAddress(string $fromAddress)
     {
         $this->fromAddress = $fromAddress;
     }
 
+    /**
+     * @return string
+     */
     public function getFromName(): string
     {
         return $this->fromName;
     }
 
-    public function setFromName(string $fromName): void
+    /**
+     * @param string $fromName
+     */
+    public function setFromName(string $fromName)
     {
         $this->fromName = $fromName;
     }

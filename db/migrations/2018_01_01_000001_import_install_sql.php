@@ -1,15 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
 
 class ImportInstallSql extends Migration
 {
-    /** @var array<string> */
-    protected array $oldTables = [
+    protected $oldTables = [
         'AngelTypes',
         'EventConfig',
         'GroupPrivileges',
@@ -34,7 +31,7 @@ class ImportInstallSql extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
         foreach ($this->oldTables as $table) {
             if ($this->schema->hasTable($table)) {
@@ -50,7 +47,7 @@ class ImportInstallSql extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
         $this->schema->getConnection()->statement('SET FOREIGN_KEY_CHECKS=0;');
 

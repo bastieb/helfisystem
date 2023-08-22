@@ -1,31 +1,40 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Helpers;
 
 use Engelsystem\Config\Config;
-use Illuminate\Support\Str;
 
 class Version
 {
-    public function __construct(protected string $gitRoot, protected string $storage, protected Config $config)
+    /** @var Config */
+    protected $config;
+
+    /** @vat string */
+    protected $storage;
+
+    /** @var string */
+    protected $versionFile = 'VERSION';
+
+    /**
+     * @param string $storage
+     * @param Config $config
+     */
+    public function __construct(string $storage, Config $config)
     {
+        $this->storage = $storage;
+        $this->config = $config;
     }
 
-    public function getVersion(): string
+    /**
+     * @return string
+     */
+    public function getVersion()
     {
-        $file = $this->storage . DIRECTORY_SEPARATOR . 'VERSION';
-        $gitHead = implode(DIRECTORY_SEPARATOR, [$this->gitRoot, 'logs', 'HEAD']);
+        $file = $this->storage . DIRECTORY_SEPARATOR . $this->versionFile;
 
         $version = 'n/a';
         if (file_exists($file)) {
             $version = trim(file_get_contents($file));
-        } elseif (file_exists($gitHead)) {
-            $lines = file($gitHead) ?: [];
-            $lastLine = array_pop($lines) ?: '';
-            $words = explode(' ', $lastLine);
-            $version = Str::substr($words[1] ?? '', 0, 7);
         }
 
         return $this->config->get('version', $version);

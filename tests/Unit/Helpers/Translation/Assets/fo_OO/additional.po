@@ -1,3 +1,0 @@
-# Testing content
-msgid "validation.foo.bar"
-msgstr "Foo Bar required!"

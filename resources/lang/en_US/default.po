@@ -16,6 +16,11 @@ msgstr ""
 "Language: en_US\n"
 "X-Poedit-SearchPath-0: .\n"
 
+#~ msgid "auth.no-nickname"
+#~ msgstr "Please enter a nickname."
+
+#~ msgid "auth.no-password"
+#~ msgstr "Please enter a password."
 msgid "auth.password.error"
 msgstr "Your password is incorrect. Please try it again."
 
@@ -49,9 +54,6 @@ msgstr ""
 "[contributors list on GitHub](https://github.com/engelsystem/engelsystem/graphs/contributors)"
 " for a complete list."
 
-msgid "form.select_placeholder"
-msgstr "Please select..."
-
 msgid "form.load_schedule"
 msgstr "Load schedule"
 
@@ -72,15 +74,6 @@ msgstr "Delete"
 
 msgid "form.updated"
 msgstr "Updated"
-
-msgid "form.cancel"
-msgstr "Cancel"
-
-msgid "form.required"
-msgstr "Required"
-
-msgid "form.markdown"
-msgstr "You can use Markdown here"
 
 msgid "schedule.import"
 msgstr "Import schedule"
@@ -148,9 +141,6 @@ msgstr "Title"
 msgid "schedule.import.shift.room"
 msgstr "Room"
 
-msgid "shifts_history.schedule"
-msgstr "Schedule: %s"
-
 msgid "news.title"
 msgstr "News"
 
@@ -190,9 +180,6 @@ msgstr "Subject"
 msgid "news.edit.is_meeting"
 msgstr "Meeting"
 
-msgid "news.edit.is_important"
-msgstr "Important"
-
 msgid "news.edit.is_pinned"
 msgstr "Pin to top"
 
@@ -220,67 +207,6 @@ msgstr "Message"
 msgid "settings.settings"
 msgstr "Settings"
 
-msgid "settings.profile.entry_required"
-msgstr "Entry required"
-
-msgid "settings.profile.nick"
-msgstr "Nick"
-
-msgid "settings.profile.pronoun"
-msgstr "Pronoun"
-
-msgid "settings.profile.pronoun.info"
-msgstr "Will be shown on your profile page and in angel lists."
-
-msgid "settings.profile.firstname"
-msgstr "First name"
-
-msgid "settings.profile.lastname"
-msgstr "Last name"
-
-msgid "settings.profile.planned_arrival_date"
-msgstr "Planned date of arrival"
-
-msgid "settings.profile.planned_departure_date"
-msgstr "Planned date of departure"
-
-msgid "settings.profile.dect"
-msgstr "DECT"
-
-msgid "settings.profile.mobile"
-msgstr "Mobile"
-
-msgid "settings.profile.mobile_show"
-msgstr "Show mobile number to other users to contact me."
-
-msgid "settings.profile.email"
-msgstr "E-Mail"
-
-msgid "settings.profile.email_shiftinfo"
-msgstr "The %s is allowed to send me an e-mail (e.g. when my shifts change)."
-
-msgid "settings.profile.email_news"
-msgstr "Notify me of new news."
-
-msgid "settings.profile.email_messages"
-msgstr "Notify me on new private messages."
-
-msgid "settings.profile.email_by_human_allowed"
-msgstr "Allow heaven angels to contact you by e-mail."
-
-msgid "settings.profile.email_goody"
-msgstr "To receive vouchers, give consent that nick, e-mail address, worked hours and shirt size will be stored until "
-"the next similar event."
-
-msgid "settings.profile.privacy"
-msgstr "To withdraw your approval, send an e-mail to <a href=\"mailto:%s\">%1$s</a>."
-
-msgid "settings.profile.shirt_size"
-msgstr "Shirt size"
-
-msgid "settings.profile.angeltypes.info"
-msgstr "You can manage your Angeltypes <a href=\"%s\">on the Angeltypes page</a>."
-
 msgid "settings.password"
 msgstr "Password"
 
@@ -298,60 +224,6 @@ msgstr "Password confirmation"
 
 msgid "settings.password.success"
 msgstr "Password was changed successfully."
-
-msgid "settings.theme"
-msgstr "Theme"
-
-msgid "settings.theme.info"
-msgstr "Here you can change your theme."
-
-msgid "settings.theme.success"
-msgstr "Theme was changed successfully."
-
-msgid "settings.certificates"
-msgstr "Certificates"
-
-msgid "settings.certificates.info"
-msgstr "Here you can enter your health instruction"
-
-msgid "settings.ifsg_light"
-msgstr "I was instructed about IfSG §43 (aka Frikadellendiplom light) on site."
-
-msgid "settings.ifsg"
-msgstr "I have gotten the instruction about §43 IfSG (aka Frikadellendiplom) from my Health Department "
-"and a second instruction from us or my employer/chef/assosiation within 3 months. "
-"Additionally my second instruction is not older than 2 years."
-
-msgid "settings.certificates.success"
-msgstr "Health instruction was changed successfully."
-
-msgid "angeltype.ifsg.required"
-msgstr "Requires health instruction"
-
-msgid "ifsg.certificate"
-msgstr "health instruction"
-
-msgid "angeltype.ifsg.own"
-msgstr "my health instruction"
-
-msgid "angeltype.ifsg.required.info"
-msgstr "This angeltype requires a health instruction. Please enter your health instruction information!"
-
-msgid "angeltype.ifsg.required.info.here"
-msgstr "You joined an angeltype which requires a health instruction. "
-"Please edit your health instruction information here: %s."
-
-msgid "ifsg.info"
-msgstr "Health instruction information"
-
-msgid "settings.language"
-msgstr "Language"
-
-msgid "settings.language.info"
-msgstr "Here you can change your language."
-
-msgid "settings.language.success"
-msgstr "Language was changed successfully."
 
 msgid "settings.oauth"
 msgstr "Single Sign-On"
@@ -410,9 +282,6 @@ msgstr "Answer"
 msgid "user.edit.shirt"
 msgstr "Edit shirt"
 
-msgid "user.edit.goodie"
-msgstr "Edit goodie"
-
 msgid "form.shirt"
 msgstr "Shirt"
 
@@ -430,103 +299,3 @@ msgstr "Arrived"
 
 msgid "user.got_shirt"
 msgstr "Got shirt"
-
-msgid "user.got_goodie"
-msgstr "Got goodie"
-
-msgid "message.title"
-msgstr "Messages"
-
-msgid "message.choose_angel"
-msgstr "Choose an Angel"
-
-msgid "message.to_conversation"
-msgstr "To Conversation"
-
-msgid "message.message"
-msgstr "Message"
-
-msgid "angel"
-msgstr "Angel"
-
-msgid "date"
-msgstr "Date"
-
-msgid "worklog.add"
-msgstr "Add work log"
-
-msgid "worklog.edit"
-msgstr "Edit work log"
-
-msgid "worklog.date"
-msgstr "Work date"
-
-msgid "worklog.hours"
-msgstr "Work hours"
-
-msgid "worklog.comment"
-msgstr "Comment"
-
-msgid "worklog.delete"
-msgstr "Delete work log"
-
-msgid "worklog.delete.info"
-msgstr "Do you really want to delete the work log for %s?"
-
-msgid "angeltypes.angeltypes"
-msgstr "Angeltypes"
-
-msgid "angeltypes.about"
-msgstr "Teams-/Job description"
-
-msgid "angeltypes.about.text"
-msgstr "Here you can find the list of teams and their tasks. If you have further questions, have a look at the FAQ."
-
-msgid "angeltypes.restricted.hint"
-msgstr "This angeltype requires the attendance at an introduction meeting. "
-"You might find additional information in the description."
-
-msgid "angeltypes.name"
-msgstr "Name"
-
-msgid "angeltypes.dect"
-msgstr "DECT"
-
-msgid "angeltypes.email"
-msgstr "E-Mail"
-
-msgid "registration.register"
-msgstr "Register"
-
-msgid "room.rooms"
-msgstr "Rooms"
-
-msgid "room.name"
-msgstr "Name"
-
-msgid "room.dect"
-msgstr "DECT"
-
-msgid "room.map_url"
-msgstr "Map"
-
-msgid "room.description"
-msgstr "Description"
-
-msgid "room.required_angels"
-msgstr "Required angels"
-
-msgid "room.map_url.info"
-msgstr "The map will be embedded on the room page as an iframe."
-
-msgid "room.create.title"
-msgstr "Create room"
-
-msgid "room.edit.title"
-msgstr "Edit room"
-
-msgid "event.day"
-msgstr "Day %1$d"
-
-msgid "dashboard.day"
-msgstr "Day"

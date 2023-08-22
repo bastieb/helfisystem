@@ -3,6 +3,9 @@
 use Engelsystem\Application;
 use Engelsystem\Config\Config;
 
+/**
+ * Include the autoloader
+ */
 require_once __DIR__ . '/autoload.php';
 
 /**

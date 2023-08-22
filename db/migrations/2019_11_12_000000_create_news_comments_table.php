@@ -53,9 +53,12 @@ class CreateNewsCommentsTable extends Migration
         $this->schema->drop('news_comments');
     }
 
+    /**
+     * @return void
+     */
     private function createNewNewsCommentsTable(): void
     {
-        $this->schema->create('news_comments', function (Blueprint $table): void {
+        $this->schema->create('news_comments', function (Blueprint $table) {
             $table->increments('id');
             $this->references($table, 'news', 'news_id');
             $table->text('text');
@@ -64,6 +67,9 @@ class CreateNewsCommentsTable extends Migration
         });
     }
 
+    /**
+     * @return void
+     */
     private function copyPreviousToNewNewsCommentsTable(): void
     {
         $connection = $this->schema->getConnection();
@@ -84,9 +90,12 @@ class CreateNewsCommentsTable extends Migration
         }
     }
 
+    /**
+     * @return void
+     */
     private function createPreviousNewsCommentsTable(): void
     {
-        $this->schema->create('NewsComments', function (Blueprint $table): void {
+        $this->schema->create('NewsComments', function (Blueprint $table) {
             $table->increments('ID');
             $this->references($table, 'news', 'Refid');
             $table->dateTime('Datum');
@@ -95,6 +104,9 @@ class CreateNewsCommentsTable extends Migration
         });
     }
 
+    /**
+     * @return void
+     */
     private function copyNewToPreviousNewsCommentsTable(): void
     {
         $connection = $this->schema->getConnection();

@@ -4,9 +4,7 @@
 use Composer\Autoload\ClassLoader;
 use Engelsystem\Application;
 use Engelsystem\Database\Migration\Migrate;
-use Engelsystem\Database\Migration\Direction;
 use Engelsystem\Database\Migration\MigrationServiceProvider;
-use Engelsystem\Environment;
 use Engelsystem\Exceptions\Handler;
 use Engelsystem\Exceptions\Handlers\NullHandler;
 
@@ -21,7 +19,7 @@ $app->register(MigrationServiceProvider::class);
 
 /** @var Handler $errorHandler */
 $errorHandler = $app->get(Handler::class);
-$errorHandler->setHandler(Environment::PRODUCTION, new NullHandler());
+$errorHandler->setHandler(Handler::ENV_PRODUCTION, new NullHandler());
 
 /** @var Migrate $migration */
 $migration = $app->get('db.migration');
@@ -34,10 +32,10 @@ if (in_array('help', $argv) || in_array('--help', $argv) || in_array('-h', $argv
     exit;
 }
 
-$direction = Direction::UP;
+$method = Migrate::UP;
 if (in_array('down', $argv)) {
     $argv = array_values($argv);
-    $direction = Direction::DOWN;
+    $method = Migrate::DOWN;
 }
 
 $oneStep = false;
@@ -50,4 +48,4 @@ if (in_array('force', $argv) || in_array('--force', $argv) || in_array('-f', $ar
     $force = true;
 }
 
-$migration->run($baseDir, $direction, $oneStep, $force);
+$migration->run($baseDir, $method, $oneStep, $force);

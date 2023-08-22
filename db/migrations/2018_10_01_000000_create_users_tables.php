@@ -1,11 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Carbon\Carbon;
 use Engelsystem\Database\Migration\Migration;
+use Engelsystem\Models\User\Contact;
+use Engelsystem\Models\User\PasswordReset;
+use Engelsystem\Models\User\PersonalData;
+use Engelsystem\Models\User\Settings;
+use Engelsystem\Models\User\State;
+use Engelsystem\Models\User\User;
 use Illuminate\Database\Schema\Blueprint;
 use stdClass;
 
@@ -17,9 +21,9 @@ class CreateUsersTables extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
-        $this->schema->create('users', function (Blueprint $table): void {
+        $this->schema->create('users', function (Blueprint $table) {
             $table->increments('id');
 
             $table->string('name', 24)->unique();
@@ -31,7 +35,7 @@ class CreateUsersTables extends Migration
             $table->timestamps();
         });
 
-        $this->schema->create('users_personal_data', function (Blueprint $table): void {
+        $this->schema->create('users_personal_data', function (Blueprint $table) {
             $this->referencesUser($table, true);
 
             $table->string('first_name', 64)->nullable();
@@ -42,7 +46,7 @@ class CreateUsersTables extends Migration
             $table->date('planned_departure_date')->nullable();
         });
 
-        $this->schema->create('users_contact', function (Blueprint $table): void {
+        $this->schema->create('users_contact', function (Blueprint $table) {
             $this->referencesUser($table, true);
 
             $table->string('dect', 5)->nullable();
@@ -50,7 +54,7 @@ class CreateUsersTables extends Migration
             $table->string('email', 254)->nullable();
         });
 
-        $this->schema->create('users_settings', function (Blueprint $table): void {
+        $this->schema->create('users_settings', function (Blueprint $table) {
             $this->referencesUser($table, true);
 
             $table->string('language', 64);
@@ -59,7 +63,7 @@ class CreateUsersTables extends Migration
             $table->boolean('email_shiftinfo')->default(false);
         });
 
-        $this->schema->create('users_state', function (Blueprint $table): void {
+        $this->schema->create('users_state', function (Blueprint $table) {
             $this->referencesUser($table, true);
 
             $table->boolean('arrived')->default(false);
@@ -70,7 +74,7 @@ class CreateUsersTables extends Migration
             $table->integer('got_voucher')->default(0);
         });
 
-        $this->schema->create('password_resets', function (Blueprint $table): void {
+        $this->schema->create('password_resets', function (Blueprint $table) {
             $this->referencesUser($table, true);
 
             $table->text('token');
@@ -79,33 +83,33 @@ class CreateUsersTables extends Migration
         });
 
         if ($this->schema->hasTable('User')) {
-            $connection = $this->schema->getConnection();
             $emptyDates = ['0000-00-00 00:00:00', '0001-01-01 00:00:00', '1000-01-01 00:00:00'];
             /** @var stdClass[] $users */
-            $users = $connection->table('User')->get();
+            $users = $this->schema->getConnection()->table('User')->get();
 
             foreach ($users as $data) {
-                $user = [
-                    'id'            => $data->UID,
+                $user = new User([
                     'name'          => $data->Nick,
                     'password'      => $data->Passwort,
                     'email'         => $data->email,
                     'api_key'       => $data->api_key,
                     'last_login_at' => $data->lastLogIn ? Carbon::createFromTimestamp($data->lastLogIn) : null,
-                ];
-                if (!in_array($data->CreateDate, $emptyDates)) {
-                    $user['created_at'] = new Carbon($data->CreateDate);
-                }
-                $connection->table('users')->insert($user);
-
-                $connection->table('users_contact')->insert([
-                    'user_id' => $data->UID,
-                    'dect'    => $data->DECT ?: null,
-                    'mobile'  => $data->Handy ?: ($data->Telefon ?: null),
                 ]);
+                $user->setAttribute('id', $data->UID);
+                if (!in_array($data->CreateDate, $emptyDates)) {
+                    $user->setAttribute('created_at', new Carbon($data->CreateDate));
+                }
+                $user->save();
 
-                $connection->table('users_personal_data')->insert([
-                    'user_id'                => $data->UID,
+                $contact = new Contact([
+                    'dect'   => $data->DECT ? $data->DECT : null,
+                    'mobile' => $data->Handy ?: ($data->Telefon ?: null),
+                ]);
+                $contact->user()
+                    ->associate($user)
+                    ->save();
+
+                $personalData = new PersonalData([
                     'first_name'             => $data->Vorname ?: null,
                     'last_name'              => $data->Name ?: null,
                     'shirt_size'             => $data->Size ?: null,
@@ -116,17 +120,24 @@ class CreateUsersTables extends Migration
                         ? Carbon::createFromTimestamp($data->planned_departure_date)
                         : null,
                 ]);
+                $personalData->user()
+                    ->associate($user)
+                    ->save();
 
-                $connection->table('users_settings')->insert([
-                    'user_id'         => $data->UID,
+                $settings = new Settings([
                     'language'        => $data->Sprache,
                     'theme'           => $data->color,
                     'email_human'     => $data->email_by_human_allowed,
                     'email_shiftinfo' => $data->email_shiftinfo,
                 ]);
+                unset($settings->email_news);
+                unset($settings->email_goody);
 
-                $connection->table('users_state')->insert([
-                    'user_id'      => $data->UID,
+                $settings->user()
+                    ->associate($user)
+                    ->save();
+
+                $state = new State([
                     'arrived'      => $data->Gekommen,
                     'arrival_date' => $data->arrival_date ? Carbon::createFromTimestamp($data->arrival_date) : null,
                     'active'       => $data->Aktiv,
@@ -134,12 +145,17 @@ class CreateUsersTables extends Migration
                     'got_shirt'    => $data->Tshirt,
                     'got_voucher'  => $data->got_voucher,
                 ]);
+                $state->user()
+                    ->associate($user)
+                    ->save();
 
                 if ($data->password_recovery_token) {
-                    $connection->table('password_resets')->insert([
-                        'user_id' => $data->UID,
-                        'token'   => $data->password_recovery_token,
+                    $passwordReset = new PasswordReset([
+                        'token' => $data->password_recovery_token,
                     ]);
+                    $passwordReset->user()
+                        ->associate($user)
+                        ->save();
                 }
             }
 
@@ -157,12 +173,10 @@ class CreateUsersTables extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
-        $connection = $this->schema->getConnection();
-
-        $this->schema->create('User', function (Blueprint $table): void {
-            $table->integer('UID', true);
+        $this->schema->create('User', function (Blueprint $table) {
+            $table->integer('UID', true, false);
 
             $table->string('Nick', 23)->unique()->default('');
             $table->string('Name', 23)->nullable();
@@ -203,16 +217,12 @@ class CreateUsersTables extends Migration
             $table->index('planned_departure_date', 'planned_departure_date');
         });
 
-        foreach ($connection->table('users')->get() as $user) {
-            /** @var stdClass $user */
-            /** @var stdClass $contact */
-            $contact = $connection->table('users_contact')->where('user_id', $user->id)->first();
-            /** @var stdClass $personal */
-            $personal = $connection->table('users_personal_data')->where('user_id', $user->id)->first();
-            /** @var stdClass $settings */
-            $settings = $connection->table('users_settings')->where('user_id', $user->id)->first();
-            /** @var stdClass $state */
-            $state = $connection->table('users_state')->where('user_id', $user->id)->first();
+        foreach (User::all() as $user) {
+            /** @var User $user */
+            $contact = $user->contact;
+            $personal = $user->personalData;
+            $settings = $user->settings;
+            $state = $user->state;
 
             $this->schema
                 ->getConnection()
@@ -234,28 +244,23 @@ class CreateUsersTables extends Migration
                     'Tshirt'                 => $state->got_shirt,
                     'color'                  => $settings->theme,
                     'Sprache'                => $settings->language,
-                    'lastLogIn'              => $user->last_login_at
-                        ? Carbon::make($user->last_login_at)->getTimestamp()
-                        : null,
-                    'CreateDate'             => $user->created_at
-                        ? Carbon::make($user->created_at)->toDateTimeString()
-                        : '0001-01-01 00:00:00',
+                    'lastLogIn'              => $user->last_login_at ? $user->last_login_at->getTimestamp() : null,
+                    'CreateDate'             => $user->created_at ? $user->created_at->toDateTimeString() : null,
                     'api_key'                => $user->api_key,
                     'got_voucher'            => $state->got_voucher,
-                    'arrival_date'           => $state->arrival_date
-                        ? Carbon::make($state->arrival_date)->getTimestamp()
-                        : null,
+                    'arrival_date'           => $state->arrival_date ? $state->arrival_date->getTimestamp() : null,
                     'planned_arrival_date'   => $personal->planned_arrival_date
-                        ? Carbon::make($personal->planned_arrival_date)->getTimestamp()
-                        : 0,
+                        ? $personal->planned_arrival_date->getTimestamp()
+                        : null,
                     'planned_departure_date' => $personal->planned_departure_date
-                        ? Carbon::make($personal->planned_departure_date)->getTimestamp()
+                        ? $personal->planned_departure_date->getTimestamp()
                         : null,
                     'email_by_human_allowed' => $settings->email_human,
                 ]);
         }
 
-        foreach ($connection->table('password_resets')->get() as $passwordReset) {
+        foreach (PasswordReset::all() as $passwordReset) {
+            /** @var PasswordReset $passwordReset */
             $this->schema->getConnection()
                 ->table('User')
                 ->where('UID', '=', $passwordReset->user_id)

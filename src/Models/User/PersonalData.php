@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\User;
 
 use Carbon\Carbon;
@@ -28,20 +26,16 @@ class PersonalData extends HasUserModel
     use HasFactory;
 
     /** @var string The table associated with the model */
-    protected $table = 'users_personal_data'; // phpcs:ignore
+    protected $table = 'users_personal_data';
 
-    /** @var array<string> The attributes that should be mutated to dates */
-    protected $dates = [ // phpcs:ignore
+    /** @var array The attributes that should be mutated to dates */
+    protected $dates = [
         'planned_arrival_date',
         'planned_departure_date',
     ];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
-    protected $fillable = [ // phpcs:ignore
+    /** The attributes that are mass assignable. */
+    protected $fillable = [
         'user_id',
         'first_name',
         'last_name',

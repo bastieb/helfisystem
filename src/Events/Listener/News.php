@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Events\Listener;
 
 use Engelsystem\Mail\EngelsystemMailer;
@@ -10,18 +8,38 @@ use Engelsystem\Models\User\Settings as UserSettings;
 use Engelsystem\Models\User\User;
 use Illuminate\Database\Eloquent\Collection;
 use Psr\Log\LoggerInterface;
-use Throwable;
+use Swift_SwiftException as SwiftException;
 
 class News
 {
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var EngelsystemMailer */
+    protected $mailer;
+
+    /** @var UserSettings */
+    protected $settings;
+
+    /**
+     * @param LoggerInterface   $log
+     * @param EngelsystemMailer $mailer
+     * @param UserSettings      $settings
+     */
     public function __construct(
-        protected LoggerInterface $log,
-        protected EngelsystemMailer $mailer,
-        protected UserSettings $settings
+        LoggerInterface $log,
+        EngelsystemMailer $mailer,
+        UserSettings $settings
     ) {
+        $this->log = $log;
+        $this->mailer = $mailer;
+        $this->settings = $settings;
     }
 
-    public function created(NewsModel $news): void
+    /**
+     * @param NewsModel $news
+     */
+    public function created(NewsModel $news)
     {
         /** @var UserSettings[]|Collection $recipients */
         $recipients = $this->settings
@@ -34,16 +52,22 @@ class News
         }
     }
 
-    protected function sendMail(NewsModel $news, User $user, string $subject, string $template): void
+    /**
+     * @param NewsModel $news
+     * @param User      $user
+     * @param string    $subject
+     * @param string    $template
+     */
+    protected function sendMail(NewsModel $news, User $user, string $subject, string $template)
     {
         try {
             $this->mailer->sendViewTranslated(
                 $user,
                 $subject,
                 $template,
-                ['title' => $news->title, 'news' => $news, 'username' => $user->displayName]
+                ['title' => $news->title, 'news' => $news, 'username' => $user->name]
             );
-        } catch (Throwable $e) {
+        } catch (SwiftException $e) {
             $this->log->error(
                 'Unable to send email "{title}" to user {user} with {exception}',
                 ['title' => $subject, 'user' => $user->name, 'exception' => $e]

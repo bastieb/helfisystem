@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers\Admin;
 
 use Engelsystem\Config\Config;
-use Engelsystem\Config\GoodieType;
 use Engelsystem\Controllers\BaseController;
 use Engelsystem\Controllers\HasUserNotifications;
 use Engelsystem\Helpers\Authenticator;
@@ -19,62 +16,99 @@ class UserShirtController extends BaseController
 {
     use HasUserNotifications;
 
-    /** @var array<string, string> */
-    protected array $permissions = [
+    /** @var Authenticator */
+    protected $auth;
+
+    /** @var Config */
+    protected $config;
+
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var Redirector */
+    protected $redirect;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var User */
+    protected $user;
+
+    /** @var array */
+    protected $permissions = [
         'editShirt' => 'user.edit.shirt',
         'saveShirt' => 'user.edit.shirt',
     ];
 
+    /**
+     * @param Authenticator   $auth
+     * @param Config          $config
+     * @param LoggerInterface $log
+     * @param Redirector      $redirector
+     * @param Response        $response
+     * @param User            $user
+     */
     public function __construct(
-        protected Authenticator $auth,
-        protected Config $config,
-        protected LoggerInterface $log,
-        protected Redirector $redirect,
-        protected Response $response,
-        protected User $user
+        Authenticator $auth,
+        Config $config,
+        LoggerInterface $log,
+        Redirector $redirector,
+        Response $response,
+        User $user
     ) {
+        $this->auth = $auth;
+        $this->config = $config;
+        $this->log = $log;
+        $this->redirect = $redirector;
+        $this->response = $response;
+        $this->user = $user;
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function editShirt(Request $request): Response
     {
-        $userId = (int) $request->getAttribute('user_id');
-
-        $user = $this->user->findOrFail($userId);
+        $id = $request->getAttribute('id');
+        $user = $this->user->findOrFail($id);
 
         return $this->response->withView(
             'admin/user/edit-shirt.twig',
-            [
-                'userdata' => $user,
-                'is_tshirt' => $this->config->get('goodie_type') === GoodieType::Tshirt->value,
-            ]
+            ['userdata' => $user] + $this->getNotifications()
         );
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function saveShirt(Request $request): Response
     {
-        $userId = (int) $request->getAttribute('user_id');
-        $shirtEnabled = $this->config->get('goodie_type') === GoodieType::Tshirt->value;
+        $id = $request->getAttribute('id');
         /** @var User $user */
-        $user = $this->user->findOrFail($userId);
+        $user = $this->user->findOrFail($id);
 
         $data = $this->validate($request, [
-            'shirt_size' => ($shirtEnabled ? 'required' : 'optional') . '|shirt_size',
+            'shirt_size' => 'required',
             'arrived'    => 'optional|checked',
             'active'     => 'optional|checked',
             'got_shirt'  => 'optional|checked',
         ]);
 
-        if ($shirtEnabled) {
+        if (isset($this->config->get('tshirt_sizes')[$data['shirt_size']])) {
             $user->personalData->shirt_size = $data['shirt_size'];
             $user->personalData->save();
         }
 
         if ($this->auth->can('admin_arrive')) {
-            $user->state->arrived = (bool) $data['arrived'];
+            $user->state->arrived = (bool)$data['arrived'];
         }
 
-        $user->state->active = (bool) $data['active'];
-        $user->state->got_shirt = (bool) $data['got_shirt'];
+        $user->state->active = (bool)$data['active'];
+        $user->state->got_shirt = (bool)$data['got_shirt'];
         $user->state->save();
 
         $this->log->info(
@@ -86,7 +120,7 @@ class UserShirtController extends BaseController
                 'size'      => $user->personalData->shirt_size,
                 'arrived'   => $user->state->arrived ? 'yes' : 'no',
                 'active'    => $user->state->active ? 'yes' : 'no',
-                'got_shirt' => $user->state->got_shirt ? 'yes' : 'no',
+                'got_shirt' => $user->state->got_shirt ? 'yes' : 'no'
             ]
         );
 

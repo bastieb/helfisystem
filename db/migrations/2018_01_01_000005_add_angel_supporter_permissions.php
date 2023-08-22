@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -9,7 +7,7 @@ use Engelsystem\Database\Migration\Migration;
 class AddAngelSupporterPermissions extends Migration
 {
     /** @var string[] */
-    protected array $data = [
+    protected $data = [
         '2-Engel',
         'shiftentry_edit_angeltype_supporter',
     ];
@@ -17,7 +15,7 @@ class AddAngelSupporterPermissions extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
         if (!$this->schema->hasTable('GroupPrivileges')) {
             return;
@@ -41,7 +39,7 @@ class AddAngelSupporterPermissions extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
         if (!$this->schema->hasTable('GroupPrivileges')) {
             return;
@@ -54,7 +52,11 @@ class AddAngelSupporterPermissions extends Migration
         );
     }
 
-    private function getQuery(string $type): string
+    /**
+     * @param string $type
+     * @return string
+     */
+    protected function getQuery($type)
     {
         return sprintf('
                 %s FROM GroupPrivileges

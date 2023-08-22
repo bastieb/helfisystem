@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories\Engelsystem\Models\User;
 
 use Carbon\Carbon;
@@ -11,9 +9,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class PersonalDataFactory extends Factory
 {
     /** @var string */
-    protected $model = PersonalData::class; // phpcs:ignore
+    protected $model = PersonalData::class;
 
-    public function definition(): array
+    /**
+     * @return array
+     */
+    public function definition()
     {
         $arrival = $this->faker->optional()->dateTimeThisMonth('2 weeks');
         $departure = $this->faker->optional()->dateTimeThisMonth('2 weeks');

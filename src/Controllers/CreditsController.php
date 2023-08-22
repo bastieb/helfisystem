@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers;
 
 use Engelsystem\Config\Config;
@@ -10,11 +8,31 @@ use Engelsystem\Http\Response;
 
 class CreditsController extends BaseController
 {
-    public function __construct(protected Response $response, protected Config $config, protected Version $version)
+    /** @var Config */
+    protected $config;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var Version */
+    protected $version;
+
+    /**
+     * @param Response $response
+     * @param Config   $config
+     * @param Version  $version
+     */
+    public function __construct(Response $response, Config $config, Version $version)
     {
+        $this->config = $config;
+        $this->response = $response;
+        $this->version = $version;
     }
 
-    public function index(): Response
+    /**
+     * @return Response
+     */
+    public function index()
     {
         return $this->response->withView(
             'pages/credits.twig',

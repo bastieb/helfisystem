@@ -1,44 +1,43 @@
 <?php
 
-use Engelsystem\Models\AngelType;
-use Engelsystem\Models\Shifts\NeededAngelType;
+use Carbon\Carbon;
+use Engelsystem\Http\Exceptions\HttpForbidden;
 use Engelsystem\Models\Room;
 use Engelsystem\Models\Shifts\ScheduleShift;
-use Engelsystem\Models\Shifts\Shift;
-use Engelsystem\Models\Shifts\ShiftType;
-use Engelsystem\Models\Shifts\ShiftSignupStatus;
 use Engelsystem\ShiftSignupState;
 
 /**
- * @param array|Shift $shift
+ * @param array $shift
  * @return string
  */
 function shift_link($shift)
 {
     $parameters = ['action' => 'view'];
-    if (isset($shift['shift_id']) || isset($shift['id'])) {
-        $parameters['shift_id'] = $shift['shift_id'] ?? $shift['id'];
+    if (isset($shift['SID'])) {
+        $parameters['shift_id'] = $shift['SID'];
     }
 
-    return page_link_to('shifts', $parameters);
+    $link = page_link_to('shifts', $parameters);
+
+    return $link;
 }
 
 /**
- * @param Shift $shift
+ * @param array $shift
  * @return string
  */
-function shift_delete_link(Shift $shift)
+function shift_delete_link($shift)
 {
-    return page_link_to('user_shifts', ['delete_shift' => $shift->id]);
+    return page_link_to('user_shifts', ['delete_shift' => $shift['SID']]);
 }
 
 /**
- * @param Shift $shift
+ * @param array $shift
  * @return string
  */
-function shift_edit_link(Shift $shift)
+function shift_edit_link($shift)
 {
-    return page_link_to('user_shifts', ['edit_shift' => $shift->id]);
+    return page_link_to('user_shifts', ['edit_shift' => $shift['SID']]);
 }
 
 /**
@@ -48,6 +47,7 @@ function shift_edit_link(Shift $shift)
  */
 function shift_edit_controller()
 {
+    $msg = '';
     $valid = true;
     $request = request();
 
@@ -60,38 +60,42 @@ function shift_edit_controller()
     }
     $shift_id = $request->input('edit_shift');
 
-    $shift = Shift::findOrFail($shift_id);
-    if (ScheduleShift::whereShiftId($shift->id)->first()) {
+    $shift = Shift($shift_id);
+    if (ScheduleShift::whereShiftId($shift['SID'])->first()) {
         warning(__(
             'This shift was imported from a schedule so some changes will be overwritten with the next import.'
         ));
     }
 
     $rooms = [];
-    foreach (Room::orderBy('name')->get() as $room) {
+    foreach (Rooms() as $room) {
         $rooms[$room->id] = $room->name;
     }
-    $angeltypes = AngelType::all()->pluck('name', 'id')->toArray();
-    $shifttypes = ShiftType::all()->pluck('name', 'id')->toArray();
+    $angeltypes = select_array(AngelTypes(), 'id', 'name');
+    $shifttypes = select_array(ShiftTypes(), 'id', 'name');
 
-    $needed_angel_types = collect(NeededAngelTypes_by_shift($shift_id))->pluck('count', 'angel_type_id')->toArray();
+    $needed_angel_types = select_array(
+        NeededAngelTypes_by_shift($shift_id),
+        'angel_type_id',
+        'count'
+    );
     foreach (array_keys($angeltypes) as $angeltype_id) {
         if (!isset($needed_angel_types[$angeltype_id])) {
             $needed_angel_types[$angeltype_id] = 0;
         }
     }
 
-    $shifttype_id = $shift->shift_type_id;
-    $title = $shift->title;
-    $description = $shift->description;
-    $rid = $shift->room_id;
-    $start = $shift->start;
-    $end = $shift->end;
+    $shifttype_id = $shift['shifttype_id'];
+    $title = $shift['title'];
+    $description = $shift['description'];
+    $rid = $shift['RID'];
+    $start = $shift['start'];
+    $end = $shift['end'];
 
     if ($request->hasPostData('submit')) {
         // Name/Bezeichnung der Schicht, darf leer sein
         $title = strip_request_item('title');
-        $description = strip_request_item_nl('description');
+        $description = strip_request_item('description');
 
         // Auswahl der sichtbaren Locations für die Schichten
         if (
@@ -102,101 +106,89 @@ function shift_edit_controller()
             $rid = $request->input('rid');
         } else {
             $valid = false;
-            error(__('Please select a room.'));
+            $msg .= error(__('Please select a room.'), true);
         }
 
         if ($request->has('shifttype_id') && isset($shifttypes[$request->input('shifttype_id')])) {
             $shifttype_id = $request->input('shifttype_id');
         } else {
             $valid = false;
-            error(__('Please select a shifttype.'));
+            $msg .= error(__('Please select a shifttype.'), true);
         }
 
-        if ($request->has('start') && $tmp = DateTime::createFromFormat('Y-m-d H:i', $request->input('start'))) {
+        if ($request->has('start') && $tmp = parse_date('Y-m-d H:i', $request->input('start'))) {
             $start = $tmp;
         } else {
             $valid = false;
-            error(__('Please enter a valid starting time for the shifts.'));
+            $msg .= error(__('Please enter a valid starting time for the shifts.'), true);
         }
 
-        if ($request->has('end') && $tmp = DateTime::createFromFormat('Y-m-d H:i', $request->input('end'))) {
+        if ($request->has('end') && $tmp = parse_date('Y-m-d H:i', $request->input('end'))) {
             $end = $tmp;
         } else {
             $valid = false;
-            error(__('Please enter a valid ending time for the shifts.'));
+            $msg .= error(__('Please enter a valid ending time for the shifts.'), true);
         }
 
         if ($start >= $end) {
             $valid = false;
-            error(__('The ending time has to be after the starting time.'));
+            $msg .= error(__('The ending time has to be after the starting time.'), true);
         }
 
         foreach ($needed_angel_types as $needed_angeltype_id => $count) {
             $needed_angel_types[$needed_angeltype_id] = 0;
 
-            $queryKey = 'angeltype_count_' . $needed_angeltype_id;
+            $queryKey = 'type_' . $needed_angeltype_id;
             if ($request->has($queryKey)) {
                 if (test_request_int($queryKey)) {
                     $needed_angel_types[$needed_angeltype_id] = trim($request->input($queryKey));
                 } else {
                     $valid = false;
-                    error(sprintf(
+                    $msg .= error(sprintf(
                         __('Please check your input for needed angels of type %s.'),
                         $angeltypes[$needed_angeltype_id]
-                    ));
+                    ), true);
                 }
             }
         }
 
         if ($valid) {
-            $oldShift = Shift::find($shift->id);
+            $shift['shifttype_id'] = $shifttype_id;
+            $shift['title'] = $title;
+            $shift['description'] = $description;
+            $shift['RID'] = $rid;
+            $shift['start'] = $start;
+            $shift['end'] = $end;
 
-            $shift->shift_type_id = $shifttype_id;
-            $shift->title = $title;
-            $shift->description = $description;
-            $shift->room_id = $rid;
-            $shift->start = $start;
-            $shift->end = $end;
-            $shift->updatedBy()->associate(auth()->user());
-            $shift->save();
-
-            mail_shift_change($oldShift, $shift);
-
-            NeededAngelType::whereShiftId($shift_id)->delete();
+            Shift_update($shift);
+            NeededAngelTypes_delete_by_shift($shift_id);
             $needed_angel_types_info = [];
             foreach ($needed_angel_types as $type_id => $count) {
-                $angeltype = AngelType::find($type_id);
-                if (!empty($angeltype) && $count > 0) {
-                    $neededAngelType = new NeededAngelType();
-                    $neededAngelType->shift()->associate($shift);
-                    $neededAngelType->angel_type_id = $type_id;
-                    $neededAngelType->count = $count;
-                    $neededAngelType->save();
-
+                NeededAngelType_add($shift_id, $type_id, null, $count);
+                if ($count > 0) {
                     $needed_angel_types_info[] = $angeltypes[$type_id] . ': ' . $count;
                 }
             }
 
             engelsystem_log(
                 'Updated shift \'' . $shifttypes[$shifttype_id] . ', ' . $title
-                . '\' from ' . $start->format('Y-m-d H:i')
-                . ' to ' . $end->format('Y-m-d H:i')
+                . '\' from ' . date('Y-m-d H:i', $start)
+                . ' to ' . date('Y-m-d H:i', $end)
                 . ' with angel types ' . join(', ', $needed_angel_types_info)
                 . ' and description ' . $description
             );
             success(__('Shift updated.'));
 
-            throw_redirect(shift_link($shift));
+            throw_redirect(shift_link([
+                'SID' => $shift_id
+            ]));
         }
     }
 
     $angel_types_spinner = '';
     foreach ($angeltypes as $angeltype_id => $angeltype_name) {
-        $angel_types_spinner .= form_spinner(
-            'angeltype_count_' . $angeltype_id,
-            $angeltype_name,
-            $needed_angel_types[$angeltype_id]
-        );
+        $angel_types_spinner .= form_spinner('type_' . $angeltype_id, $angeltype_name,
+            $needed_angel_types[$angeltype_id]);
     }
 
     return page_with_title(
@@ -210,14 +202,14 @@ function shift_edit_controller()
                 form_select('shifttype_id', __('Shifttype'), $shifttypes, $shifttype_id),
                 form_text('title', __('Title'), $title),
                 form_select('rid', __('Room:'), $rooms, $rid),
-                form_text('start', __('Start:'), $start->format('Y-m-d H:i')),
-                form_text('end', __('End:'), $end->format('Y-m-d H:i')),
+                form_text('start', __('Start:'), date('Y-m-d H:i', $start)),
+                form_text('end', __('End:'), date('Y-m-d H:i', $end)),
                 form_textarea('description', __('Additional description'), $description),
                 form_info('', __('This description is for single shifts, otherwise please use the description in shift type.')),
                 '<h2>' . __('Needed angels') . '</h2>',
                 $angel_types_spinner,
-                form_submit('submit', __('Save')),
-            ]),
+                form_submit('submit', __('Save'))
+            ])
         ]
     );
 }
@@ -246,25 +238,13 @@ function shift_delete_controller()
 
     // Schicht löschen bestätigt
     if ($request->hasPostData('delete')) {
-        foreach ($shift->shiftEntries as $entry) {
-            event('shift.entry.deleting', [
-                'user'       => $entry->user,
-                'start'      => $shift->start,
-                'end'        => $shift->end,
-                'name'       => $shift->shiftType->name,
-                'title'      => $shift->title,
-                'type'       => $entry->angelType->name,
-                'room'       => $shift->room,
-                'freeloaded' => $entry->freeloaded,
-            ]);
-        }
-
-        $shift->delete();
+        UserWorkLog_from_shift($shift_id);
+        Shift_delete($shift_id);
 
         engelsystem_log(
-            'Deleted shift ' . $shift->title . ': ' . $shift->shiftType->name
-            . ' from ' . $shift->start->format('Y-m-d H:i')
-            . ' to ' . $shift->end->format('Y-m-d H:i')
+            'Deleted shift ' . $shift['name']
+            . ' from ' . date('Y-m-d H:i', $shift['start'])
+            . ' to ' . date('Y-m-d H:i', $shift['end'])
         );
         success(__('Shift deleted.'));
         throw_redirect(page_link_to('user_shifts'));
@@ -273,12 +253,12 @@ function shift_delete_controller()
     return page_with_title(shifts_title(), [
         error(sprintf(
             __('Do you want to delete the shift %s from %s to %s?'),
-            $shift->shiftType->name,
-            $shift->start->format(__('Y-m-d H:i')),
-            $shift->end->format(__('H:i'))
+            $shift['name'],
+            date('Y-m-d H:i', $shift['start']),
+            date('H:i', $shift['end'])
         ), true),
         form([
-            form_hidden('delete_shift', $shift->id),
+            form_hidden('delete_shift', $shift_id),
             form_submit('delete', __('delete')),
         ]),
     ]);
@@ -306,23 +286,19 @@ function shift_controller()
         throw_redirect(page_link_to('user_shifts'));
     }
 
-    $shifttype = $shift->shiftType;
-    $room = $shift->room;
-    /** @var AngelType[] $angeltypes */
-    $angeltypes = AngelType::all();
+    $shifttype = ShiftType($shift['shifttype_id']);
+    $room = Room::find($shift['RID']);
+    $angeltypes = AngelTypes();
     $user_shifts = Shifts_by_user($user->id);
 
-    $shift_signup_state = new ShiftSignupState(ShiftSignupStatus::OCCUPIED, 0);
-    foreach ($angeltypes as $angeltype) {
+    $shift_signup_state = new ShiftSignupState(ShiftSignupState::OCCUPIED, 0);
+    foreach ($angeltypes as &$angeltype) {
         $needed_angeltype = NeededAngeltype_by_Shift_and_Angeltype($shift, $angeltype);
         if (empty($needed_angeltype)) {
             continue;
         }
 
-        $shift_entries = $shift->shiftEntries()
-            ->where('angel_type_id', $angeltype->id)
-            ->get();
-        $needed_angeltype = (new AngelType())->forceFill($needed_angeltype);
+        $shift_entries = ShiftEntries_by_shift_and_angeltype($shift['SID'], $angeltype['id']);
 
         $angeltype_signup_state = Shift_signup_allowed(
             $user,
@@ -334,17 +310,17 @@ function shift_controller()
             $shift_entries
         );
         $shift_signup_state->combineWith($angeltype_signup_state);
-        $angeltype->shift_signup_state = $angeltype_signup_state;
+        $angeltype['shift_signup_state'] = $angeltype_signup_state;
     }
 
     return [
-        $shift->shiftType->name,
-        Shift_view($shift, $shifttype, $room, $angeltypes, $shift_signup_state),
+        $shift['name'],
+        Shift_view($shift, $shifttype, $room, $angeltypes, $shift_signup_state)
     ];
 }
 
 /**
- * @return array
+ * @return array|false
  */
 function shifts_controller()
 {
@@ -353,11 +329,17 @@ function shifts_controller()
         throw_redirect(page_link_to('user_shifts'));
     }
 
-    return match ($request->input('action')) {
-        'view' => shift_controller(),
-        'next' => shift_next_controller(), // throws redirect
-        default => throw_redirect(page_link_to('/')),
-    };
+    switch ($request->input('action')) {
+        case 'view':
+            return shift_controller();
+        /** @noinspection PhpMissingBreakStatementInspection */
+        case 'next':
+            shift_next_controller();
+        default:
+            throw_redirect(page_link_to('/'));
+    }
+
+    return false;
 }
 
 /**
@@ -369,11 +351,52 @@ function shift_next_controller()
         throw_redirect(page_link_to('/'));
     }
 
-    $upcoming_shifts = ShiftEntries_upcoming_for_user(auth()->user());
+    $upcoming_shifts = ShiftEntries_upcoming_for_user(auth()->user()->id);
 
-    if (!$upcoming_shifts->isEmpty()) {
-        throw_redirect(shift_link($upcoming_shifts[0]->shift));
+    if (!empty($upcoming_shifts)) {
+        throw_redirect(shift_link($upcoming_shifts[0]));
     }
 
     throw_redirect(page_link_to('user_shifts'));
+}
+
+/**
+ * Export filtered shifts via JSON.
+ * (Like iCal Export or shifts view)
+ */
+function shifts_json_export_controller()
+{
+    $request = request();
+    $user = auth()->apiUser('key');
+
+    if (
+        !$request->has('key')
+        || !preg_match('/^[\da-f]{32}$/', $request->input('key'))
+        || !$user
+    ) {
+        throw new HttpForbidden('{"error":"Missing or invalid key"}', ['content-type' => 'application/json']);
+    }
+
+    if (!auth()->can('shifts_json_export')) {
+        throw new HttpForbidden('{"error":"Not allowed"}', ['content-type' => 'application/json']);
+    }
+
+    $shifts = load_ical_shifts();
+    foreach ($shifts as $row => $shift) {
+        $shifts[$row]['start_date'] = Carbon::createFromTimestamp($shift['start'])->toRfc3339String();
+        $shifts[$row]['end_date'] = Carbon::createFromTimestamp($shift['end'])->toRfc3339String();
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    raw_output(json_encode($shifts));
+}
+
+/**
+ * Returns users shifts to export.
+ *
+ * @return array
+ */
+function load_ical_shifts()
+{
+    return Shifts_by_user(auth()->user()->id);
 }

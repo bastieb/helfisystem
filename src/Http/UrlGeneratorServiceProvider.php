@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http;
 
 use Engelsystem\Container\ServiceProvider;
 
 class UrlGeneratorServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
         $urlGenerator = $this->app->make(UrlGenerator::class);
         $this->app->instance(UrlGenerator::class, $urlGenerator);

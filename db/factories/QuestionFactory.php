@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories\Engelsystem\Models;
 
 use Carbon\Carbon;
@@ -12,9 +10,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class QuestionFactory extends Factory
 {
     /** @var string */
-    protected $model = Question::class; // phpcs:ignore
+    protected $model = Question::class;
 
-    public function definition(): array
+    /**
+     * @return array
+     */
+    public function definition()
     {
         return [
             'user_id'     => User::factory(),

@@ -7,14 +7,16 @@
                 <div class="col-12 col-xxl-5 row pe-xxl-0">
                     <div class="col-6 pe-xxl-0">%start_select%</div>
                     <div class="col-6">
-                        <div class="input-group time">
+                        <div class="input-group time" data-target-input="nearest">
                             <input
                                 type="time" class="form-control" id="start_time" name="start_time" size="5"
                                 pattern="^\d{1,2}:\d{2}$" placeholder="HH:MM" maxlength="5" value="%start_time%"
                             >
-                            <button class="btn btn-secondary" title="Now" type="button">
-                                <span class="bi bi-arrow-counterclockwise"></span>
-                            </button>
+                            <div class="input-group-btn">
+                                <button class="btn btn-secondary" title="Now" type="button">
+                                    <span class="bi bi-clock"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -22,37 +24,39 @@
                 <div class="col-12 col-xxl-5 row px-xxl-0">
                     <div class="col-6 pe-xxl-0">%end_select%</div>
                     <div class="col-6">
-                        <div class="input-group time">
+                        <div class="input-group time" data-target-input="nearest">
                             <input
                                 type="time" class="form-control" id="end_time" name="end_time" size="5"
                                 pattern="^\d{1,2}:\d{2}$" placeholder="HH:MM" maxlength="5" value="%end_time%"
                             >
-                            <button class="btn btn-secondary" title="Now" type="button">
-                                <span class="bi bi-arrow-counterclockwise"></span>
-                            </button>
+                            <div class="input-group-btn">
+                                <button class="btn btn-secondary" title="Now" type="button">
+                                    <span class="bi bi-clock"></span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="form-group d-print-none" style="margin-top: .5em">
-                <div class="btn-group mb-1" role="group">
-                    <button type="button" class="btn btn-secondary set-date" data-days="-1">%set_yesterday%</button>
-                    <button type="button" class="btn btn-secondary set-date" data-days="0">%set_today%</button>
-                    <button type="button" class="btn btn-secondary set-date" data-days="1">%set_tomorrow%</button>
+                <div class="btn-group mb-1">
+                    <a href="javascript:setDay(-1)" class="btn btn-secondary ">%set_yesterday%</a>
+                    <a href="javascript:setDay()" class="btn btn-secondary ">%set_today%</a>
+                    <a href="javascript:setDay(1)" class="btn btn-secondary ">%set_tomorrow%</a>
                 </div>
-                <div class="btn-group mb-1" role="group">
-                    <button type="button" class="btn btn-secondary set-time" data-hours="-8">%set_last_8h%</button>
-                    <button type="button" class="btn btn-secondary set-time" data-hours="-4">%set_last_4h%</button>
-                    <button type="button" class="btn btn-secondary set-time" data-hours="4">%set_next_4h%</button>
-                    <button type="button" class="btn btn-secondary set-time" data-hours="8">%set_next_8h%</button>
+                <div class="btn-group mb-1">
+                    <a href="javascript:setHours(-8)" class="btn btn-secondary ">%set_last_8h%</a>
+                    <a href="javascript:setHours(-4)" class="btn btn-secondary ">%set_last_4h%</a>
+                    <a href="javascript:setHours(4)" class="btn btn-secondary ">%set_next_4h%</a>
+                    <a href="javascript:setHours(8)" class="btn btn-secondary ">%set_next_8h%</a>
                 </div>
-                <div class="btn-group mb-1" role="group">
+                <div class="btn-group mb-1">
                     %buttons%
                 </div>
             </div>
             <div class="row d-print-none">
                 <div class="col-md-12">
-                    <button class="btn btn-primary" type="submit" style="width:100%; margin: 1em 0">%filter%</button>
+                    <input class="btn btn-primary" type="submit" style="width:100%; margin: 1em 0" value="%filter%">
                 </div>
             </div>
         </div>
@@ -66,9 +70,9 @@
 
             <div class="collapse show d-print-none" id="collapseShiftsFilterSelect">
                 <div class="row">
-                    <div class="col col-12 col-sm-4 col-md-12 col-lg-5 col-xl-4 col-xxl-4">%room_select%</div>
-                    <div class="col col-12 col-sm-5 col-md-12 col-lg-7 col-xl-5 col-xxl-4">%type_select%</div>
-                    <div class="col col-12 col-sm-3 col-md-12 col-lg-5 col-xl-3 col-xxl-4">%filled_select%</div>
+                    <div class="col col-xs-4 col-xxs-12">%room_select%</div>
+                    <div class="col col-xs-4 col-xxs-12">%type_select%</div>
+                    <div class="col col-xs-4 col-xxs-12">%filled_select%</div>
                 </div>
                 <div class="row">
                     <div class="col col-md-12 m-1">
@@ -76,10 +80,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-12 d-print-none d-md-none">
-            <button class="btn btn-primary" type="submit" style="width:100%; margin: 1em 0">%filter%</button>
         </div>
     </div>
 </form>

@@ -1,31 +1,35 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Container;
 
 use Engelsystem\Application;
 
 abstract class ServiceProvider
 {
+    /** @var Application */
+    protected $app;
+
     /**
      * ServiceProvider constructor.
+     *
+     * @param Application $app
      */
-    public function __construct(protected Application $app)
+    public function __construct(Application $app)
     {
+        $this->app = $app;
     }
 
     /**
      * Register container bindings
      */
-    public function register(): void
+    public function register()
     {
     }
 
     /**
      * Called after other services had been registered
      */
-    public function boot(): void
+    public function boot()
     {
     }
 }

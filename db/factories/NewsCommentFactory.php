@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Database\Factories\Engelsystem\Models;
 
 use Engelsystem\Models\News;
@@ -12,9 +10,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class NewsCommentFactory extends Factory
 {
     /** @var string */
-    protected $model = NewsComment::class; // phpcs:ignore
+    protected $model = NewsComment::class;
 
-    public function definition(): array
+    /**
+     * @return array
+     */
+    public function definition()
     {
         return [
             'news_id' => News::factory(),

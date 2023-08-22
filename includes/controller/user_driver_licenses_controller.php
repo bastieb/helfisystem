@@ -12,39 +12,19 @@ function user_driver_license_required_hint()
 {
     $user = auth()->user();
 
+    $angeltypes = User_angeltypes($user->id);
+    $user_driver_license = UserDriverLicense($user->id);
+
     // User has already entered data, no hint needed.
-    if ($user->license->wantsToDrive()) {
+    if (!empty($user_driver_license)) {
         return null;
     }
 
-    $angeltypes = $user->userAngelTypes;
     foreach ($angeltypes as $angeltype) {
-        if ($angeltype->requires_driver_license) {
+        if ($angeltype['requires_driver_license']) {
             return sprintf(
                 __('You joined an angeltype which requires a driving license. Please edit your driving license information here: %s.'),
-                '<a href="' . user_driver_license_edit_link() . '">' . __('driving license information') . '</a>'
-            );
-        }
-    }
-
-    return null;
-}
-
-function user_ifsg_certificate_required_hint()
-{
-    $user = auth()->user();
-
-    // User has already entered data, no hint needed.
-    if (!config('ifsg_enabled') || $user->license->ifsg_light || $user->license->ifsg) {
-        return null;
-    }
-
-    $angeltypes = $user->userAngelTypes;
-    foreach ($angeltypes as $angeltype) {
-        if ($angeltype->requires_ifsg_certificate) {
-            return sprintf(
-                __('angeltype.ifsg.required.info.here'),
-                '<a href="' . url('/settings/certificates') . '">' . __('ifsg.info') . '</a>'
+                '<a href="' . user_driver_license_edit_link() . '" class="text-info">' . __('driving license information') . '</a>'
             );
         }
     }
@@ -62,15 +42,16 @@ function user_driver_licenses_controller()
     $user = auth()->user();
 
     if (!$user) {
-        throw_redirect(page_link_to());
+        throw_redirect(page_link_to(''));
     }
 
     $action = strip_request_item('action', 'edit');
 
-    return match ($action) {
-        'edit'  => user_driver_license_edit_controller(),
-        default => user_driver_license_edit_controller(),
-    };
+    switch ($action) {
+        default:
+        case 'edit':
+            return user_driver_license_edit_controller();
+    }
 }
 
 /**
@@ -124,34 +105,38 @@ function user_driver_license_edit_controller()
         throw_redirect(user_driver_license_edit_link());
     }
 
-    $driverLicense = $user_source->license;
+    $user_driver_license = UserDriverLicense($user_source->id);
+    if (empty($user_driver_license)) {
+        $wants_to_drive = false;
+        $user_driver_license = UserDriverLicense_new();
+    } else {
+        $wants_to_drive = true;
+    }
+
     if ($request->hasPostData('submit')) {
-        if ($request->has('wants_to_drive')) {
-            $driverLicense->has_car = $request->has('has_car');
-            $driverLicense->drive_car = $request->has('has_license_car');
-            $driverLicense->drive_3_5t = $request->has('has_license_3_5t_transporter');
-            $driverLicense->drive_7_5t = $request->has('has_license_7_5t_truck');
-            $driverLicense->drive_12t = $request->has('has_license_12t_truck');
-            $driverLicense->drive_forklift = $request->has('has_license_forklift');
+        $wants_to_drive = $request->has('wants_to_drive');
+        if ($wants_to_drive) {
+            $user_driver_license['has_car'] = $request->has('has_car');
+            $user_driver_license['has_license_car'] = $request->has('has_license_car');
+            $user_driver_license['has_license_3_5t_transporter'] = $request->has('has_license_3_5t_transporter');
+            $user_driver_license['has_license_7_5t_truck'] = $request->has('has_license_7_5t_truck');
+            $user_driver_license['has_license_12_5t_truck'] = $request->has('has_license_12_5t_truck');
+            $user_driver_license['has_license_forklift'] = $request->has('has_license_forklift');
 
-            if ($driverLicense->wantsToDrive()) {
-                $driverLicense->save();
-
+            if (UserDriverLicense_valid($user_driver_license)) {
+                if (empty($user_driver_license['user_id'])) {
+                    $user_driver_license = UserDriverLicenses_create($user_driver_license, $user_source->id);
+                } else {
+                    UserDriverLicenses_update($user_driver_license);
+                }
                 engelsystem_log('Driver license information updated.');
                 success(__('Your driver license information has been saved.'));
                 throw_redirect(user_link($user_source->id));
             } else {
                 error(__('Please select at least one driving license.'));
             }
-        } else {
-            $driverLicense->has_car = false;
-            $driverLicense->drive_car = false;
-            $driverLicense->drive_3_5t = false;
-            $driverLicense->drive_7_5t = false;
-            $driverLicense->drive_12t = false;
-            $driverLicense->drive_forklift = false;
-            $driverLicense->save();
-
+        } elseif (!empty($user_driver_license['user_id'])) {
+            UserDriverLicenses_delete($user_source->id);
             engelsystem_log('Driver license information removed.');
             success(__('Your driver license information has been removed.'));
             throw_redirect(user_link($user_source->id));
@@ -159,7 +144,7 @@ function user_driver_license_edit_controller()
     }
 
     return [
-        sprintf(__('Edit %s driving license information'), $user_source->displayName),
-        UserDriverLicense_edit_view($user_source, $driverLicense),
+        sprintf(__('Edit %s driving license information'), $user_source->name),
+        UserDriverLicense_edit_view($user_source, $wants_to_drive, $user_driver_license)
     ];
 }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Events;
 
 use Illuminate\Support\Arr;
@@ -10,29 +8,47 @@ use Illuminate\Support\Str;
 class EventDispatcher
 {
     /** @var callable[] */
-    protected array $listeners;
+    protected $listeners;
 
-    public function listen(array|string $events, callable|string $listener): void
+    /**
+     * @param array|string    $events
+     * @param callable|string $listener
+     */
+    public function listen($events, $listener): void
     {
-        foreach ((array) $events as $event) {
+        foreach ((array)$events as $event) {
             $this->listeners[$event][] = $listener;
         }
     }
 
-    public function forget(string $event): void
+    /**
+     * @param string $event
+     */
+    public function forget($event): void
     {
         unset($this->listeners[$event]);
     }
 
-    public function fire(string|object $event, mixed $payload = [], bool $halt = false): mixed
+    /**
+     * @param string|object $event
+     * @param array|mixed   $payload
+     * @param bool          $halt
+     *
+     * @return array|mixed|null
+     */
+    public function fire($event, $payload = [], $halt = false)
     {
         return $this->dispatch($event, $payload, $halt);
     }
 
     /**
+     * @param string|object $event
+     * @param array|mixed   $payload
      * @param bool          $halt     Stop on first non-null return
+     *
+     * @return array|null|mixed
      */
-    public function dispatch(string|object $event, mixed $payload = [], bool $halt = false): mixed
+    public function dispatch($event, $payload = [], $halt = false)
     {
         if (is_object($event)) {
             $payload = $event;

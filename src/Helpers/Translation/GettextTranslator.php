@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Helpers\Translation;
 
 use Gettext\Translator;
@@ -9,6 +7,10 @@ use Gettext\Translator;
 class GettextTranslator extends Translator
 {
     /**
+     * @param string|null $domain
+     * @param string|null $context
+     * @param string      $original
+     * @return string
      * @throws TranslationNotFound
      */
     protected function translate(?string $domain, ?string $context, string $original): string
@@ -19,6 +21,12 @@ class GettextTranslator extends Translator
     }
 
     /**
+     * @param string|null $domain
+     * @param string|null $context
+     * @param string      $original
+     * @param string      $plural
+     * @param int         $value
+     * @return string
      * @throws TranslationNotFound
      */
     protected function translatePlural(
@@ -34,9 +42,12 @@ class GettextTranslator extends Translator
     }
 
     /**
+     * @param string $domain
+     * @param string $context
+     * @param string $original
      * @throws TranslationNotFound
      */
-    protected function assertHasTranslation(?string $domain, ?string $context, string $original): void
+    protected function assertHasTranslation($domain, $context, $original)
     {
         if ($this->getTranslation($domain, $context, $original)) {
             return;

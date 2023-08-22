@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers;
 
 use Engelsystem\Helpers\Authenticator;
@@ -15,21 +13,52 @@ use Psr\Log\LoggerInterface;
 class QuestionsController extends BaseController
 {
     use HasUserNotifications;
+    use CleanupModel;
+
+    /** @var Authenticator */
+    protected $auth;
+
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var Question */
+    protected $question;
+
+    /** @var Redirector */
+    protected $redirect;
+
+    /** @var Response */
+    protected $response;
 
     /** @var string[] */
-    protected array $permissions = [
+    protected $permissions = [
         'question.add',
     ];
 
+    /**
+     * @param Authenticator   $auth
+     * @param LoggerInterface $log
+     * @param Question        $question
+     * @param Redirector      $redirect
+     * @param Response        $response
+     */
     public function __construct(
-        protected Authenticator $auth,
-        protected LoggerInterface $log,
-        protected Question $question,
-        protected Redirector $redirect,
-        protected Response $response
+        Authenticator $auth,
+        LoggerInterface $log,
+        Question $question,
+        Redirector $redirect,
+        Response $response
     ) {
+        $this->auth = $auth;
+        $this->log = $log;
+        $this->question = $question;
+        $this->redirect = $redirect;
+        $this->response = $response;
     }
 
+    /**
+     * @return Response
+     */
     public function index(): Response
     {
         $questions = $this->question
@@ -37,21 +66,30 @@ class QuestionsController extends BaseController
             ->orderByDesc('answered_at')
             ->orderBy('created_at')
             ->get();
+        $this->cleanupModelNullValues($questions);
 
         return $this->response->withView(
             'pages/questions/overview.twig',
-            ['questions' => $questions]
+            ['questions' => $questions] + $this->getNotifications()
         );
     }
 
+    /**
+     * @return Response
+     */
     public function add(): Response
     {
         return $this->response->withView(
             'pages/questions/edit.twig',
-            ['question' => null]
+            ['question' => null] + $this->getNotifications()
         );
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function delete(Request $request): Response
     {
         $data = $this->validate(
@@ -75,6 +113,11 @@ class QuestionsController extends BaseController
         return $this->redirect->to('/questions');
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function save(Request $request): Response
     {
         $data = $this->validate(

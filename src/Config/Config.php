@@ -8,13 +8,17 @@ class Config extends Fluent
 {
     /**
      * The config values
+     *
+     * @var array
      */
-    protected $attributes = []; // phpcs:ignore
+    protected $attributes = [];
 
     /**
-     * @param string|array $key
+     * @param string|null $key
+     * @param mixed       $default
+     * @return mixed
      */
-    public function get(mixed $key, mixed $default = null): mixed
+    public function get($key, $default = null)
     {
         if (is_null($key)) {
             return $this->attributes;
@@ -29,8 +33,9 @@ class Config extends Fluent
 
     /**
      * @param string|array $key
+     * @param mixed        $value
      */
-    public function set(mixed $key, mixed $value = null): void
+    public function set($key, $value = null)
     {
         if (is_array($key)) {
             foreach ($key as $configKey => $configValue) {
@@ -45,8 +50,9 @@ class Config extends Fluent
 
     /**
      * @param string $key
+     * @return bool
      */
-    public function has(mixed $key): bool
+    public function has($key)
     {
         return $this->offsetExists($key);
     }
@@ -54,7 +60,7 @@ class Config extends Fluent
     /**
      * @param string $key
      */
-    public function remove(mixed $key): void
+    public function remove($key)
     {
         $this->offsetUnset($key);
     }

@@ -1,15 +1,8 @@
 <?php
 
 use Engelsystem\Database\Db;
-use Engelsystem\Helpers\Carbon;
-use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
-use Engelsystem\Models\Shifts\NeededAngelType;
-use Engelsystem\Models\Shifts\Shift;
-use Engelsystem\Models\UserAngelType;
 use Engelsystem\ShiftsFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -33,7 +26,7 @@ function user_shifts()
 {
     $request = request();
 
-    if (auth()->user()->isFreeloader()) {
+    if (User_is_freeloader(auth()->user())) {
         throw_redirect(page_link_to('user_myshifts'));
     }
 
@@ -56,12 +49,11 @@ function update_ShiftsFilter_timerange(ShiftsFilter $shiftsFilter, $days)
 {
     $start_time = $shiftsFilter->getStartTime();
     if (is_null($start_time)) {
-        $now = (new DateTime())->format('Y-m-d');
         $first_day = DateTime::createFromFormat(
             'Y-m-d',
-            in_array($now, $days) ? $now : ($days[0] ?? (new DateTime())->format('Y-m-d'))
+            $days[0] ?? (new DateTime())->format('Y-m-d')
         )->getTimestamp();
-        if (time() < $first_day) {
+        if(time() < $first_day) {
             $start_time = $first_day;
         } else {
             $start_time = time();
@@ -69,13 +61,8 @@ function update_ShiftsFilter_timerange(ShiftsFilter $shiftsFilter, $days)
     }
 
     $end_time = $shiftsFilter->getEndTime();
-    if (is_null($end_time)) {
+    if ($end_time == null) {
         $end_time = $start_time + 24 * 60 * 60;
-        $end = Carbon::createFromTimestamp($end_time);
-        if (!in_array($end->format('Y-m-d'), $days)) {
-            $end->startOfDay()->subSecond(); // the day before
-            $end_time = $end->timestamp;
-        }
     }
 
     $shiftsFilter->setStartTime(check_request_datetime(
@@ -99,9 +86,9 @@ function update_ShiftsFilter_timerange(ShiftsFilter $shiftsFilter, $days)
 /**
  * Update given ShiftsFilter with filter params from user input
  *
- * @param ShiftsFilter $shiftsFilter The shifts filter to update from request data
+ * @param ShiftsFilter $shiftsFilter      The shifts filter to update from request data
  * @param boolean      $user_shifts_admin Has the user user_shift_admin privilege?
- * @param string[]     $days An array of available filter days
+ * @param string[]     $days              An array of available filter days
  */
 function update_ShiftsFilter(ShiftsFilter $shiftsFilter, $user_shifts_admin, $days)
 {
@@ -115,26 +102,9 @@ function update_ShiftsFilter(ShiftsFilter $shiftsFilter, $user_shifts_admin, $da
 /**
  * @return Room[]|Collection
  */
-function load_rooms(bool $onlyWithActiveShifts = false)
+function load_rooms()
 {
-    $rooms = Room::orderBy('name');
-
-    if ($onlyWithActiveShifts) {
-        $roomIdsFromAngelType = NeededAngelType::query()
-            ->whereNotNull('room_id')
-            ->select('room_id');
-
-        $roomIdsFromShift = Shift::query()
-            ->leftJoin('needed_angel_types', 'shifts.id', 'needed_angel_types.shift_id')
-            ->whereNotNull('needed_angel_types.shift_id')
-            ->select('shifts.room_id');
-
-        $rooms->whereIn('id', $roomIdsFromAngelType)
-            ->orWhereIn('id', $roomIdsFromShift);
-    }
-
-    $rooms = $rooms->get();
-
+    $rooms = Rooms();
     if ($rooms->isEmpty()) {
         error(__('The administration has not configured any rooms yet.'));
         throw_redirect(page_link_to('/'));
@@ -148,10 +118,10 @@ function load_rooms(bool $onlyWithActiveShifts = false)
  */
 function load_days()
 {
-    $days = (new Collection(Db::select(
+    $days = (new Collection(DB::select(
         '
-                SELECT DISTINCT DATE(`start`) AS `id`, DATE(`start`) AS `name`
-                FROM `shifts`
+                SELECT DISTINCT DATE(FROM_UNIXTIME(`start`)) AS `id`, DATE(FROM_UNIXTIME(`start`)) AS `name`
+                FROM `Shifts`
                 ORDER BY `id`, `name`
             '
     )))
@@ -175,40 +145,36 @@ function load_types()
 {
     $user = auth()->user();
 
-    if (!AngelType::count()) {
+    if (!count(DB::select('SELECT `id`, `name` FROM `AngelTypes`'))) {
         error(__('The administration has not configured any angeltypes yet - or you are not subscribed to any angeltype.'));
         throw_redirect(page_link_to('/'));
     }
-
-    $types = Db::select(
-        '
+    $types = DB::select('
             SELECT
-                `angel_types`.`id`,
-                `angel_types`.`name`,
+                `AngelTypes`.`id`,
+                `AngelTypes`.`name`,
                 (
-                    `angel_types`.`restricted`=0
+                    `AngelTypes`.`restricted`=0
                     OR (
-                        NOT `user_angel_type`.`confirm_user_id` IS NULL
-                        OR `user_angel_type`.`id` IS NULL
+                        NOT `UserAngelTypes`.`confirm_user_id` IS NULL
+                        OR `UserAngelTypes`.`id` IS NULL
                     )
                 ) AS `enabled`
-            FROM `angel_types`
-            LEFT JOIN `user_angel_type`
+            FROM `AngelTypes`
+            LEFT JOIN `UserAngelTypes`
                 ON (
-                    `user_angel_type`.`angel_type_id`=`angel_types`.`id`
-                    AND `user_angel_type`.`user_id`=?
+                    `UserAngelTypes`.`angeltype_id`=`AngelTypes`.`id`
+                    AND `UserAngelTypes`.`user_id`=?
                 )
-            ORDER BY `angel_types`.`name`
+            ORDER BY `AngelTypes`.`name`
         ',
         [
             $user->id,
         ]
     );
-
     if (empty($types)) {
         return unrestricted_angeltypes();
     }
-
     return $types;
 }
 
@@ -217,7 +183,7 @@ function load_types()
  */
 function unrestricted_angeltypes()
 {
-    return AngelType::whereRestricted(0)->get(['id', 'name'])->toArray();
+    return DB::select('SELECT `id`, `name` FROM `AngelTypes` WHERE `restricted` = 0');
 }
 
 /**
@@ -229,25 +195,21 @@ function view_user_shifts()
 
     $session = session();
     $days = load_days();
-    $rooms = load_rooms(true);
+    $rooms = load_rooms();
     $types = load_types();
-    $ownAngelTypes = [];
+    $ownTypes = [];
 
-    /** @var EloquentCollection|UserAngelType[] $userAngelTypes */
-    $userAngelTypes = UserAngelType::whereUserId($user->id)
-        ->leftJoin('angel_types', 'user_angel_type.angel_type_id', 'angel_types.id')
-        ->where(function (Builder $query) {
-            $query->whereNotNull('user_angel_type.confirm_user_id')
-                ->orWhere('angel_types.restricted', false);
-        })
-        ->get();
-    foreach ($userAngelTypes as $type) {
-        $ownAngelTypes[] = $type->angel_type_id;
+    foreach (UserAngelTypes_by_User($user->id, true) as $type) {
+        if (!$type['confirm_user_id'] && $type['restricted']) {
+            continue;
+        }
+
+        $ownTypes[] = (int)$type['angeltype_id'];
     }
 
     if (!$session->has('shifts-filter')) {
         $room_ids = $rooms->pluck('id')->toArray();
-        $shiftsFilter = new ShiftsFilter(auth()->can('user_shifts_admin'), $room_ids, $ownAngelTypes);
+        $shiftsFilter = new ShiftsFilter(auth()->can('user_shifts_admin'), $room_ids, $ownTypes);
         $session->set('shifts-filter', $shiftsFilter->sessionExport());
     }
 
@@ -265,48 +227,39 @@ function view_user_shifts()
     $filled = [
         [
             'id'   => '1',
-            'name' => __('occupied'),
+            'name' => __('occupied')
         ],
         [
             'id'   => '0',
-            'name' => __('free'),
-        ],
+            'name' => __('free')
+        ]
     ];
-    $start_day = $shiftsFilter->getStart()->format('Y-m-d');
-    $start_time = $shiftsFilter->getStart()->format('H:i');
-    $end_day = $shiftsFilter->getEnd()->format('Y-m-d');
-    $end_time = $shiftsFilter->getEnd()->format('H:i');
+    $start_day = date('Y-m-d', $shiftsFilter->getStartTime());
+    $start_time = date('H:i', $shiftsFilter->getStartTime());
+    $end_day = date('Y-m-d', $shiftsFilter->getEndTime());
+    $end_time = date('H:i', $shiftsFilter->getEndTime());
 
     if (config('signup_requires_arrival') && !$user->state->arrived) {
         info(render_user_arrived_hint());
     }
-
-    $formattedDays = collect($days)->map(function ($value) {
-        return Carbon::make($value)->format(__('Y-m-d'));
-    })->toArray();
 
     return page([
         div('col-md-12', [
             msg(),
             view(__DIR__ . '/../../resources/views/pages/user-shifts.html', [
                 'title'         => shifts_title(),
-                'room_select'   => make_select(
-                    $rooms,
-                    $shiftsFilter->getRooms(),
-                    'rooms',
-                    icon('pin-map-fill') . __('Rooms')
-                ),
+                'room_select'   => make_select($rooms, $shiftsFilter->getRooms(), 'rooms', __('Rooms')),
                 'start_select'  => html_select_key(
                     'start_day',
                     'start_day',
-                    array_combine($days, $formattedDays),
+                    array_combine($days, $days),
                     $start_day
                 ),
                 'start_time'    => $start_time,
                 'end_select'    => html_select_key(
                     'end_day',
                     'end_day',
-                    array_combine($days, $formattedDays),
+                    array_combine($days, $days),
                     $end_day
                 ),
                 'end_time'      => $end_time,
@@ -314,19 +267,20 @@ function view_user_shifts()
                     $types,
                     $shiftsFilter->getTypes(),
                     'types',
-                    icon('person-lines-fill') . __('Angeltypes') . '<sup>1</sup>',
-                    $ownAngelTypes
+                    __('Angeltypes') . '<sup>1</sup>',
+                    [
+                        button(
+                            'javascript: checkOwnTypes(\'selection_types\', ' . json_encode($ownTypes) . ')',
+                            __('Own'),
+                            'd-print-none'
+                        ),
+                    ]
                 ),
-                'filled_select' => make_select(
-                    $filled,
-                    $shiftsFilter->getFilled(),
-                    'filled',
-                    icon('person-fill-slash') . __('Occupancy')
-                ),
+                'filled_select' => make_select($filled, $shiftsFilter->getFilled(), 'filled', __('Occupancy')),
                 'task_notice'   =>
                     '<sup>1</sup>'
                     . __('The tasks shown here are influenced by the angeltypes you joined already!')
-                    . ' <a href="' . url('/angeltypes/about') . '">'
+                    . ' <a href="' . page_link_to('angeltypes', ['action' => 'about']) . '">'
                     . __('Description of the jobs.')
                     . '</a>',
                 'shifts_table'  => msg() . $shiftCalendarRenderer->render(),
@@ -343,9 +297,9 @@ function view_user_shifts()
                 'buttons'       => button(
                     public_dashboard_link(),
                     icon('speedometer2') . __('Public Dashboard')
-                ),
-            ]),
-        ]),
+                )
+            ])
+        ])
     ]);
 }
 
@@ -357,7 +311,7 @@ function view_user_shifts()
 function ical_hint()
 {
     $user = auth()->user();
-    if (!auth()->can('ical')) {
+    if(!auth()->can('ical')) {
         return '';
     }
 
@@ -391,41 +345,37 @@ function get_ids_from_array($array)
  * @param array  $selected
  * @param string $name
  * @param string $title
- * @param int[]  $ownSelect
+ * @param array  $additionalButtons
  * @return string
  */
-function make_select($items, $selected, $name, $title = null, $ownSelect = [])
+function make_select($items, $selected, $name, $title = null, $additionalButtons = [])
 {
     $html = '';
+    $htmlItems = [];
     if (isset($title)) {
         $html .= '<h4>' . $title . '</h4>' . "\n";
     }
 
-    $buttons = [
-        button_checkbox_selection($name, __('All'), 'true'),
-        button_checkbox_selection($name, __('None'), 'false'),
-    ];
-    if (count($ownSelect) > 0) {
-        $buttons[] = button_checkbox_selection($name, __('Own'), json_encode($ownSelect));
-    }
+    $buttons = [];
+    $buttons[] = button('javascript: checkAll(\'selection_' . $name . '\', true)', __('All'), 'd-print-none');
+    $buttons[] = button('javascript: checkAll(\'selection_' . $name . '\', false)', __('None'), 'd-print-none');
+    $buttons = array_merge($buttons, $additionalButtons);
 
     $html .= buttons($buttons);
-    $html .= '<div id="selection_' . $name . '" class="mb-3 selection ' . $name . '">' . "\n";
 
-    $htmlItems = [];
     foreach ($items as $i) {
-        $id = $name . '_' . $i['id'];
-        $htmlItems[] = '<div class="form-check">'
-            . '<input class="form-check-input" type="checkbox" id="' . $id . '" name="' . $name . '[]" value="' . $i['id'] . '" '
+        $htmlItems[] = '<div class="checkbox">'
+            . '<label><input type="checkbox" name="' . $name . '[]" value="' . $i['id'] . '" '
             . (in_array($i['id'], $selected) ? ' checked="checked"' : '')
-            . '><label class="form-check-label" for="' . $id . '">' . $i['name'] . '</label>'
-            . (!isset($i['enabled']) || $i['enabled'] ? '' : icon('mortarboard-fill'))
+            . ' > ' . $i['name'] . '</label>'
+            . (!isset($i['enabled']) || $i['enabled'] ? '' : icon('book'))
             . '</div>';
     }
+    $html .= '<div id="selection_' . $name . '" class="selection ' . $name . '">' . "\n";
     $html .= implode("\n", $htmlItems);
 
-    $html .= '</div>' . "\n";
     $html .= buttons($buttons);
 
+    $html .= '</div>' . "\n";
     return $html;
 }

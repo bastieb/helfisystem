@@ -16,7 +16,7 @@ class CreateOauthTable extends Migration
      */
     public function up(): void
     {
-        $this->schema->create('oauth', function (Blueprint $table): void {
+        $this->schema->create('oauth', function (Blueprint $table) {
             $table->increments('id');
             $this->referencesUser($table);
             $table->string('provider');

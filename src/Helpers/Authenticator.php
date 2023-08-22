@@ -1,58 +1,51 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Helpers;
 
 use Carbon\Carbon;
-use Engelsystem\Models\Group;
 use Engelsystem\Models\User\User;
 use Engelsystem\Models\User\User as UserRepository;
-use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class Authenticator
 {
-    protected ?User $user = null;
+    /** @var User */
+    protected $user = null;
+
+    /** @var ServerRequestInterface */
+    protected $request;
+
+    /** @var Session */
+    protected $session;
+
+    /** @var UserRepository */
+    protected $userRepository;
 
     /** @var string[] */
-    protected array $permissions = [];
+    protected $permissions;
 
-    protected int|string|null $passwordAlgorithm = PASSWORD_DEFAULT;
-
-    protected int $defaultRole = 20;
-
-    protected int $guestRole = 10;
-
-    public function __construct(
-        protected ServerRequestInterface $request,
-        protected Session $session,
-        protected UserRepository $userRepository
-    ) {
-    }
+    /** @var int|string|null */
+    protected $passwordAlgorithm = PASSWORD_DEFAULT;
 
     /**
-     * Load the user from session or api auth
+     * @param ServerRequestInterface $request
+     * @param Session                $session
+     * @param UserRepository         $userRepository
      */
-    public function user(): ?User
+    public function __construct(ServerRequestInterface $request, Session $session, UserRepository $userRepository)
     {
-        if ($this->user) {
-            return $this->user;
-        }
-
-        $this->user = $this->userFromSession();
-        if (!$this->user && request()->getAttribute('route-api', false)) {
-            $this->user = $this->userFromApi();
-        }
-
-        return $this->user;
+        $this->request = $request;
+        $this->session = $session;
+        $this->userRepository = $userRepository;
     }
 
     /**
      * Load the user from session
+     *
+     * @return User|null
      */
-    public function userFromSession(): ?User
+    public function user()
     {
         if ($this->user) {
             return $this->user;
@@ -63,44 +56,61 @@ class Authenticator
             return null;
         }
 
-        $this->user = $this
+        $user = $this
             ->userRepository
             ->find($userId);
+        if (!$user) {
+            return null;
+        }
+
+        $this->user = $user;
 
         return $this->user;
     }
 
     /**
-     * Get the user by its api key
+     * Get the user by his api key
+     *
+     * @param string $parameter
+     * @return User|null
      */
-    public function userFromApi(): ?User
+    public function apiUser($parameter = 'api_key')
     {
         if ($this->user) {
             return $this->user;
         }
 
-        $this->user = $this->userByHeaders();
-        if ($this->user) {
-            return $this->user;
+        $params = $this->request->getQueryParams();
+        if (!isset($params[$parameter])) {
+            return null;
         }
 
-        $this->user = $this->userByQueryParam();
+        $user = $this
+            ->userRepository
+            ->whereApiKey($params[$parameter])
+            ->first();
+        if (!$user) {
+            return $this->user();
+        }
+
+        $this->user = $user;
 
         return $this->user;
     }
 
     /**
      * @param string[]|string $abilities
+     * @return bool
      */
-    public function can(array|string $abilities): bool
+    public function can($abilities): bool
     {
-        $abilities = (array) $abilities;
+        $abilities = (array)$abilities;
 
         if (empty($this->permissions)) {
             $user = $this->user();
 
             if ($user) {
-                $this->permissions = $user->privileges->pluck('name')->toArray();
+                $this->permissions = $this->getPermissionsByUser($user);
 
                 $user->last_login_at = new Carbon();
                 $user->save();
@@ -109,9 +119,7 @@ class Authenticator
             }
 
             if (empty($this->permissions)) {
-                /** @var Group $group */
-                $group = Group::find($this->guestRole);
-                $this->permissions = $group->privileges->pluck('name')->toArray();
+                $this->permissions = $this->getPermissionsByGroup(-10);
             }
         }
 
@@ -124,7 +132,12 @@ class Authenticator
         return true;
     }
 
-    public function authenticate(string $login, string $password): ?User
+    /**
+     * @param string $login
+     * @param string $password
+     * @return User|null
+     */
+    public function authenticate(string $login, string $password)
     {
         /** @var User $user */
         $user = $this->userRepository->whereName($login)->first();
@@ -143,7 +156,12 @@ class Authenticator
         return $user;
     }
 
-    public function verifyPassword(User $user, string $password): bool
+    /**
+     * @param User   $user
+     * @param string $password
+     * @return bool
+     */
+    public function verifyPassword(User $user, string $password)
     {
         if (!password_verify($password, $user->password)) {
             return false;
@@ -157,82 +175,48 @@ class Authenticator
     }
 
     /**
-     * Get the user by authorization bearer or x-api-key headers
+     * @param User   $user
+     * @param string $password
      */
-    protected function userByHeaders(): ?User
-    {
-        $header = $this->request->getHeader('authorization');
-        if (!empty($header) && Str::startsWith(Str::lower($header[0]), 'bearer ')) {
-            return $this->userByApiKey(Str::substr($header[0], 7));
-        }
-
-        $header = $this->request->getHeader('x-api-key');
-        if (!empty($header)) {
-            return $this->userByApiKey($header[0]);
-        }
-
-        return null;
-    }
-
-    /**
-     * Get the user by query parameters
-     */
-    protected function userByQueryParam(): ?User
-    {
-        $params = $this->request->getQueryParams();
-        if (!empty($params['key'])) {
-            $this->user = $this->userByApiKey($params['key']);
-        }
-
-        return $this->user;
-    }
-
-    /**
-     * Get the user by its api key
-     */
-    protected function userByApiKey(string $key): ?User
-    {
-        $this->user = $this
-            ->userRepository
-            ->whereApiKey($key)
-            ->first();
-
-        return $this->user;
-    }
-
-    public function setPassword(User $user, string $password): void
+    public function setPassword(User $user, string $password)
     {
         $user->password = password_hash($password, $this->passwordAlgorithm);
         $user->save();
     }
 
-    public function getPasswordAlgorithm(): int|string|null
+    /**
+     * @return int|string|null
+     */
+    public function getPasswordAlgorithm()
     {
         return $this->passwordAlgorithm;
     }
 
-    public function setPasswordAlgorithm(int|string|null $passwordAlgorithm): void
+    /**
+     * @param int|string|null $passwordAlgorithm
+     */
+    public function setPasswordAlgorithm($passwordAlgorithm)
     {
         $this->passwordAlgorithm = $passwordAlgorithm;
     }
 
-    public function getDefaultRole(): int
+    /**
+     * @param User $user
+     * @return array
+     * @codeCoverageIgnore
+     */
+    protected function getPermissionsByUser($user)
     {
-        return $this->defaultRole;
+        return privileges_for_user($user->id);
     }
 
-    public function setDefaultRole(int $defaultRole): void
+    /**
+     * @param int $groupId
+     * @return array
+     * @codeCoverageIgnore
+     */
+    protected function getPermissionsByGroup(int $groupId)
     {
-        $this->defaultRole = $defaultRole;
-    }
-
-    public function getGuestRole(): int
-    {
-        return $this->guestRole;
-    }
-
-    public function setGuestRole(int $guestRole): void
-    {
-        $this->guestRole = $guestRole;
+        return privileges_for_group($groupId);
     }
 }

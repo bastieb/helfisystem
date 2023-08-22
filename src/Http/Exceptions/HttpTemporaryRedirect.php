@@ -1,11 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Exceptions;
 
 class HttpTemporaryRedirect extends HttpRedirect
 {
+    /**
+     * @param string $url
+     * @param array  $headers
+     */
     public function __construct(
         string $url,
         array $headers = []

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,7 +10,7 @@ class FixOldTables extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
         $connection = $this->schema->getConnection();
 
@@ -31,9 +29,16 @@ class FixOldTables extends Migration
                 ->where($column, '<', '0001-01-01 00:00:00')
                 ->update([$column => '0001-01-01 00:00:00']);
 
-            $this->schema->table($table, function (Blueprint $table) use ($column): void {
+            $this->schema->table($table, function (Blueprint $table) use ($column) {
                 $table->dateTime($column)->default('0001-01-01 00:00:00')->change();
             });
         }
+    }
+
+    /**
+     * Reverse the migration
+     */
+    public function down()
+    {
     }
 }

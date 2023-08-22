@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -11,7 +9,7 @@ class ImportUpdateSql extends Migration
     /**
      * Run the migration
      */
-    public function up(): void
+    public function up()
     {
         if ($this->schema->hasTable('UserWorkLog')) {
             return;
@@ -24,7 +22,7 @@ class ImportUpdateSql extends Migration
     /**
      * Reverse the migration
      */
-    public function down(): void
+    public function down()
     {
         $this->schema->dropIfExists('UserWorkLog');
     }

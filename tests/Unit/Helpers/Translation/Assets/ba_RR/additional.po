@@ -1,9 +1,0 @@
-# Testing content
-msgid "validation.foo.bar"
-msgstr "B Arr required!"
-
-msgid "msg.additional"
-msgstr "Additional"
-
-msgid "msg.overwritten"
-msgstr "From additional"

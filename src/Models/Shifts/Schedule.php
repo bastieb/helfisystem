@@ -1,16 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\Shifts;
 
 use Carbon\Carbon;
 use Engelsystem\Models\BaseModel;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
@@ -23,9 +19,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property Carbon                                       $created_at
  * @property Carbon                                       $updated_at
  *
- * @property-read QueryBuilder|Collection|Shift[]         $shifts
  * @property-read QueryBuilder|Collection|ScheduleShift[] $scheduleShifts
- * @property-read QueryBuilder|ShiftType                  $shiftType
  *
  * @method static QueryBuilder|Schedule[] whereId($value)
  * @method static QueryBuilder|Schedule[] whereName($value)
@@ -41,17 +35,17 @@ class Schedule extends BaseModel
     use HasFactory;
 
     /** @var bool enable timestamps */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
-    /** @var array<string> */
-    protected $casts = [ // phpcs:ignore
+    /** @var string[] */
+    protected $casts = [
         'shift_type'     => 'integer',
         'minutes_before' => 'integer',
         'minutes_after'  => 'integer',
     ];
 
-    /** @var array<string> Values that are mass assignable */
-    protected $fillable = [ // phpcs:ignore
+    /** @var array Values that are mass assignable */
+    protected $fillable = [
         'name',
         'url',
         'shift_type',
@@ -59,18 +53,11 @@ class Schedule extends BaseModel
         'minutes_after',
     ];
 
-    public function scheduleShifts(): HasMany
+    /**
+     * @return HasMany
+     */
+    public function scheduleShifts()
     {
         return $this->hasMany(ScheduleShift::class);
-    }
-
-    public function shifts(): HasManyThrough
-    {
-        return $this->hasManyThrough(Shift::class, ScheduleShift::class, 'schedule_id', 'id');
-    }
-
-    public function shiftType(): BelongsTo
-    {
-        return $this->belongsTo(ShiftType::class, 'shift_type', 'id');
     }
 }

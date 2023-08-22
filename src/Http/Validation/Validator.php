@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Validation;
 
 use Illuminate\Support\Str;
@@ -12,20 +10,27 @@ use Respect\Validation\Validator as RespectValidator;
 class Validator
 {
     /** @var string[] */
-    protected array $errors = [];
+    protected $errors = [];
 
-    protected array $data = [];
+    /** @var array */
+    protected $data = [];
 
-    protected array $mapping = [
+    /** @var array */
+    protected $mapping = [
         'accepted' => 'TrueVal',
         'int'      => 'IntVal',
-        'float'    => 'FloatVal',
         'required' => 'NotEmpty',
     ];
 
-    protected array $nestedRules = ['optional', 'not'];
+    /** @var array */
+    protected $nestedRules = ['optional', 'not'];
 
-    public function validate(array $data, array $rules): bool
+    /**
+     * @param array $data
+     * @param array $rules
+     * @return bool
+     */
+    public function validate($data, $rules)
     {
         $this->errors = [];
         $this->data = [];
@@ -79,18 +84,29 @@ class Validator
         return empty($this->errors);
     }
 
-    protected function map(string $rule): string
+    /**
+     * @param string $rule
+     * @return string
+     */
+    protected function map($rule)
     {
         return $this->mapping[$rule] ?? $rule;
     }
 
-    protected function mapBack(string $rule): string
+    /**
+     * @param string $rule
+     * @return string
+     */
+    protected function mapBack($rule)
     {
         $mapping = array_flip($this->mapping);
 
         return $mapping[$rule] ?? $rule;
     }
 
+    /**
+     * @return array
+     */
     public function getData(): array
     {
         return $this->data;
@@ -102,12 +118,5 @@ class Validator
     public function getErrors(): array
     {
         return $this->errors;
-    }
-
-    public function addErrors(array $errors): self
-    {
-        $this->errors = array_merge($this->errors, $errors);
-
-        return $this;
     }
 }

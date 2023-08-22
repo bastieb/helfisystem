@@ -1,43 +1,44 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Mail\Transport;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\SentMessage;
-use Symfony\Component\Mailer\Transport\AbstractTransport;
+use Swift_Mime_SimpleMessage as SimpleMessage;
 
-class LogTransport extends AbstractTransport
+class LogTransport extends Transport
 {
-    public function __construct(protected LoggerInterface $logger)
-    {
+    /** @var LoggerInterface */
+    protected $logger;
 
-        parent::__construct();
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     /**
-     * Send the message to log
+     * Send the given Message.
+     *
+     * Recipient/sender data will be retrieved from the Message API.
+     * The return value is the number of recipients
+     *
+     * @param SimpleMessage $message
+     * @param string[]      $failedRecipients An array of failures by-reference
+     *
+     * @return int
      */
-    protected function doSend(SentMessage $message): void
-    {
-        $recipients = [];
-        $messageRecipients = $message->getEnvelope()->getRecipients();
-        foreach ($messageRecipients as $recipient) {
-            $recipients[] = $recipient->toString();
-        }
-
+    public function send(
+        SimpleMessage $message,
+        &$failedRecipients = null
+    ): int {
         $this->logger->debug(
-            'Mail: Send mail to "{recipients}":' . PHP_EOL . PHP_EOL . '{content}',
+            'Mail: Send mail "{title}" to "{recipients}":' . PHP_EOL . PHP_EOL . '{content}',
             [
-                'recipients' => implode(', ', $recipients),
+                'title'      => $message->getSubject(),
+                'recipients' => $this->getTo($message),
                 'content'    => $message->toString(),
             ]
         );
-    }
 
-    public function __toString(): string
-    {
-        return 'log://';
+        return count($this->allRecipients($message));
     }
 }

@@ -1,18 +1,26 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers;
 
 use Engelsystem\Http\Response;
 
 class ApiController extends BaseController
 {
-    public function __construct(protected Response $response)
+    /** @var Response */
+    protected $response;
+
+    /**
+     * @param Response $response
+     */
+    public function __construct(Response $response)
     {
+        $this->response = $response;
     }
 
-    public function index(): Response
+    /**
+     * @return Response
+     */
+    public function index()
     {
         return $this->response
             ->setStatusCode(501)

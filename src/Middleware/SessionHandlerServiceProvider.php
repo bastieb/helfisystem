@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Container\ServiceProvider;
 
 class SessionHandlerServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
         $this->app
             ->when(SessionHandler::class)
@@ -17,7 +15,6 @@ class SessionHandlerServiceProvider extends ServiceProvider
                 return [
                     '/api',
                     '/atom',
-                    '/rss',
                     '/health',
                     '/ical',
                     '/metrics',

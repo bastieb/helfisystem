@@ -32,21 +32,24 @@ class NewsComment extends BaseModel
     use UsesUserModel;
 
     /** @var bool Enable timestamps */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
-    /** @var array<string, string> */
-    protected $casts = [ // phpcs:ignore
+    /** @var string[] */
+    protected $casts = [
         'user_id' => 'integer',
         'news_id' => 'integer',
     ];
 
-    /** @var array<string> */
-    protected $fillable = [ // phpcs:ignore
+    /** @var string[] */
+    protected $fillable = [
         'news_id',
         'text',
         'user_id',
     ];
 
+    /**
+     * @return BelongsTo
+     */
     public function news(): BelongsTo
     {
         return $this->belongsTo(News::class);

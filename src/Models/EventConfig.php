@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models;
 
 use Carbon\Carbon;
@@ -21,19 +19,19 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 class EventConfig extends BaseModel
 {
     /** @var string The primary key for the model */
-    protected $primaryKey = 'name'; // phpcs:ignore
+    protected $primaryKey = 'name';
 
     /** @var bool Indicates if the IDs are auto-incrementing */
-    public $incrementing = false; // phpcs:ignore
+    public $incrementing = false;
 
     /** @var string Required because it is not event_configs */
-    protected $table = 'event_config'; // phpcs:ignore
+    protected $table = 'event_config';
 
     /** @var array Values that are mass assignable */
-    protected $fillable = ['name', 'value']; // phpcs:ignore
+    protected $fillable = ['name', 'value'];
 
-    /** @var array<string, string> The configuration values that should be cast to native types */
-    protected array $valueCasts = [
+    /** @var array The configuration values that should be cast to native types */
+    protected $valueCasts = [
         'buildup_start' => 'datetime_human',
         'event_start'   => 'datetime_human',
         'event_end'     => 'datetime_human',
@@ -42,22 +40,26 @@ class EventConfig extends BaseModel
     ];
 
     /** @var bool It could be interesting to know when a value changed the last time */
-    public $timestamps = true; // phpcs:ignore
+    public $timestamps = true;
 
     /**
      * Value accessor
+     *
+     * @param mixed $value
+     * @return mixed
      */
-    public function getValueAttribute(mixed $value): mixed
+    public function getValueAttribute($value)
     {
         $value = $value ? $this->fromJson($value) : null;
 
         /** @see \Illuminate\Database\Eloquent\Concerns\HasAttributes::castAttribute */
         if (!empty($value)) {
-            return match ($this->getValueCast($this->name)) {
-                'datetime_human' => Carbon::make($value),
-                'datetime'       => Carbon::createFromFormat(Carbon::ISO8601, $value),
-                default          => $value,
-            };
+            switch ($this->getValueCast($this->name)) {
+                case 'datetime_human':
+                    return Carbon::make($value);
+                case 'datetime':
+                    return Carbon::createFromFormat(Carbon::ISO8601, $value);
+            }
         }
 
         return $value;
@@ -66,18 +68,22 @@ class EventConfig extends BaseModel
     /**
      * Value mutator
      *
+     * @param mixed $value
      * @return static
      */
-    public function setValueAttribute(mixed $value): static
+    public function setValueAttribute($value)
     {
         if (!empty($value)) {
-            $value = match ($this->getValueCast($this->name)) {
-                /** @var Carbon $value */
-                'datetime_human' => $value->toDateTimeString('minute'),
-                /** @var Carbon $value */
-                'datetime'       => $value->toIso8601String(),
-                default          => $value,
-            };
+            switch ($this->getValueCast($this->name)) {
+                case 'datetime_human':
+                    /** @var Carbon $value */
+                    $value = $value->toDateTimeString('minute');
+                    break;
+                case 'datetime':
+                    /** @var Carbon $value */
+                    $value = $value->toIso8601String();
+                    break;
+            }
         }
 
         $value = $this->castAttributeAsJson('value', $value);
@@ -88,8 +94,11 @@ class EventConfig extends BaseModel
 
     /**
      * Check if the value has to be casted
+     *
+     * @param string $value
+     * @return string|null
      */
-    protected function getValueCast(string $value): ?string
+    protected function getValueCast($value)
     {
         return isset($this->valueCasts[$value]) ? $this->valueCasts[$value] : null;
     }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Exceptions;
 
 use Throwable;
@@ -9,6 +7,9 @@ use Throwable;
 class HttpForbidden extends HttpException
 {
     /**
+     * @param string         $message
+     * @param array          $headers
+     * @param int            $code
      * @param Throwable|null $previous
      */
     public function __construct(

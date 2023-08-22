@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
@@ -13,22 +11,35 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 class SessionHandler implements MiddlewareInterface
 {
-    public function __construct(protected SessionStorageInterface $session, protected array $paths = [])
+    /** @var SessionStorageInterface */
+    protected $session;
+
+    /** @var string[] */
+    protected $paths = [];
+
+    /**
+     * @param SessionStorageInterface $session
+     * @param array                   $paths
+     */
+    public function __construct(SessionStorageInterface $session, array $paths = [])
     {
+        $this->paths = $paths;
+        $this->session = $session;
     }
 
+    /**
+     * @param ServerRequestInterface  $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
+     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $requestPath = $request->getAttribute('route-request-path');
-        $isApi = in_array($requestPath, $this->paths);
-        $request = $request->withAttribute('route-api', $isApi);
-
         $return = $handler->handle($request);
 
         $cookies = $request->getCookieParams();
         if (
-            $isApi
-            && $this->session instanceof NativeSessionStorage
+            $this->session instanceof NativeSessionStorage
+            && in_array($request->getAttribute('route-request-path'), $this->paths)
             && !isset($cookies[$this->session->getName()])
         ) {
             $this->destroyNative();
@@ -38,9 +49,10 @@ class SessionHandler implements MiddlewareInterface
     }
 
     /**
+     * @return bool
      * @codeCoverageIgnore
      */
-    protected function destroyNative(): bool
+    protected function destroyNative()
     {
         return session_destroy();
     }

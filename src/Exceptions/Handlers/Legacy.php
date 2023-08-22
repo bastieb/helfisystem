@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Exceptions\Handlers;
 
 use Engelsystem\Http\Request;
@@ -10,14 +8,22 @@ use Throwable;
 
 class Legacy implements HandlerInterface
 {
-    protected ?LoggerInterface $log = null;
+    /** @var LoggerInterface */
+    protected $log;
 
-    public function render(Request $request, Throwable $e): void
+    /**
+     * @param Request   $request
+     * @param Throwable $e
+     */
+    public function render($request, Throwable $e)
     {
         echo 'An <del>un</del>expected error occurred. A team of untrained monkeys has been dispatched to fix it.';
     }
 
-    public function report(Throwable $e): void
+    /**
+     * @param Throwable $e
+     */
+    public function report(Throwable $e)
     {
         $previous = $e->getPrevious();
         error_log(sprintf(
@@ -40,12 +46,19 @@ class Legacy implements HandlerInterface
         }
     }
 
-    public function setLogger(LoggerInterface $logger): void
+    /**
+     * @param LoggerInterface $logger
+     */
+    public function setLogger(LoggerInterface $logger)
     {
         $this->log = $logger;
     }
 
-    protected function stripBasePath(string $path): string
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function stripBasePath($path)
     {
         $basePath = realpath(__DIR__ . '/../../..') . '/';
         return str_replace($basePath, '', $path);

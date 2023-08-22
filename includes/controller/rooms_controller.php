@@ -1,6 +1,5 @@
 <?php
 
-use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
 use Engelsystem\ShiftsFilter;
 use Engelsystem\ShiftsFilterRenderer;
@@ -23,25 +22,25 @@ function room_controller(): array
     $request = request();
     $room = load_room();
 
-    $all_shifts = $room->shifts->sortBy('start');
+    $all_shifts = Shifts_by_room($room);
     $days = [];
     foreach ($all_shifts as $shift) {
-        $day = $shift->start->format('Y-m-d');
-        if (!isset($days[$day])) {
-            $days[$day] = $shift->start->format(__('Y-m-d'));
+        $day = date('Y-m-d', $shift['start']);
+        if (!in_array($day, $days)) {
+            $days[] = $day;
         }
     }
 
     $shiftsFilter = new ShiftsFilter(
         true,
         [$room->id],
-        AngelType::query()->get('id')->pluck('id')->toArray()
+        AngelType_ids()
     );
     $selected_day = date('Y-m-d');
-    if (!empty($days) && !isset($days[$selected_day])) {
-        $selected_day = array_key_first($days);
+    if (!empty($days)) {
+        $selected_day = $days[0];
     }
-    if ($request->input('shifts_filter_day')) {
+    if ($request->has('shifts_filter_day')) {
         $selected_day = $request->input('shifts_filter_day');
     }
     $shiftsFilter->setStartTime(parse_date('Y-m-d H:i', $selected_day . ' 00:00'));
@@ -54,7 +53,7 @@ function room_controller(): array
 
     return [
         $room->name,
-        Room_view($room, $shiftsFilterRenderer, $shiftCalendarRenderer),
+        Room_view($room, $shiftsFilterRenderer, $shiftCalendarRenderer)
     ];
 }
 
@@ -71,11 +70,15 @@ function rooms_controller(): array
         $action = 'list';
     }
 
-    return match ($action) {
-        'view'  => room_controller(),
-        'list'  => throw_redirect(page_link_to('admin/rooms')),
-        default => throw_redirect(page_link_to('admin/rooms')),
-    };
+    switch ($action) {
+        case 'view':
+            return room_controller();
+        case 'list':
+        default:
+            throw_redirect(page_link_to('admin_rooms'));
+    }
+
+    return ['', ''];
 }
 
 /**

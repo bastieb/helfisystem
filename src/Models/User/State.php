@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\User;
 
 use Carbon\Carbon;
@@ -28,10 +26,10 @@ class State extends HasUserModel
     use HasFactory;
 
     /** @var string The table associated with the model */
-    protected $table = 'users_state'; // phpcs:ignore
+    protected $table = 'users_state';
 
-    /** @var array<string, bool|int> Default attributes */
-    protected $attributes = [ // phpcs:ignore
+    /** @var array Default attributes */
+    protected $attributes = [
         'arrived'      => false,
         'active'       => false,
         'force_active' => false,
@@ -39,8 +37,8 @@ class State extends HasUserModel
         'got_voucher'  => 0,
     ];
 
-    /** @var array<string, string> */
-    protected $casts = [ // phpcs:ignore
+    /** @var array */
+    protected $casts = [
         'user_id'      => 'integer',
         'arrived'      => 'boolean',
         'active'       => 'boolean',
@@ -49,17 +47,13 @@ class State extends HasUserModel
         'got_voucher'  => 'integer',
     ];
 
-    /** @var array<string> The attributes that should be mutated to dates */
-    protected $dates = [ // phpcs:ignore
+    /** @var array The attributes that should be mutated to dates */
+    protected $dates = [
         'arrival_date',
     ];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
-    protected $fillable = [ // phpcs:ignore
+    /** The attributes that are mass assignable */
+    protected $fillable = [
         'user_id',
         'arrived',
         'arrival_date',

@@ -21,7 +21,7 @@
                 {% if date > date() %}
                     <div class="col-sm-3 text-center d-none d-sm-block">
                         <h4>{{ name }}</h4>
-                        <div class="h2 text-body" title="{{ date.format(__('Y-m-d H:i')) }}" data-countdown-ts="{{ date.getTimestamp() }}">%c</div>
+                        <span class="moment-countdown text-big" data-timestamp="{{ date.getTimestamp }}">%c</span>
                         <small>{{ date.format(__('Y-m-d')) }}</small>
                     </div>
                 {% endif %}
@@ -33,10 +33,6 @@
                 <div class="card {{ m.type_bg_class() }}">
                     <div class="card-body">
                         {% include 'layouts/parts/messages.twig' %}
-
-                        {% if session_get('show_welcome', false) %}
-                            {{ m.alert(config('welcome_msg') | md, null, true) }}
-                        {% endif %}
 
                         <form action="" enctype="multipart/form-data" method="post">
                             {{ csrf() }}
@@ -62,8 +58,8 @@
                                         <i class="bi bi-key"></i>
                                     </span>
                                     <input
-                                        class="form-control" id="form_password" type="password"
-                                        name="password" value="" placeholder="{{ __('Password') }}" autocomplete="current-password"
+                                        class="form-control" id="form_password"
+                                        type="password" name="password" value="" placeholder="{{ __('Password') }}"
                                     >
                                 </div>
                             </div>
@@ -104,12 +100,8 @@
             <div class="col-sm-6 text-center">
                 <h2>{{ __('Register') }}</h2>
                 {% if has_permission_to('register') and config('registration_enabled') %}
-                    {% if config('enable_password') %}
-                        <p>{{ __('Please sign up, if you want to help us!') }}</p>
-                        <a href="{{ url('register') }}" class="btn btn-primary">{{ __('Register') }} &raquo;</a>
-                    {% else %}
-                        <p>{{ __('Registration is only available via external login.') }}</p>
-                    {% endif %}
+                    <p>{{ __('Please sign up, if you want to help us!') }}</p>
+                    <a href="{{ url('register') }}" class="btn btn-primary">{{ __('Register') }} &raquo;</a>
                 {% else %}
                     {{ m.alert(__('Registration is disabled.'), 'danger') }}
                 {% endif %}
@@ -118,8 +110,8 @@
             <div class="col-sm-6 text-center">
                 <h2>{{ __('What can I do?') }}</h2>
                 <p>{{ __('Please read about the jobs you can do to help us.') }}</p>
-                <a href="{{ url('/angeltypes/about') }}" class="btn btn-primary">
-                    {{ __('angeltypes.about') }} &raquo;
+                <a href="{{ url('angeltypes', {'action': 'about'}) }}" class="btn btn-primary">
+                    {{ __('Teams/Job description') }} &raquo;
                 </a>
             </div>
 

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use Engelsystem\Application;
 use Engelsystem\Middleware\Dispatcher;
 use Psr\Http\Message\ServerRequestInterface;

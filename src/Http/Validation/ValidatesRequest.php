@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http\Validation;
 
 use Engelsystem\Http\Exceptions\ValidationException;
@@ -9,12 +7,18 @@ use Engelsystem\Http\Request;
 
 trait ValidatesRequest
 {
-    protected Validator $validator;
+    /** @var Validator */
+    protected $validator;
 
-    protected function validate(Request $request, array $rules): array
+    /**
+     * @param Request $request
+     * @param array   $rules
+     * @return array
+     */
+    protected function validate(Request $request, array $rules)
     {
         $isValid = $this->validator->validate(
-            (array) $request->getParsedBody(),
+            (array)$request->getParsedBody(),
             $rules
         );
 
@@ -25,7 +29,10 @@ trait ValidatesRequest
         return $this->validator->getData();
     }
 
-    public function setValidator(Validator $validator): void
+    /**
+     * @param Validator $validator
+     */
+    public function setValidator(Validator $validator)
     {
         $this->validator = $validator;
     }

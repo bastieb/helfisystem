@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers\Admin;
 
 use Engelsystem\Controllers\BaseController;
@@ -11,15 +9,31 @@ use Engelsystem\Models\LogEntry;
 
 class LogsController extends BaseController
 {
-    /** @var array<string> */
-    protected array $permissions = [
+    /** @var LogEntry */
+    protected $log;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var array */
+    protected $permissions = [
         'admin_log',
     ];
 
-    public function __construct(protected LogEntry $log, protected Response $response)
+    /**
+     * @param LogEntry $log
+     * @param Response $response
+     */
+    public function __construct(LogEntry $log, Response $response)
     {
+        $this->log = $log;
+        $this->response = $response;
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $search = $request->input('search');

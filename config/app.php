@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 // Application config
 
 return [
@@ -24,7 +22,6 @@ return [
         \Engelsystem\Http\ResponseServiceProvider::class,
         \Engelsystem\Http\Psr7ServiceProvider::class,
         \Engelsystem\Helpers\AuthenticatorServiceProvider::class,
-        \Engelsystem\Helpers\AssetsServiceProvider::class,
         \Engelsystem\Renderer\TwigServiceProvider::class,
         \Engelsystem\Middleware\RouteDispatcherServiceProvider::class,
         \Engelsystem\Middleware\RequestHandlerServiceProvider::class,
@@ -36,8 +33,7 @@ return [
         \Engelsystem\Helpers\VersionServiceProvider::class,
         \Engelsystem\Mail\MailerServiceProvider::class,
         \Engelsystem\Http\HttpClientServiceProvider::class,
-        \Engelsystem\Helpers\DumpServerServiceProvider::class,
-        \Engelsystem\Helpers\UuidServiceProvider::class,
+        \Engelsystem\Helpers\DumpServerServiceProvider::class
     ],
 
     // Application middleware
@@ -48,9 +44,7 @@ return [
 
         // Changes of request/response parameters
         \Engelsystem\Middleware\SetLocale::class,
-        \Engelsystem\Middleware\ETagHandler::class,
         \Engelsystem\Middleware\AddHeaders::class,
-        \Engelsystem\Middleware\TrimInput::class,
 
         // The application code
         \Engelsystem\Middleware\ErrorHandler::class,
@@ -68,19 +62,11 @@ return [
         //      a list of
         //      'Class@method' or 'Class' (which uses @handle),
         //      ['Class', 'method'],
-        //      callable like [$instance, 'method'] or 'function'
+        //      callable like [$instance, 'method] or 'function'
         //      or $function
         // ]
-
-        'message.created' => \Engelsystem\Events\Listener\Messages::class . '@created',
-
         'news.created' => \Engelsystem\Events\Listener\News::class . '@created',
 
         'oauth2.login' => \Engelsystem\Events\Listener\OAuth2::class . '@login',
-
-        'shift.entry.deleting' => [
-            \Engelsystem\Events\Listener\Shift::class . '@deletedEntryCreateWorklog',
-            \Engelsystem\Events\Listener\Shift::class . '@deletedEntrySendEmail',
-        ],
     ],
 ];

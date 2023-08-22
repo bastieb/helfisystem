@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers\Admin;
 
 use Engelsystem\Controllers\BaseController;
+use Engelsystem\Controllers\CleanupModel;
 use Engelsystem\Controllers\HasUserNotifications;
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Http\Redirector;
@@ -16,59 +15,111 @@ use Psr\Log\LoggerInterface;
 class NewsController extends BaseController
 {
     use HasUserNotifications;
+    use CleanupModel;
 
-    /** @var array<string> */
-    protected array $permissions = [
+    /** @var Authenticator */
+    protected $auth;
+
+    /** @var LoggerInterface */
+    protected $log;
+
+    /** @var News */
+    protected $news;
+
+    /** @var Redirector */
+    protected $redirect;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var array */
+    protected $permissions = [
         'admin_news',
     ];
 
+    /**
+     * @param Authenticator   $auth
+     * @param LoggerInterface $log
+     * @param News            $news
+     * @param Redirector      $redirector
+     * @param Response        $response
+     */
     public function __construct(
-        protected Authenticator $auth,
-        protected LoggerInterface $log,
-        protected News $news,
-        protected Redirector $redirect,
-        protected Response $response
+        Authenticator $auth,
+        LoggerInterface $log,
+        News $news,
+        Redirector $redirector,
+        Response $response
     ) {
+        $this->auth = $auth;
+        $this->log = $log;
+        $this->news = $news;
+        $this->redirect = $redirector;
+        $this->response = $response;
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function edit(Request $request): Response
     {
-        $newsId = $request->getAttribute('news_id'); // optional
-
-        $news = $this->news->find($newsId);
-        $isMeeting = (bool) $request->get('meeting', false);
+        $id = $request->getAttribute('id');
+        $news = $this->news->find($id);
+        $isMeeting = $request->get('meeting', false);
 
         return $this->showEdit($news, $isMeeting);
     }
 
+    /**
+     * @param News|null $news
+     * @param bool      $isMeetingDefault
+     *
+     * @return Response
+     */
     protected function showEdit(?News $news, bool $isMeetingDefault = false): Response
     {
+        if (
+            $news
+            && !$this->auth->can('admin_news_html')
+            && strip_tags($news->text) != $news->text
+        ) {
+            $this->addNotification('news.edit.contains-html', 'warnings');
+        }
+
+        if ($news) {
+            $this->cleanupModelNullValues($news);
+        }
+
         return $this->response->withView(
             'pages/news/edit.twig',
             [
-                'news'         => $news,
-                'is_meeting'   => $news ? $news->is_meeting : $isMeetingDefault,
-                'is_pinned'    => $news ? $news->is_pinned : false,
-                'is_important' => $news ? $news->is_important : false,
-            ],
+                'news'       => $news,
+                'is_meeting' => $news ? $news->is_meeting : $isMeetingDefault,
+                'is_pinned'  => $news ? $news->is_pinned : false,
+            ] + $this->getNotifications(),
         );
     }
 
+    /**
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function save(Request $request): Response
     {
-        $newsId = $request->getAttribute('news_id'); // optional
-
+        $id = $request->getAttribute('id');
         /** @var News $news */
-        $news = $this->news->findOrNew($newsId);
+        $news = $this->news->findOrNew($id);
 
         $data = $this->validate($request, [
-            'title'        => 'required',
-            'text'         => 'required',
-            'is_meeting'   => 'optional|checked',
-            'is_pinned'    => 'optional|checked',
-            'is_important' => 'optional|checked',
-            'delete'       => 'optional|checked',
-            'preview'      => 'optional|checked',
+            'title'      => 'required',
+            'text'       => 'required',
+            'is_meeting' => 'optional|checked',
+            'is_pinned'  => 'optional|checked',
+            'delete'     => 'optional|checked',
+            'preview'    => 'optional|checked',
         ]);
 
         if (!is_null($data['delete'])) {
@@ -78,13 +129,17 @@ class NewsController extends BaseController
                 'Deleted {type} "{news}"',
                 [
                     'type' => $news->is_meeting ? 'meeting' : 'news',
-                    'news' => $news->title,
+                    'news' => $news->title
                 ]
             );
 
             $this->addNotification('news.delete.success');
 
             return $this->redirect->to('/news');
+        }
+
+        if (!$this->auth->can('admin_news_html')) {
+            $data['text'] = strip_tags($data['text']);
         }
 
         if (!$news->user) {
@@ -94,10 +149,6 @@ class NewsController extends BaseController
         $news->text = $data['text'];
         $news->is_meeting = !is_null($data['is_meeting']);
         $news->is_pinned = !is_null($data['is_pinned']);
-
-        if ($this->auth->can('news.important')) {
-            $news->is_important = !is_null($data['is_important']);
-        }
 
         if (!is_null($data['preview'])) {
             return $this->showEdit($news);
@@ -113,11 +164,10 @@ class NewsController extends BaseController
         $this->log->info(
             'Updated {pinned}{type} "{news}": {text}',
             [
-                'pinned'    => $news->is_pinned ? 'pinned ' : '',
-                'important' => $news->is_important ? 'important ' : '',
-                'type'      => $news->is_meeting ? 'meeting' : 'news',
-                'news'      => $news->title,
-                'text'      => $news->text,
+                'pinned' => $news->is_pinned ? 'pinned ' : '',
+                'type'   => $news->is_meeting ? 'meeting' : 'news',
+                'news'   => $news->title,
+                'text'   => $news->text,
             ]
         );
 

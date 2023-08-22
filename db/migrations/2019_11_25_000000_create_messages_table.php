@@ -64,18 +64,27 @@ class CreateMessagesTable extends Migration
         $this->schema->drop('new_messages');
     }
 
+    /**
+     * @return void
+     */
     private function createNewMessagesTable(): void
     {
-        $this->schema->create('messages', function (Blueprint $table): void {
-            $table->increments('id');
-            $this->referencesUser($table);
-            $this->references($table, 'users', 'receiver_id');
-            $table->boolean('read')->default(0);
-            $table->text('text');
-            $table->timestamps();
-        });
+        $this->schema->create(
+            'messages',
+            function (Blueprint $table) {
+                $table->increments('id');
+                $this->referencesUser($table);
+                $this->references($table, 'users', 'receiver_id');
+                $table->boolean('read')->default(0);
+                $table->text('text');
+                $table->timestamps();
+            }
+        );
     }
 
+    /**
+     * @return void
+     */
     private function copyPreviousToNewMessagesTable(): void
     {
         $connection = $this->schema->getConnection();
@@ -100,18 +109,28 @@ class CreateMessagesTable extends Migration
         }
     }
 
+    /**
+     * @return void
+     */
     private function createPreviousMessagesTable(): void
     {
-        $this->schema->create('Messages', function (Blueprint $table): void {
-            $table->increments('id');
-            $table->integer('Datum');
-            $this->references($table, 'users', 'SUID');
-            $this->references($table, 'users', 'RUID');
-            $table->char('isRead')->default('N');
-            $table->text('Text');
-        });
+        $this->schema->create(
+            'Messages',
+            function (Blueprint $table) {
+                $table->increments('id');
+                $table->integer('Datum');
+                $this->references($table, 'users', 'SUID');
+                $this->references($table, 'users', 'RUID');
+                $table->char('isRead')
+                    ->default('N');
+                $table->text('Text');
+            }
+        );
     }
 
+    /**
+     * @return void
+     */
     private function copyNewToPreviousMessagesTable(): void
     {
         $connection = $this->schema->getConnection();

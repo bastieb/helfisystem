@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Http;
 
 use Engelsystem\Container\ServiceProvider;
@@ -9,7 +7,7 @@ use GuzzleHttp\Client as GuzzleClient;
 
 class HttpClientServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function register()
     {
         $this->app->when(GuzzleClient::class)
             ->needs('$config')

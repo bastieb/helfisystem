@@ -1,6 +1,6 @@
 <?php
 
-use Engelsystem\Helpers\Carbon;
+use Carbon\Carbon;
 use Engelsystem\Http\Exceptions\HttpTemporaryRedirect;
 use Engelsystem\Models\BaseModel;
 use Engelsystem\ValidationResult;
@@ -66,7 +66,7 @@ function throw_redirect($url)
 /**
  * Echoes given output and dies.
  *
- * @param string $output String to display
+ * @param String $output String to display
  */
 function raw_output($output = '')
 {
@@ -86,7 +86,7 @@ function raw_output($output = '')
 function select_array($data, $key_name, $value_name)
 {
     if ($data instanceof Collection) {
-        return $data->mapWithKeys(function (BaseModel $model) use ($key_name, $value_name) {
+        return $data->mapToDictionary(function (BaseModel $model) use ($key_name, $value_name) {
             return [$model->{$key_name} => $model->{$value_name}];
         });
     }
@@ -145,14 +145,9 @@ function check_request_date($name, $error_message = null, $null_allowed = false,
  */
 function check_date($input, $error_message = null, $null_allowed = false, $time_allowed = false)
 {
-    $trimmed_input = trim((string) $input);
-
     try {
-        if ($time_allowed) {
-            $time = Carbon::createFromDatetime($trimmed_input);
-        } else {
-            $time = Carbon::createFromFormat('Y-m-d', $trimmed_input);
-        }
+        $format = $time_allowed ? 'Y-m-d H:i' : 'Y-m-d';
+        $time = Carbon::createFromFormat($format, trim($input));
     } catch (InvalidArgumentException $e) {
         $time = null;
     }
@@ -173,7 +168,7 @@ function check_date($input, $error_message = null, $null_allowed = false, $time_
  * Returns REQUEST value filtered or default value (null) if not set.
  *
  * @param string $name
- * @param string|null $default_value
+ * @param string $default_value
  * @return mixed|null
  */
 function strip_request_item($name, $default_value = null)
@@ -182,23 +177,6 @@ function strip_request_item($name, $default_value = null)
     if ($request->has($name)) {
         return strip_item($request->input($name));
     }
-    return $default_value;
-}
-
-/**
- * Returns REQUEST value or default value (null) if not set.
- *
- * @param string $name
- * @param string|null $default_value
- * @return mixed|null
- */
-function strip_request_tags($name, $default_value = null)
-{
-    $request = request();
-    if ($request->has($name)) {
-        return strip_tags($request->input($name));
-    }
-
     return $default_value;
 }
 
@@ -232,7 +210,7 @@ function strip_request_item_nl($name, $default_value = null)
     if ($request->has($name)) {
         // Only allow letters, symbols, punctuation, separators, numbers and newlines without html tags
         return preg_replace(
-            "/([^\p{L}\p{S}\p{P}\p{Z}\p{N}+\n]+)/ui",
+            "/([^\p{L}\p{S}\p{P}\p{Z}\p{N}+\n]{1,})/ui",
             '',
             strip_tags($request->input($name))
         );
@@ -249,7 +227,7 @@ function strip_request_item_nl($name, $default_value = null)
 function strip_item($item)
 {
     // Only allow letters, symbols, punctuation, separators and numbers without html tags
-    return preg_replace('/([^\p{L}\p{S}\p{P}\p{Z}\p{N}+]+)/ui', '', strip_tags($item));
+    return preg_replace("/([^\p{L}\p{S}\p{P}\p{Z}\p{N}+]{1,})/ui", '', strip_tags($item));
 }
 
 /**
@@ -261,10 +239,10 @@ function strip_item($item)
 function check_email($email)
 {
     // Convert the domain part from idn to ascii
-    if (substr_count($email, '@') == 1) {
+    if(substr_count($email, '@') == 1) {
         list($name, $domain) = explode('@', $email);
         $domain = idn_to_ascii($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
         $email = $name . '@' . $domain;
     }
-    return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
+    return (bool)filter_var($email, FILTER_VALIDATE_EMAIL);
 }

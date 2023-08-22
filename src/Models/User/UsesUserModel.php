@@ -1,25 +1,26 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Models\User;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
- * @property int       $user_id
+ * @property int                    $user_id
  *
- * @property-read User $user
+ * @property-read QueryBuilder|User $user
  *
- * @method static Builder|static[] whereUserId($value)
+ * @method static QueryBuilder|static[] whereUserId($value)
  */
 trait UsesUserModel
 {
     // protected $fillable = ['user_id'];
     // protected $casts = ['user_id' => 'integer];
 
-    public function user(): BelongsTo
+    /**
+     * @return BelongsTo
+     */
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

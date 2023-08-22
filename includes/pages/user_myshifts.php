@@ -1,6 +1,6 @@
 <?php
 
-use Engelsystem\Models\Shifts\ShiftEntry;
+use Engelsystem\Database\Db;
 use Engelsystem\Models\User\User;
 
 /**
@@ -24,7 +24,7 @@ function user_myshifts()
     if (
         $request->has('id')
         && auth()->can('user_shifts_admin')
-        && preg_match('/^\d+$/', $request->input('id'))
+        && preg_match('/^\d{1,}$/', $request->input('id'))
         && User::find($request->input('id'))
     ) {
         $shift_entry_id = $request->input('id');
@@ -41,53 +41,72 @@ function user_myshifts()
         }
         return page_with_title(__('Reset API key'), [
             error(
-                __('If you reset the key, the url to your iCal- and JSON-export and your atom/rss feed changes! You have to update it in every application using one of these exports.'),
+                __('If you reset the key, the url to your iCal- and JSON-export and your atom feed changes! You have to update it in every application using one of these exports.'),
                 true
             ),
-            button(page_link_to('user_myshifts', ['reset' => 'ack']), __('Continue'), 'btn-danger'),
+            button(page_link_to('user_myshifts', ['reset' => 'ack']), __('Continue'), 'btn-danger')
         ]);
     } elseif ($request->has('edit') && preg_match('/^\d+$/', $request->input('edit'))) {
         $shift_entry_id = $request->input('edit');
-        /** @var ShiftEntry $shiftEntry */
-        $shiftEntry = ShiftEntry::where('id', $shift_entry_id)
-            ->where('user_id', $shifts_user->id)
-            ->with(['shift', 'shift.shiftType', 'shift.room', 'user'])
-            ->first();
-        if (!empty($shiftEntry)) {
-            $shift = $shiftEntry->shift;
-            $freeloaded = $shiftEntry->freeloaded;
-            $freeloaded_comment = $shiftEntry->freeloaded_comment;
+        $shift = DB::selectOne('
+                SELECT
+                    `ShiftEntry`.`freeloaded`,
+                    `ShiftEntry`.`freeload_comment`,
+                    `ShiftEntry`.`Comment`,
+                    `ShiftEntry`.`UID`,
+                    `ShiftTypes`.`name`,
+                    `Shifts`.*,
+                    `rooms`.`name` as room_name,
+                    `AngelTypes`.`name` AS `angel_type`
+                FROM `ShiftEntry`
+                JOIN `AngelTypes` ON (`ShiftEntry`.`TID` = `AngelTypes`.`id`)
+                JOIN `Shifts` ON (`ShiftEntry`.`SID` = `Shifts`.`SID`)
+                JOIN `ShiftTypes` ON (`ShiftTypes`.`id` = `Shifts`.`shifttype_id`)
+                JOIN `rooms` ON (`Shifts`.`RID` = `rooms`.`id`)
+                WHERE `ShiftEntry`.`id`=?
+                AND `UID`=?
+                LIMIT 1
+            ',
+            [
+                $shift_entry_id,
+                $shifts_user->id,
+            ]
+        );
+        if (!empty($shift)) {
+            $freeloaded = $shift['freeloaded'];
+            $freeload_comment = $shift['freeload_comment'];
 
             if ($request->hasPostData('submit')) {
                 $valid = true;
                 if (auth()->can('user_shifts_admin')) {
                     $freeloaded = $request->has('freeloaded');
-                    $freeloaded_comment = strip_request_item_nl('freeloaded_comment');
-                    if ($freeloaded && $freeloaded_comment == '') {
+                    $freeload_comment = strip_request_item_nl('freeload_comment');
+                    if ($freeloaded && $freeload_comment == '') {
                         $valid = false;
                         error(__('Please enter a freeload comment!'));
                     }
                 }
 
-                $comment = $shiftEntry->user_comment;
-                $user_source = $shiftEntry->user;
+                $comment = $shift['Comment'];
+                $user_source = User::find($shift['UID']);
                 if (auth()->user()->id == $user_source->id) {
                     $comment = strip_request_item_nl('comment');
                 }
 
                 if ($valid) {
-                    $shiftEntry->user_comment = $comment;
-                    $shiftEntry->freeloaded = $freeloaded;
-                    $shiftEntry->freeloaded_comment = $freeloaded_comment;
-                    $shiftEntry->save();
+                    ShiftEntry_update([
+                        'id'               => $shift_entry_id,
+                        'Comment'          => $comment,
+                        'freeloaded'       => $freeloaded,
+                        'freeload_comment' => $freeload_comment
+                    ]);
 
                     engelsystem_log(
-                        'Updated ' . User_Nick_render($user_source, true) . '\'s shift '
-                        . $shift->title . ' / ' . $shift->shiftType->name
-                        . ' from ' . $shift->start->format('Y-m-d H:i')
-                        . ' to ' . $shift->end->format('Y-m-d H:i')
+                        'Updated ' . User_Nick_render($user_source, true) . '\'s shift ' . $shift['name']
+                        . ' from ' . date('Y-m-d H:i', $shift['start'])
+                        . ' to ' . date('Y-m-d H:i', $shift['end'])
                         . ' with comment ' . $comment
-                        . '. Freeloaded: ' . ($freeloaded ? 'YES Comment: ' . $freeloaded_comment : 'NO')
+                        . '. Freeloaded: ' . ($freeloaded ? 'YES Comment: ' . $freeload_comment : 'NO')
                     );
                     success(__('Shift saved.'));
                     throw_redirect(page_link_to('users', ['action' => 'view', 'user_id' => $shifts_user->id]));
@@ -96,13 +115,13 @@ function user_myshifts()
 
             return ShiftEntry_edit_view(
                 $shifts_user,
-                $shift->start->format(__('Y-m-d H:i')) . ', ' . shift_length($shift),
-                $shift->room->name,
-                $shift->shiftType->name,
-                $shiftEntry->angelType->name,
-                $shiftEntry->user_comment,
-                $shiftEntry->freeloaded,
-                $shiftEntry->freeloaded_comment,
+                date('Y-m-d H:i', $shift['start']) . ', ' . shift_length($shift),
+                $shift['room_name'],
+                $shift['name'],
+                $shift['angel_type'],
+                $shift['Comment'],
+                $shift['freeloaded'],
+                $shift['freeload_comment'],
                 auth()->can('user_shifts_admin')
             );
         } else {

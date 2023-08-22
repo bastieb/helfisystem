@@ -6,51 +6,28 @@
     <span class="bi bi-{{ icon }} {% if color %} text-{{ color }} {% endif %}"></span>
 {% endmacro %}
 
-{% macro iconBool(value) %}
-    <span class="text-{% if value %}success{% else %}danger{% endif %}">
-        {{ _self.icon(value ? 'check-lg' : 'x-lg') }}
-    </span>
+{% macro alert(message, type) %}
+    <div class="alert alert-{{ type|default('info') }}">{{ message }}</div>
 {% endmacro %}
 
-{% macro alert(message, type, raw) %}
-    <div class="alert alert-{{ type|default('info') }}" role="alert">
-        {%- if raw|default(false) -%}
-            {{ message|raw }}
-        {%- else -%}
-            {{ message }}
-        {%- endif -%}
-    </div>
-{% endmacro %}
-
-{% macro user(user, opt) %}
-    <a href="{{ opt.url|default(url('users', {'action': 'view', 'user_id': user.id})) }}"
+{% macro user(user) %}
+    <a href="{{ url('users', {'action': 'view', 'user_id': user.id}) }}"
             {%- if not user.state.arrived %} class="text-muted"{% endif -%}
     >
-        {{ _self.angel() }} {{ user.displayName }}
-        {%- if opt.pronoun|default(false) and config('enable_pronoun')
-            and user.personalData.pronoun %}
-            ({{ user.personalData.pronoun }})
-        {% endif -%}
+        {{ _self.angel() }} {{ user.name }}
     </a>
 {% endmacro %}
 
 {% macro button(label, url, type, size, title, icon_left, icon_right) %}
     <a href="{{ url }}" class="btn btn-{{ type|default('secondary') }}{% if size %} btn-{{ size }}{% endif %}"{% if title %} title="{{ title }}"{% endif %}>
-        {%- if icon_left %}{{ _self.icon(icon_left) }}{% endif %}
+        {%- if icon_left is defined %}{{ _self.icon(icon_left) }}{% endif %}
         {{ label }}
-        {%- if icon_right %}{{ _self.icon(icon_right) }}{% endif %}
+        {%- if icon_right is defined %}{{ _self.icon(icon_right) }}{% endif %}
     </a>
 {% endmacro %}
 
-{% macro info(text, raw) %}
-    <span class="help-block">
-        {{ _self.icon('info-circle') }}
-        {%- if raw|default(false) -%}
-            {{ text|raw }}
-        {%- else -%}
-            {{ text }}
-        {%- endif -%}
-    </span>
+{% macro info(text) %}
+    <span class="help-block">{{ _self.icon('info-circle') }}{{ text }}</span>
 {%- endmacro %}
 
 {% macro type_bg_class() -%}

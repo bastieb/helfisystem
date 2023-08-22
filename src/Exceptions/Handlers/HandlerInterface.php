@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Exceptions\Handlers;
 
 use Engelsystem\Http\Request;
@@ -9,7 +7,14 @@ use Throwable;
 
 interface HandlerInterface
 {
-    public function render(Request $request, Throwable $e): void;
+    /**
+     * @param Request   $request
+     * @param Throwable $e
+     */
+    public function render($request, Throwable $e);
 
-    public function report(Throwable $e): void;
+    /**
+     * @param Throwable $e
+     */
+    public function report(Throwable $e);
 }

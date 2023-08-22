@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Engelsystem\Controllers\Metrics;
 
 use Engelsystem\Config\Config;
@@ -15,17 +13,52 @@ use Psr\Log\LogLevel;
 
 class Controller extends BaseController
 {
+    /** @var Config */
+    protected $config;
+
+    /** @var MetricsEngine */
+    protected $engine;
+
+    /** @var Request */
+    protected $request;
+
+    /** @var Response */
+    protected $response;
+
+    /** @var Stats */
+    protected $stats;
+
+    /** @var Version */
+    protected $version;
+
+    /**
+     * @param Response      $response
+     * @param MetricsEngine $engine
+     * @param Config        $config
+     * @param Request       $request
+     * @param Stats         $stats
+     * @param Version       $version
+     */
     public function __construct(
-        protected Response $response,
-        protected MetricsEngine $engine,
-        protected Config $config,
-        protected Request $request,
-        protected Stats $stats,
-        protected Version $version
+        Response $response,
+        MetricsEngine $engine,
+        Config $config,
+        Request $request,
+        Stats $stats,
+        Version $version
     ) {
+        $this->config = $config;
+        $this->engine = $engine;
+        $this->request = $request;
+        $this->response = $response;
+        $this->stats = $stats;
+        $this->version = $version;
     }
 
-    public function metrics(): Response
+    /**
+     * @return Response
+     */
+    public function metrics()
     {
         $now = microtime(true);
         $this->checkAuth();
@@ -77,14 +110,11 @@ class Controller extends BaseController
             'licenses'             => [
                 'type' => 'gauge',
                 'help' => 'The total number of licenses',
-                ['labels' => ['type' => 'has_car'], 'value' => $this->stats->licenses('has_car')],
                 ['labels' => ['type' => 'forklift'], 'value' => $this->stats->licenses('forklift')],
                 ['labels' => ['type' => 'car'], 'value' => $this->stats->licenses('car')],
                 ['labels' => ['type' => '3.5t'], 'value' => $this->stats->licenses('3.5t')],
                 ['labels' => ['type' => '7.5t'], 'value' => $this->stats->licenses('7.5t')],
-                ['labels' => ['type' => '12t'], 'value' => $this->stats->licenses('12t')],
-                ['labels' => ['type' => 'ifsg_light'], 'value' => $this->stats->licenses('ifsg_light')],
-                ['labels' => ['type' => 'ifsg'], 'value' => $this->stats->licenses('ifsg')],
+                ['labels' => ['type' => '12.5t'], 'value' => $this->stats->licenses('12.5t')],
             ],
             'users_email'          => [
                 'type' => 'gauge',
@@ -128,7 +158,7 @@ class Controller extends BaseController
             'tshirts_issued'       => ['type' => 'counter', 'help' => 'Issued T-Shirts', $this->stats->tshirts()],
             'tshirt_sizes'         => [
                 'type' => 'gauge',
-                'help' => 'The sizes users have configured',
+                'help' => 'The sizes users have configured'
             ] + $userTshirtSizes,
             'locales'              => ['type' => 'gauge', 'help' => 'The locales users have configured'] + $userLocales,
             'themes'               => ['type' => 'gauge', 'help' => 'The themes users have configured'] + $userThemes,
@@ -189,7 +219,10 @@ class Controller extends BaseController
             ->withContent($this->engine->get('/metrics', $data));
     }
 
-    public function stats(): Response
+    /**
+     * @return Response
+     */
+    public function stats()
     {
         $this->checkAuth(true);
 
@@ -207,8 +240,10 @@ class Controller extends BaseController
 
     /**
      * Ensure that the if the request is authorized
+     *
+     * @param bool $isJson
      */
-    protected function checkAuth(bool $isJson = false): void
+    protected function checkAuth($isJson = false)
     {
         $apiKey = $this->config->get('api_key');
         if (empty($apiKey) || $this->request->get('api_key') == $apiKey) {
@@ -228,6 +263,12 @@ class Controller extends BaseController
 
     /**
      * Formats the stats collection as stats data
+     *
+     * @param Collection  $data
+     * @param string      $config
+     * @param string      $dataField
+     * @param string|null $label
+     * @return array
      */
     protected function formatStats(Collection $data, string $config, string $dataField, ?string $label = null): array
     {
