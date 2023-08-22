@@ -2,7 +2,7 @@
 [![coverage report](https://chaos.expert/engelsystem/engelsystem/badges/main/coverage.svg)](https://chaos.expert/engelsystem/engelsystem/commits/main)
 [![GPL](https://img.shields.io/github/license/engelsystem/engelsystem.svg?maxAge=2592000)](LICENSE)
 
-# Engelsystem
+# Heflisystem for Saunasplash
 Please visit [engelsystem.de](https://engelsystem.de) for a feature list.
 
 To report bugs use [engelsystem/issues](https://github.com/engelsystem/engelsystem/issues).
