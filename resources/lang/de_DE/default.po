@@ -2565,6 +2565,9 @@ msgstr "Gutschein"
 msgid "Freeloads"
 msgstr "Schwänzereien"
 
+msgid "Sum hours rostered"
+msgstr "Summe eingeplanter Stunden"
+
 #: includes/view/User_view.php:230 includes/view/User_view.php:734
 msgid "Active"
 msgstr "Aktiv"
