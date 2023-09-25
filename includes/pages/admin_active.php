@@ -315,7 +315,7 @@ function admin_active()
             'shift_count'  => __('Shifts'),
             'work_time'    => __('Length'),
             'active'       => __('Active?'),
-            'force_active' => __('Forced'),
+            'force_active' => __('Did not pay'),
             'tshirt'       => __('T-shirt?'),
             'actions'      => ''
         ], $matched_users),

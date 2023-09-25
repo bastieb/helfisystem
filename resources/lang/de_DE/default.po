@@ -1032,8 +1032,8 @@ msgid "Active?"
 msgstr "Aktiv?"
 
 #: includes/pages/admin_active.php:320 includes/view/User_view.php:231
-msgid "Forced"
-msgstr "Gezwungen"
+msgid "Did not pay"
+msgstr "Hat nicht bezahlt"
 
 #: includes/pages/admin_active.php:321
 msgid "T-shirt?"
@@ -1536,8 +1536,8 @@ msgid "No"
 msgstr "Nein"
 
 #: includes/pages/admin_user.php:95
-msgid "Force active"
-msgstr "Aktiv erzwingen"
+msgid "Did not pay"
+msgstr "Hat nicht bezahlt"
 
 #: includes/pages/admin_user.php:112
 msgid ""
@@ -2701,8 +2701,8 @@ msgid "Arrived at %s"
 msgstr "Angekommen am %s"
 
 #: includes/view/User_view.php:732
-msgid "Active (forced)"
-msgstr "Aktiv (gezwungen)"
+msgid "Active (did not pay)"
+msgstr "Aktiv (hat nicht bezahlt)"
 
 #: includes/view/User_view.php:743
 #, php-format
