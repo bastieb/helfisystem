@@ -90,9 +90,9 @@ function admin_user()
         $html .= '  <tr><td>Aktiv</td><td>' . "\n";
         $html .= html_options('eAktiv', $options, $user_source->state->active) . '</td></tr>' . "\n";
 
-        // Aktiv erzwingen
+        // Hat nicht bezahlt
         if (auth()->can('admin_active')) {
-            $html .= '  <tr><td>' . __('Force active') . '</td><td>' . "\n";
+            $html .= '  <tr><td>' . __('Did not pay') . '</td><td>' . "\n";
             $html .= html_options('force_active', $options, $user_source->state->force_active) . '</td></tr>' . "\n";
         }
 

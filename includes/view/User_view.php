@@ -256,7 +256,7 @@ function Users_view(
     $user_table_headers['got_voucher'] = Users_table_header_link('got_voucher', __('Voucher'), $order_by);
     $user_table_headers['sum_hours_rostered'] = Users_table_header_link('sum_hours_rostered', __('Sum hours rostered'), $order_by);
     $user_table_headers['active'] = Users_table_header_link('active', __('Active'), $order_by);
-    $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);
+    $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Did not pay'), $order_by);
     $user_table_headers['got_shirt'] = Users_table_header_link('got_shirt', __('T-Shirt'), $order_by);
     $user_table_headers['shirt_size'] = Users_table_header_link('shirt_size', __('Size'), $order_by);
     $user_table_headers['arrival_date'] = Users_table_header_link(
@@ -779,7 +779,7 @@ function User_view_state_admin($freeloader, $user_source)
             . '</span>';
 
         if ($user_source->state->force_active) {
-            $state[] = '<span class="text-success">' . __('Active (forced)') . '</span>';
+            $state[] = '<span class="text-success">' . __('Active (did not pay)') . '</span>';
         } elseif ($user_source->state->active) {
             $state[] = '<span class="text-success">' . __('Active') . '</span>';
         }
