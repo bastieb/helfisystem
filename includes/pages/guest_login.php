@@ -45,7 +45,7 @@ function guest_register()
     $mobile = '';
     $email = '';
     $pronoun = '';
-    $email_shiftinfo = false;
+    $email_shiftinfo = true;
     $email_by_human_allowed = false;
     $email_news = false;
     $email_goody = false;
