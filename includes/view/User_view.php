@@ -689,9 +689,9 @@ function User_view(
                 $admin_user_privilege ? User_oauth_render($user_source) : '',
             ]),
             ($its_me || $admin_user_privilege)
-                ? '<h2>' . __('Voucher code') . '</h2><p>'.($user_source->personalData->voucher_code === ''
+                ? '<h2>' . __('Voucher link') . '</h2><p>'.($user_source->personalData->voucher_code === ''
                     ? __('Please wait for your voucher code to become available')
-                    : $user_source->personalData->voucher_code).'</p>'
+                    : sprintf('<a href="https://tickets.saunasplash.de/mobilesaunakultur/splash24/redeem?voucher=%s" target="_blank">https://tickets.saunasplash.de/mobilesaunakultur/splash24/redeem?voucher=%s</a>', $user_source->personalData->voucher_code, $user_source->personalData->voucher_code)).'</p>'
                 : '',
             ($its_me || $admin_user_privilege) ? '<h2>' . __('Shifts') . '</h2>' : '',
             $myshifts_table,
