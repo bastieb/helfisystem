@@ -259,7 +259,7 @@ return [
     'enable_pronoun'          => (bool)env('ENABLE_PRONOUN', false),
 
     // Enables the planned arrival/leave date
-    'enable_planned_arrival'  => (bool)env('ENABLE_PLANNED_ARRIVAL', true),
+    'enable_planned_arrival'  => (bool)env('ENABLE_PLANNED_ARRIVAL', false),
 
     // Enables the T-Shirt configuration on signup and profile
     'enable_tshirt_size'      => (bool)env('ENABLE_TSHIRT_SIZE', true),
