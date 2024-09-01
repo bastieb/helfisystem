@@ -688,7 +688,11 @@ function User_view(
                 User_groups_render($user_groups),
                 $admin_user_privilege ? User_oauth_render($user_source) : '',
             ]),
-            ($its_me || $admin_user_privilege) ? '<h2>' . __('Voucher code') . '</h2><p>'.$user_source->personalData->voucher_code.'</p>' : '',
+            ($its_me || $admin_user_privilege)
+                ? '<h2>' . __('Voucher code') . '</h2><p>'.($user_source->personalData->voucher_code === ''
+                    ? __('Please wait for your voucher code to become available')
+                    : $user_source->personalData->voucher_code).'</p>'
+                : '',
             ($its_me || $admin_user_privilege) ? '<h2>' . __('Shifts') . '</h2>' : '',
             $myshifts_table,
             ($its_me && $nightShiftsConfig['enabled']) ? info(
