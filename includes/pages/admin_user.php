@@ -71,6 +71,7 @@ function admin_user()
                 __('Please select...')
             )
             . '</td></tr>' . "\n";
+        $html .= '  <tr><td>Gutschein Code</td><td>' . '<input size="40" name="voucher_code" value="' . $user_source->personalData->voucher_code . '" class="form-control" maxlength="40"></td></tr>' . "\n";
 
         $options = [
             '1' => __('Yes'),
@@ -276,6 +277,7 @@ function admin_user()
                     $user_source->personalData->last_name = $request->postData('eName');
                 }
                 $user_source->personalData->shirt_size = $request->postData('eSize');
+                $user_source->personalData->voucher_code = $request->postData('voucher_code');
                 $user_source->personalData->save();
                 $user_source->contact->mobile = $request->postData('eHandy');
                 $user_source->contact->dect = $request->postData('eDECT');

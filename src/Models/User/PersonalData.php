@@ -10,6 +10,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string|null $first_name
  * @property string|null $last_name
  * @property string|null $pronoun
+ * @property string $voucher_code
  * @property string|null $shirt_size
  * @property Carbon|null $planned_arrival_date
  * @property Carbon|null $planned_departure_date
