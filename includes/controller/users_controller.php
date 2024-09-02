@@ -282,6 +282,10 @@ function users_list_controller()
             'planned_arrival_date',
             'planned_departure_date',
             'last_login_at',
+            'sum_hours_rostered',
+            'voucher_code',
+            'all_shifts_completed',
+            'has_payday'
         ])) {
         $order_by = $request->input('OrderBy');
     }
@@ -299,8 +303,10 @@ function users_list_controller()
     }
 
     $users = $users->sortBy(function (User $user) use ($order_by) {
-        $userData = $user->toArray();
+        $userData = $user->personalData->toArray();
         $data = [];
+        $data['sum_hours_rostered'] = User_get_sum_hours_rostered($user);
+        $data['all_shifts_completed'] = User_has_all_shifts_completed($user);
         array_walk_recursive($userData, function ($value, $key) use (&$data) {
             $data[$key] = $value;
         });
