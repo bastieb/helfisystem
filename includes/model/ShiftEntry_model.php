@@ -106,13 +106,15 @@ function ShiftEntry_update($shift_entry)
             SET
                 `Comment` = ?,
                 `freeload_comment` = ?,
-                `freeloaded` = ?
+                `freeloaded` = ?,
+                `shift_completed` = ?
             WHERE `id` = ?
         ',
         [
             $shift_entry['Comment'],
             $shift_entry['freeload_comment'],
             (int)$shift_entry['freeloaded'],
+            (int)$shift_entry['shift_completed'],
             $shift_entry['id']
         ]
     );

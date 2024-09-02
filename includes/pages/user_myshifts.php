@@ -53,6 +53,7 @@ function user_myshifts()
                     `ShiftEntry`.`freeloaded`,
                     `ShiftEntry`.`freeload_comment`,
                     `ShiftEntry`.`Comment`,
+                    `ShiftEntry`.`shift_completed`,
                     `ShiftEntry`.`UID`,
                     `ShiftTypes`.`name`,
                     `Shifts`.*,
@@ -98,7 +99,8 @@ function user_myshifts()
                         'id'               => $shift_entry_id,
                         'Comment'          => $comment,
                         'freeloaded'       => $freeloaded,
-                        'freeload_comment' => $freeload_comment
+                        'freeload_comment' => $freeload_comment,
+                        'shift_completed'  => $request->has('shift_completed')
                     ]);
 
                     engelsystem_log(
@@ -122,6 +124,7 @@ function user_myshifts()
                 $shift['Comment'],
                 $shift['freeloaded'],
                 $shift['freeload_comment'],
+                $shift['shift_completed'],
                 auth()->can('user_shifts_admin')
             );
         } else {

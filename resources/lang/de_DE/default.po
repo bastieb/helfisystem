@@ -2307,6 +2307,9 @@ msgstr "Schicht Anmeldung"
 msgid "Freeloaded"
 msgstr "Geschwänzt"
 
+msgid "Shift completed"
+msgstr "Schicht abgeleistet"
+
 #: includes/view/ShiftEntry_view.php:185
 msgid "Freeload comment (Only for shift coordination):"
 msgstr "Schwänzer Kommentar (Nur für die Schicht-Koordination):"
