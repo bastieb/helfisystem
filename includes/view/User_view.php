@@ -423,6 +423,8 @@ function User_view_myshift($shift, $user_source, $its_me)
         }
     }
 
+    $myshift['shift_completed'] = $shift['shift_completed'] ? '&#9989;' : '&#10060;';
+
     $myshift['actions'] = [
         button(shift_link($shift), icon('eye') . __('view'), 'btn-sm')
     ];
@@ -494,6 +496,7 @@ function User_view_myshifts(
             'room'       => '',
             'shift_info' => '',
             'comment'    => '',
+            'shift_completed'=> '',
             'actions'    => ''
         ];
         if (config('enable_tshirt_size', false) && ($its_me || $tshirt_admin)) {
@@ -503,6 +506,7 @@ function User_view_myshifts(
                 'room'       => '',
                 'shift_info' => '',
                 'comment'    => '',
+                'shift_completed'=> '',
                 'actions'    => ''
             ];
         }
@@ -603,6 +607,7 @@ function User_view(
                 'room'       => __('Location'),
                 'shift_info' => __('Name &amp; workmates'),
                 'comment'    => __('Comment'),
+                'shift_completed'    => __('Shift completed'),
                 'actions'    => __('Action')
             ], $my_shifts);
         } elseif ($user_source->state->force_active) {

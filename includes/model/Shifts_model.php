@@ -617,6 +617,7 @@ function Shifts_by_user($userId, $include_freeload_comments = false)
             `ShiftEntry`.`UID`,
             `ShiftEntry`.`freeloaded`,
             `ShiftEntry`.`Comment`,
+            `ShiftEntry`.`shift_completed`,
             ' . ($include_freeload_comments ? '`ShiftEntry`.`freeload_comment`, ' : '') . '
             `Shifts`.*,
             @@session.time_zone AS timezone,
