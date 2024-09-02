@@ -306,3 +306,16 @@ function User_has_all_shifts_completed(User $user): bool
 
     return true;
 }
+
+function User_get_sum_hours_rostered(User $user): float
+{
+    $shifts = Shifts_by_user($user->id);
+    $sum_hours_rostered = 0;
+
+    foreach($shifts as $shift)
+    {
+        $sum_hours_rostered += round(($shift['end'] - $shift['start'])/60/60, 1);
+    }
+
+    return $sum_hours_rostered;
+}

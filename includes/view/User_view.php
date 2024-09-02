@@ -204,7 +204,8 @@ function Users_view(
     $force_active_count,
     $freeloads_count,
     $tshirts_count,
-    $voucher_count
+    $voucher_count,
+    float $sum_hours_rostered,
 ) {
     $usersList = [];
     foreach ($users as $user) {
@@ -215,6 +216,7 @@ function Users_view(
         $u['dect'] = sprintf('<a href="tel:%s">%1$s</a>', $user->contact->dect);
         $u['arrived'] = icon_bool($user->state->arrived);
         $u['got_voucher'] = $user->state->got_voucher;
+        $u['sum_hours_rostered'] = User_get_sum_hours_rostered($user);
         $u['all_shifts_completed'] = icon_bool(User_has_all_shifts_completed($user));
         $u['active'] = icon_bool($user->state->active);
         $u['force_active'] = icon_bool($user->state->force_active);
@@ -236,6 +238,7 @@ function Users_view(
         'got_voucher'  => $voucher_count,
         'active'       => $active_count,
         'force_active' => $force_active_count,
+        'sum_hours_rostered'    => $sum_hours_rostered,
         'got_shirt'    => $tshirts_count,
         'actions'      => '<strong>' . count($usersList) . '</strong>'
     ];
@@ -252,6 +255,7 @@ function Users_view(
     }
     $user_table_headers['arrived'] = Users_table_header_link('arrived', __('Arrived'), $order_by);
     $user_table_headers['got_voucher'] = Users_table_header_link('got_voucher', __('Voucher'), $order_by);
+    $user_table_headers['sum_hours_rostered'] = Users_table_header_link('sum_hours_rostered', __('Sum hours rostered'), $order_by);
     $user_table_headers['all_shifts_completed'] = Users_table_header_link('all_shifts_completed', __('All shifts completed'), $order_by);
     $user_table_headers['active'] = Users_table_header_link('active', __('Active'), $order_by);
     $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);

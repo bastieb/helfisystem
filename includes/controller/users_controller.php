@@ -290,8 +290,10 @@ function users_list_controller()
     $users = User::with(['contact', 'personalData', 'state'])
         ->orderBy('name')
         ->get();
+    $sum_hours_rostered = 0;
     foreach ($users as $user) {
         $user->setAttribute('freeloads', count(ShiftEntries_freeloaded_by_user($user->id)));
+        $sum_hours_rostered += User_get_sum_hours_rostered($user);
     }
 
     $users = $users->sortBy(function (User $user) use ($order_by) {
@@ -315,6 +317,7 @@ function users_list_controller()
             ShiftEntries_freeloaded_count(),
             State::whereGotShirt(true)->count(),
             State::query()->sum('got_voucher'),
+            $sum_hours_rostered
         )
     ];
 }
