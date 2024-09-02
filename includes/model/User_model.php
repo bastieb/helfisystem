@@ -291,15 +291,18 @@ function User_get_shifts_sum_query()
     );
 }
 
-function User_get_sum_hours_rostered(User $user): float
+function User_has_all_shifts_completed(User $user): bool
 {
     $shifts = Shifts_by_user($user->id);
-    $sum_hours_rostered = 0;
+
+    if(count($shifts) === 0) return false;
 
     foreach($shifts as $shift)
     {
-        $sum_hours_rostered += round(($shift['end'] - $shift['start'])/60/60, 1);
+        if($shift['shift_completed'] === false) {
+            return false;
+        }
     }
 
-    return $sum_hours_rostered;
+    return true;
 }
