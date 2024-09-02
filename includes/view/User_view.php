@@ -257,26 +257,10 @@ function Users_view(
     if (config('enable_dect')) {
         $user_table_headers['dect'] = Users_table_header_link('dect', __('DECT'), $order_by);
     }
-    $user_table_headers['arrived'] = Users_table_header_link('arrived', __('Arrived'), $order_by);
-    $user_table_headers['got_voucher'] = Users_table_header_link('got_voucher', __('Voucher'), $order_by);
     $user_table_headers['sum_hours_rostered'] = Users_table_header_link('sum_hours_rostered', __('Sum hours rostered'), $order_by);
+    $user_table_headers['voucher_code'] = Users_table_header_link('voucher_code', __('Voucher code'), $order_by);
     $user_table_headers['all_shifts_completed'] = Users_table_header_link('all_shifts_completed', __('All shifts completed'), $order_by);
     $user_table_headers['has_payday'] = Users_table_header_link('has_payday', __('Has been paid'), $order_by);
-    $user_table_headers['voucher_code'] = Users_table_header_link('voucher_code', __('Voucher code'), $order_by);
-    $user_table_headers['active'] = Users_table_header_link('active', __('Active'), $order_by);
-    $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);
-    $user_table_headers['got_shirt'] = Users_table_header_link('got_shirt', __('T-Shirt'), $order_by);
-    $user_table_headers['shirt_size'] = Users_table_header_link('shirt_size', __('Size'), $order_by);
-    $user_table_headers['arrival_date'] = Users_table_header_link(
-        'planned_arrival_date',
-        __('Planned arrival'),
-        $order_by
-    );
-    $user_table_headers['departure_date'] = Users_table_header_link(
-        'planned_departure_date',
-        __('Planned departure'),
-        $order_by
-    );
     $user_table_headers['last_login_at'] = Users_table_header_link('last_login_at', __('Last login'), $order_by);
     $user_table_headers['actions'] = '';
 
