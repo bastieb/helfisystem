@@ -299,7 +299,7 @@ function User_has_all_shifts_completed(User $user): bool
 
     foreach($shifts as $shift)
     {
-        if($shift['shift_completed'] === false) {
+        if($shift['shift_completed'] === 0) {
             return false;
         }
     }
