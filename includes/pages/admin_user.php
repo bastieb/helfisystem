@@ -79,7 +79,7 @@ function admin_user()
         ];
 
         if (auth()->can('admin_active')) {
-            $html .= '  <tr><td>' . __('Has been remimbursed') . '</td><td>' . "\n";
+            $html .= '  <tr><td>' . __('Has been paid') . '</td><td>' . "\n";
             $html .= html_options('has_payday', $options, $user_source->personalData->has_payday) . '</td></tr>' . "\n";
         }
 
