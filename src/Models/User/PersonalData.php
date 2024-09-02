@@ -11,6 +11,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string|null $last_name
  * @property string|null $pronoun
  * @property string $voucher_code
+ * @property bool $has_payday
  * @property string|null $shirt_size
  * @property Carbon|null $planned_arrival_date
  * @property Carbon|null $planned_departure_date
@@ -44,5 +45,6 @@ class PersonalData extends HasUserModel
         'shirt_size',
         'planned_arrival_date',
         'planned_departure_date',
+        'has_payday'
     ];
 }

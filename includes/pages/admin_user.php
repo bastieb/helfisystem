@@ -78,6 +78,11 @@ function admin_user()
             '0' => __('No')
         ];
 
+        if (auth()->can('admin_active')) {
+            $html .= '  <tr><td>' . __('Has been remimbursed') . '</td><td>' . "\n";
+            $html .= html_options('has_payday', $options, $user_source->personalData->has_payday) . '</td></tr>' . "\n";
+        }
+
         // Gekommen?
         $html .= '  <tr><td>Gekommen</td><td>' . "\n";
         if ($user_source->state->arrived) {
@@ -278,6 +283,7 @@ function admin_user()
                 }
                 $user_source->personalData->shirt_size = $request->postData('eSize');
                 $user_source->personalData->voucher_code = $request->postData('voucher_code');
+                $user_source->personalData->has_payday = $request->postData('has_payday');
                 $user_source->personalData->save();
                 $user_source->contact->mobile = $request->postData('eHandy');
                 $user_source->contact->dect = $request->postData('eDECT');

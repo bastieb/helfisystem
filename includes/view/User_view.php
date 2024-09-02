@@ -218,6 +218,8 @@ function Users_view(
         $u['got_voucher'] = $user->state->got_voucher;
         $u['sum_hours_rostered'] = User_get_sum_hours_rostered($user);
         $u['all_shifts_completed'] = icon_bool(User_has_all_shifts_completed($user));
+        $u['has_payday'] = icon_bool($user->personalData->has_payday);
+        $u['voucher_code'] = $user->personalData->voucher_code;
         $u['active'] = icon_bool($user->state->active);
         $u['force_active'] = icon_bool($user->state->force_active);
         $u['got_shirt'] = icon_bool($user->state->got_shirt);
@@ -257,6 +259,8 @@ function Users_view(
     $user_table_headers['got_voucher'] = Users_table_header_link('got_voucher', __('Voucher'), $order_by);
     $user_table_headers['sum_hours_rostered'] = Users_table_header_link('sum_hours_rostered', __('Sum hours rostered'), $order_by);
     $user_table_headers['all_shifts_completed'] = Users_table_header_link('all_shifts_completed', __('All shifts completed'), $order_by);
+    $user_table_headers['has_payday'] = Users_table_header_link('has_payday', __('Has been reimbursed'), $order_by);
+    $user_table_headers['voucher_code'] = Users_table_header_link('voucher_code', __('Voucher code'), $order_by);
     $user_table_headers['active'] = Users_table_header_link('active', __('Active'), $order_by);
     $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);
     $user_table_headers['got_shirt'] = Users_table_header_link('got_shirt', __('T-Shirt'), $order_by);
@@ -700,6 +704,7 @@ function User_view(
                     ? __('Please wait for your voucher code to become available')
                     : sprintf('<a href="https://tickets.saunasplash.de/mobilesaunakultur/splash24/redeem?voucher=%s" target="_blank">https://tickets.saunasplash.de/mobilesaunakultur/splash24/redeem?voucher=%s</a>', $user_source->personalData->voucher_code, $user_source->personalData->voucher_code)).'</p>'
                 : '',
+            ($its_me || $admin_user_privilege) ? '<h2>' . __('Has been reimbursed') . '</h2><p>'.$user_source->personalData->has_payday. '</p>'  : '',
             ($its_me || $admin_user_privilege) ? '<h2>' . __('Shifts') . '</h2>' : '',
             $myshifts_table,
             ($its_me && $nightShiftsConfig['enabled']) ? info(
