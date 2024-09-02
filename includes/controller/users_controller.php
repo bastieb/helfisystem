@@ -291,9 +291,11 @@ function users_list_controller()
         ->orderBy('name')
         ->get();
     $sum_hours_rostered = 0;
+    $pretix_voucher_count = 0;
     foreach ($users as $user) {
         $user->setAttribute('freeloads', count(ShiftEntries_freeloaded_by_user($user->id)));
         $sum_hours_rostered += User_get_sum_hours_rostered($user);
+        $pretix_voucher_count += $user->personalData->voucher_code === '' ? 0 : 1;
     }
 
     $users = $users->sortBy(function (User $user) use ($order_by) {
@@ -317,7 +319,8 @@ function users_list_controller()
             ShiftEntries_freeloaded_count(),
             State::whereGotShirt(true)->count(),
             State::query()->sum('got_voucher'),
-            $sum_hours_rostered
+            $sum_hours_rostered,
+            $pretix_voucher_count
         )
     ];
 }

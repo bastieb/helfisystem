@@ -206,6 +206,7 @@ function Users_view(
     $tshirts_count,
     $voucher_count,
     float $sum_hours_rostered,
+    int $pretix_voucher_count
 ) {
     $usersList = [];
     foreach ($users as $user) {
@@ -241,6 +242,7 @@ function Users_view(
         'active'       => $active_count,
         'force_active' => $force_active_count,
         'sum_hours_rostered'    => $sum_hours_rostered,
+        'voucher_code'    => $pretix_voucher_count,
         'got_shirt'    => $tshirts_count,
         'actions'      => '<strong>' . count($usersList) . '</strong>'
     ];
