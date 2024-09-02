@@ -222,7 +222,7 @@ return [
     'signup_requires_arrival' => (bool)env('SIGNUP_REQUIRES_ARRIVAL', false),
 
     // Whether newly-registered user should automatically be marked as arrived
-    'autoarrive'              => (bool)env('ANGEL_AUTOARRIVE', false),
+    'autoarrive'              => (bool)env('ANGEL_AUTOARRIVE', true),
 
     // Only allow shift signup this number of hours in advance
     // Setting this to 0 disables the feature
