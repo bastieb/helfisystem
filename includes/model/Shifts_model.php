@@ -632,6 +632,50 @@ function Shift_signout_allowed(Shift $shift, AngelType $angeltype, $signout_user
 }
 
 /**
+ * helfisystem: Summe der eingeplanten Stunden eines Users (alle Schichteintraege).
+ */
+function User_rostered_hours(User $user): float
+{
+    return (float) ShiftEntry::query()
+        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+        ->where('shift_entries.user_id', $user->id)
+        ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) AS h')
+        ->value('h');
+}
+
+/**
+ * helfisystem: Dauer einer Schicht in Stunden.
+ */
+function Shift_hours(Shift $shift): float
+{
+    return ($shift->end->getTimestamp() - $shift->start->getTimestamp()) / 3600;
+}
+
+/**
+ * helfisystem: Schwelle (Stunden), ab der Selbst-Austragen die Mindeststunden wahren muss.
+ */
+function Signout_threshold_hours(): float
+{
+    return (float) (config('helfi_signout_threshold_hours') ?? 8);
+}
+
+/**
+ * helfisystem: Wuerde ein Austragen aus dieser Schicht die Mindeststunden wahren?
+ * Wer die Schwelle schon erreicht hat, muss danach noch >= Schwelle behalten;
+ * wer noch drunter liegt, darf immer beantragen.
+ */
+function Signout_keeps_threshold(User $user, Shift $shift): bool
+{
+    $threshold = Signout_threshold_hours();
+    $total = User_rostered_hours($user);
+    if ($total < $threshold) {
+        return true;
+    }
+
+    return ($total - Shift_hours($shift)) >= $threshold;
+}
+
+/**
  * Check if an angel can sign up for given shift.
  *
  * @param User                    $signup_user

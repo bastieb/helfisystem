@@ -35,6 +35,7 @@ $includeFiles = [
     __DIR__ . '/../includes/controller/public_dashboard_controller.php',
     __DIR__ . '/../includes/controller/locations_controller.php',
     __DIR__ . '/../includes/controller/shift_entries_controller.php',
+    __DIR__ . '/../includes/controller/shift_change_requests_controller.php',
     __DIR__ . '/../includes/controller/shifts_controller.php',
     __DIR__ . '/../includes/controller/users_controller.php',
     __DIR__ . '/../includes/controller/user_angeltypes_controller.php',

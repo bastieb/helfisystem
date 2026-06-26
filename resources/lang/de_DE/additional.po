@@ -767,3 +767,51 @@ msgstr "Summe eingeplanter Stunden"
 
 msgid "All shifts completed"
 msgstr "Alle Schichten geleistet"
+
+msgid "shift_change.request_title"
+msgstr "Austragen beantragen"
+
+msgid "shift_change.request_intro"
+msgstr "Möchtest du dich aus deiner Schicht %s (%s bis %s) als %s austragen? Bitte gib eine kurze Begründung an – die Schicht-Koordination gibt den Antrag frei."
+
+msgid "shift_change.reason"
+msgstr "Begründung"
+
+msgid "shift_change.request_submit"
+msgstr "Austragen beantragen"
+
+msgid "shift_change.request_sent"
+msgstr "Dein Austrage-Antrag wurde an die Schicht-Koordination gesendet."
+
+msgid "shift_change.already_requested"
+msgstr "Für diese Schicht liegt bereits ein Antrag vor."
+
+msgid "shift_change.threshold_block"
+msgstr "Austragen nicht möglich: Du würdest dann unter %s Stunden fallen. Bitte wende dich an die Schicht-Koordination."
+
+msgid "shift_change.reason_required"
+msgstr "Bitte gib eine Begründung an."
+
+msgid "shift_change.admin_title"
+msgstr "Austrage-Anträge"
+
+msgid "shift_change.shift"
+msgstr "Schicht"
+
+msgid "shift_change.requested_at"
+msgstr "Beantragt am"
+
+msgid "shift_change.approve"
+msgstr "Freigeben"
+
+msgid "shift_change.reject"
+msgstr "Ablehnen"
+
+msgid "shift_change.approved"
+msgstr "Antrag freigegeben – Helfi wurde ausgetragen."
+
+msgid "shift_change.rejected"
+msgstr "Antrag abgelehnt."
+
+msgid "shift_change.none_pending"
+msgstr "Keine offenen Anträge."

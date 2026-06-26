@@ -2,6 +2,7 @@
 
 use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Shifts\Shift;
+use Engelsystem\Models\Shifts\ShiftChangeRequest;
 use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\Shifts\ShiftSignupStatus;
 use Engelsystem\Models\User\User;
@@ -328,30 +329,73 @@ function shift_entry_delete_controller()
     $shift = Shift($shiftEntry->shift);
     $angeltype = $shiftEntry->angelType;
     $signout_user = $shiftEntry->user;
-    if (!Shift_signout_allowed($shift, $angeltype, $signout_user->id)) {
+
+    // helfisystem: Admins/Supporter duerfen direkt aus-/umtragen (Override)
+    $admin_override = auth()->can('user_shifts_admin')
+        || $user->isAngelTypeSupporter($angeltype)
+        || auth()->can('admin_user_angeltypes');
+
+    if ($admin_override) {
+        if ($request->hasPostData('delete')) {
+            $shiftEntry->delete();
+            ShiftEntry_onDelete($shiftEntry);
+            success(__('Shift entry removed.'));
+            throw_redirect(shift_link($shift));
+        }
+
+        if ($user->id == $signout_user->id) {
+            return [ShiftEntry_delete_title(), ShiftEntry_delete_view($shift, $angeltype, $signout_user)];
+        }
+
+        return [ShiftEntry_delete_title(), ShiftEntry_delete_view_admin($shift, $angeltype, $signout_user)];
+    }
+
+    // helfisystem: normale Helfis nur fuer sich selbst und nur per Antrag
+    if ($user->id != $signout_user->id) {
         error(__(
             'You are not allowed to remove this shift entry. If necessary, ask your supporter or heaven to do so.'
         ));
         throw_redirect(user_link($signout_user->id));
     }
 
-    if ($request->hasPostData('delete')) {
-        $shiftEntry->delete();
-        ShiftEntry_onDelete($shiftEntry);
-        success(__('Shift entry removed.'));
-        throw_redirect(shift_link($shift));
+    // schon ein offener Antrag fuer diesen Eintrag?
+    $existing = ShiftChangeRequest::where('shift_entry_id', $shiftEntry->id)
+        ->where('status', ShiftChangeRequest::PENDING)
+        ->first();
+    if ($existing) {
+        info(__('shift_change.already_requested'));
+        throw_redirect(user_link($signout_user->id));
     }
 
-    if ($user->id == $signout_user->id) {
-        return [
-            ShiftEntry_delete_title(),
-            ShiftEntry_delete_view($shift, $angeltype, $signout_user),
-        ];
+    // 8h-Regel: wer die Schwelle erreicht hat, muss danach noch >= Schwelle behalten
+    if (!Signout_keeps_threshold($user, $shift)) {
+        error(__('shift_change.threshold_block', [number_format(Signout_threshold_hours(), 0)]));
+        throw_redirect(user_link($signout_user->id));
+    }
+
+    if ($request->hasPostData('request_signout')) {
+        $reason = strip_request_item_nl('reason');
+        if ($reason == '') {
+            error(__('shift_change.reason_required'));
+        } else {
+            ShiftChangeRequest::create([
+                'user_id'        => $user->id,
+                'shift_entry_id' => $shiftEntry->id,
+                'shift_id'       => $shift->id,
+                'reason'         => $reason,
+            ]);
+            engelsystem_log(
+                'Shift signout requested by ' . User_Nick_render($user, true)
+                . ' for shift ' . $shift->title . ' (' . $shift->start->format('Y-m-d H:i') . ')'
+            );
+            success(__('shift_change.request_sent'));
+            throw_redirect(user_link($signout_user->id));
+        }
     }
 
     return [
         ShiftEntry_delete_title(),
-        ShiftEntry_delete_view_admin($shift, $angeltype, $signout_user),
+        ShiftEntry_request_view($shift, $angeltype, $signout_user),
     ];
 }
 

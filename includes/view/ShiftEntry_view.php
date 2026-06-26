@@ -197,6 +197,29 @@ function ShiftEntry_create_title()
  * @param bool   $user_admin_shifts
  * @return string
  */
+/**
+ * helfisystem: Formular, mit dem ein Helfi das Austragen aus einer Schicht beantragt (mit Begruendung).
+ */
+function ShiftEntry_request_view(Shift $shift, AngelType $angeltype, User $signoff_user)
+{
+    return page_with_title(__('shift_change.request_title'), [
+        info(sprintf(
+            __('shift_change.request_intro'),
+            $shift->shiftType->name,
+            $shift->start->format(__('general.datetime')),
+            $shift->end->format(__('general.datetime')),
+            $angeltype->name
+        ), true),
+        form([
+            form_textarea('reason', __('shift_change.reason'), ''),
+            buttons([
+                button(user_link($signoff_user->id), icon('x-lg') . __('form.cancel')),
+                form_submit('request_signout', __('shift_change.request_submit'), 'btn-warning'),
+            ]),
+        ]),
+    ]);
+}
+
 function ShiftEntry_edit_view(
     $angel,
     $date,

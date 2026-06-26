@@ -54,6 +54,10 @@ class LegacyMiddleware implements MiddlewareInterface
         if ($page === 'admin_arrive') {
             $allowPage = $this->auth->can('users.arrive.list');
         }
+        // helfisystem: Austrage-/Umtrage-Antraege (Schicht-Koordination)
+        if ($page === 'shift_change_requests') {
+            $allowPage = $this->auth->can('user_shifts_admin');
+        }
 
         $title = $content = '';
         if (
@@ -94,6 +98,8 @@ class LegacyMiddleware implements MiddlewareInterface
                 return angeltypes_controller();
             case 'shift_entries':
                 return shift_entries_controller();
+            case 'shift_change_requests':
+                return shift_change_requests_controller();
             case 'shifts':
                 return shifts_controller();
             case 'users':
