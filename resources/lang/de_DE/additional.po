@@ -761,3 +761,9 @@ msgstr "Ist ausbezahlt"
 
 msgid "Shift completed"
 msgstr "Schicht geleistet"
+
+msgid "Sum hours rostered"
+msgstr "Summe eingeplanter Stunden"
+
+msgid "All shifts completed"
+msgstr "Alle Schichten geleistet"

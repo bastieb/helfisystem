@@ -266,6 +266,9 @@ function users_list_controller()
         'planned_departure_date' => 'users_personal_data.planned_departure_date',
         'last_login_at' => 'users.last_login_at',
         'freeloads' => 'freeloads',
+        'sum_hours_rostered' => 'sum_hours_rostered',
+        'all_shifts_completed' => 'all_shifts_completed',
+        'has_payday' => 'users_personal_data.has_payday',
     ];
 
     $order_by = 'name';
@@ -291,6 +294,20 @@ function users_list_controller()
                 ->whereColumn('shift_entries.user_id', 'users.id')
                 ->whereNotNull('shift_entries.freeloaded_by'),
             'freeloads'
+        )
+        // helfisystem: Summe eingeplanter Stunden
+        ->selectSub(
+            ShiftEntry::query()
+                ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+                ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0)')
+                ->whereColumn('shift_entries.user_id', 'users.id'),
+            'sum_hours_rostered'
+        )
+        // helfisystem: alle eingetragenen Schichten geleistet?
+        ->selectSub(
+            ShiftEntry::selectRaw('CASE WHEN COUNT(*) > 0 AND COUNT(*) = COALESCE(SUM(shift_completed), 0) THEN 1 ELSE 0 END')
+                ->whereColumn('shift_entries.user_id', 'users.id'),
+            'all_shifts_completed'
         )
         ->addSelect(['arrived' => fn(Builder $q) => $q->select($q->raw('users_state.arrival_date is not null'))])
         ->orderBy($columnMap[$order_by], $orderDirection)

@@ -119,6 +119,10 @@ EOT;
             $u['got_voucher'] = $voucher_field;
         }
         $u['freeloads'] = $user->getAttribute('freeloads');
+        // helfisystem: Stunden / alle geleistet / ausbezahlt
+        $u['sum_hours_rostered'] = number_format((float) $user->getAttribute('sum_hours_rostered'), 1);
+        $u['all_shifts_completed'] = icon_bool((bool) $user->getAttribute('all_shifts_completed'));
+        $u['has_payday'] = icon_bool((bool) $user->personalData->has_payday);
         $u['active'] = icon_bool($user->state->active);
         if (config('enable_force_active')) {
             $u['force_active'] = icon_bool($user->state->force_active);
@@ -180,6 +184,11 @@ EOT;
         $user_table_headers['got_voucher'] = Users_table_header_link('got_voucher', __('voucher.vouchers'), $order_by);
     }
     $user_table_headers['freeloads'] = Users_table_header_link('freeloads', __('Freeloads'), $order_by);
+    $user_table_headers['sum_hours_rostered'] =
+        Users_table_header_link('sum_hours_rostered', __('Sum hours rostered'), $order_by);
+    $user_table_headers['all_shifts_completed'] =
+        Users_table_header_link('all_shifts_completed', __('All shifts completed'), $order_by);
+    $user_table_headers['has_payday'] = Users_table_header_link('has_payday', __('Has been paid'), $order_by);
     $user_table_headers['active'] = Users_table_header_link('active', __('user.active'), $order_by);
     if (config('enable_force_active')) {
         $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);
