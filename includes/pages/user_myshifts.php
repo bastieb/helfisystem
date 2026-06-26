@@ -83,6 +83,10 @@ function user_myshifts()
                     $shiftEntry->user_comment = $comment;
                     $shiftEntry->freeloaded_by = $freeloaded_by;
                     $shiftEntry->freeloaded_comment = $freeloaded_comment;
+                    // helfisystem: Schicht geleistet (nur Schicht-Koordination/Supporter)
+                    if (auth()->can('user_shifts_admin') || $is_angeltype_supporter) {
+                        $shiftEntry->shift_completed = $request->has('shift_completed');
+                    }
                     $shiftEntry->save();
 
                     engelsystem_log(
@@ -112,6 +116,7 @@ function user_myshifts()
                 $shiftEntry->user_comment,
                 $shiftEntry->freeloaded_by,
                 $shiftEntry->freeloaded_comment,
+                $shiftEntry->shift_completed,
                 auth()->can('user_shifts_admin'),
                 $is_angeltype_supporter
             );

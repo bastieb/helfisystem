@@ -19,6 +19,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string         $user_comment
  * @property int|null       $freeloaded_by
  * @property string         $freeloaded_comment
+ * @property bool           $shift_completed
  *
  * @property-read Shift     $shift
  * @property-read AngelType $angelType
@@ -41,6 +42,7 @@ class ShiftEntry extends BaseModel
         'user_comment'       => '',
         'freeloaded_by'      => null,
         'freeloaded_comment' => '',
+        'shift_completed'    => false,
     ];
 
     /** @var array<string> */
@@ -51,6 +53,7 @@ class ShiftEntry extends BaseModel
         'user_comment',
         'freeloaded_by',
         'freeloaded_comment',
+        'shift_completed',
     ];
 
     /** @var array<string, string> */
@@ -59,6 +62,7 @@ class ShiftEntry extends BaseModel
         'angel_type_id' => 'integer',
         'user_id' => 'integer',
         'freeloaded_by' => 'integer',
+        'shift_completed' => 'boolean',
     ];
 
     /** @var array<string> Attributes which should not be serialized */

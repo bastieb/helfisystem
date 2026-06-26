@@ -206,14 +206,19 @@ function ShiftEntry_edit_view(
     $comment,
     $freeloaded_by,
     $freeloaded_comment,
+    $shift_completed = false,
     $user_admin_shifts = false,
     $angeltype_supporter = false
 ) {
     $freeload_form = [];
+    $shift_completed_form = [];
     $goodie = GoodieType::from(config('goodie_type'));
     $goodie_enabled = $goodie !== GoodieType::None;
 
     if ($user_admin_shifts || $angeltype_supporter) {
+        $shift_completed_form = [
+            form_checkbox('shift_completed', __('Shift completed'), $shift_completed),
+        ];
         if (!$goodie_enabled) {
             $freeload_info = __('freeload.freeloaded.info', [config('max_freeloadable_shifts')]);
         } else {
@@ -260,6 +265,7 @@ function ShiftEntry_edit_view(
                 form_info(__('Type:'), htmlspecialchars($type)),
                 $comment,
                 join('', $freeload_form),
+                join('', $shift_completed_form),
                 form_submit('submit', icon('save') . __('form.save')),
             ]),
         ]

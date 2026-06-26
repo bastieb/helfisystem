@@ -758,3 +758,6 @@ msgstr "Änderungen führen zum logout aller Benutzer!"
 
 msgid "Has been paid"
 msgstr "Ist ausbezahlt"
+
+msgid "Shift completed"
+msgstr "Schicht geleistet"
