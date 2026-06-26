@@ -267,9 +267,14 @@ function users_list_controller()
         'last_login_at' => 'users.last_login_at',
         'freeloads' => 'freeloads',
         'sum_hours_rostered' => 'sum_hours_rostered',
+        'sum_hours_completed' => 'sum_hours_completed',
         'all_shifts_completed' => 'all_shifts_completed',
         'has_payday' => 'users_personal_data.has_payday',
+        'reimbursement_pending' => 'reimbursement_pending',
     ];
+
+    // helfisystem: Stundenschwelle fuer "Erstattung ausstehend"
+    $reimbThreshold = (float) (config('helfi_reimbursement_min_hours') ?? 8);
 
     $order_by = 'name';
     if ($request->query->has('OrderBy') && array_key_exists($request->query->get('OrderBy'), $columnMap)) {
@@ -308,6 +313,23 @@ function users_list_controller()
             ShiftEntry::selectRaw('CASE WHEN COUNT(*) > 0 AND COUNT(*) = COALESCE(SUM(shift_completed), 0) THEN 1 ELSE 0 END')
                 ->whereColumn('shift_entries.user_id', 'users.id'),
             'all_shifts_completed'
+        )
+        // helfisystem: geleistete (abgeleistete) Stunden
+        ->selectSub(
+            ShiftEntry::query()
+                ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+                ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0)')
+                ->whereColumn('shift_entries.user_id', 'users.id')
+                ->where('shift_entries.shift_completed', 1),
+            'sum_hours_completed'
+        )
+        // helfisystem: Erstattung ausstehend? (geleistete Stunden >= Schwelle und noch nicht ausbezahlt)
+        ->selectRaw(
+            '(CASE WHEN (SELECT COALESCE(SUM(TIMESTAMPDIFF(SECOND, sh.start, sh.end)) / 3600, 0)'
+            . ' FROM shift_entries se JOIN shifts sh ON sh.id = se.shift_id'
+            . ' WHERE se.user_id = users.id AND se.shift_completed = 1) >= ?'
+            . ' AND COALESCE(users_personal_data.has_payday, 0) = 0 THEN 1 ELSE 0 END) AS reimbursement_pending',
+            [$reimbThreshold]
         )
         ->addSelect(['arrived' => fn(Builder $q) => $q->select($q->raw('users_state.arrival_date is not null'))])
         ->orderBy($columnMap[$order_by], $orderDirection)

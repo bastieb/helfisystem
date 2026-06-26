@@ -815,3 +815,9 @@ msgstr "Antrag abgelehnt."
 
 msgid "shift_change.none_pending"
 msgstr "Keine offenen Anträge."
+
+msgid "Sum hours completed"
+msgstr "Summe geleisteter Stunden"
+
+msgid "Reimbursement pending"
+msgstr "Erstattung ausstehend"
