@@ -1,0 +1,49 @@
+{
+  "name": "engelsystem",
+  "version": "1.1.0",
+  "main": "index.js",
+  "repository": "github:engelsystem/engelsystem",
+  "author": "https://github.com/engelsystem/engelsystem/contributors",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "NODE_ENV=production yarn build:webpack",
+    "build:webpack": "webpack",
+    "build:watch": "webpack --watch",
+    "lint": "yarn lint:biome && yarn lint:ec",
+    "lint:biome": "biome check",
+    "lint:ec": "ec",
+    "lint:fix": "biome check --write",
+    "lint:fix:unsafe": "yarn lint:fix --unsafe"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.2.3",
+    "bootstrap-icons": "^1.10.3",
+    "choices.js": "^10.2.0",
+    "core-js": "^3.27.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/preset-env": "^7.20.2",
+    "@biomejs/biome": "2.4.2",
+    "autoprefixer": "^10.4.13",
+    "babel-loader": "^9.1.2",
+    "css-loader": "^6.7.3",
+    "css-minimizer-webpack-plugin": "^4.2.2",
+    "editorconfig-checker": "^6.1.1",
+    "mini-css-extract-plugin": "^2.7.2",
+    "postcss": "^8.4.31",
+    "postcss-loader": "^7.0.2",
+    "resolve-url-loader": "^5.0.0",
+    "sass": "^1.58.0",
+    "sass-loader": "^13.2.0",
+    "style-loader": "^3.3.1",
+    "terser-webpack-plugin": "^5.3.6",
+    "webpack": "^5.105.2",
+    "webpack-cli": "^5.0.1",
+    "webpack-manifest-plugin": "^5.0.0"
+  },
+  "resolutions": {
+    "serialize-javascript": ">=7.0.3"
+  }
+}

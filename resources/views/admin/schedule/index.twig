@@ -1,0 +1,63 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ __('schedule.import.title') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {% block content_title %}{{ block('title') }}{% endblock %}
+
+            {% if is_index|default(false) %}
+                {{ m.add(url('/admin/schedule/edit')) }}
+            {% endif %}
+        </h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        <div class="row">
+            {% block row_content %}
+                <div class="col-md-12">
+                    <p>{{ __('schedule.import.text') }}</p>
+
+                    <div class="table-responsive table-responsive-sticky-header">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>{{ __('schedule.name') }}</th>
+                                <th>{{ __('schedule.url') }}</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            {% for schedule in schedules %}
+                                <tr>
+                                    <td>{{ schedule.name }}</td>
+                                    <td><a href="{{ schedule.url }}" target="_blank" rel="noopener">{{ schedule.url }}</a></td>
+                                    <td>
+                                        <form method="post" action="{{ url('/admin/schedule/edit/' ~ schedule.id) }}">
+                                            {{ csrf() }}
+                                            <div class="btn-group">
+                                                {{ m.button(m.icon('box-arrow-in-down'), url('/admin/schedule/load/' ~ schedule.id), {'size': 'sm', 'title': __('form.import')}) }}
+                                                {{ m.edit(url('/admin/schedule/edit/' ~ schedule.id)) }}
+                                                {{ f.delete(null, {
+                                                    'title': __('form.delete'),
+                                                    'confirm_button_text': __('form.delete'),
+                                                    'confirm_title': __('schedule.delete.title', [schedule.shifts_count]),
+                                                    'size': 'sm'
+                                                }) }}
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

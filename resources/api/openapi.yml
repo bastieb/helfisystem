@@ -1,0 +1,986 @@
+openapi: 3.0.3
+
+info:
+  version: 0.2.0-beta
+  title: Engelsystem
+  description: >
+    This API is as stable as a **beta** version might be.
+    It could burst into flames and morph into a monster at any second!
+    (But we try to keep it somewhat consistent, at least during events).
+  contact:
+    name: GitHub Issues
+    url: https://github.com/engelsystem/engelsystem/issues
+  license:
+    name: GPL 2.0
+    # identifier: GPL-2.0
+
+servers:
+  - url: /api/v0-beta
+    description: This server
+  - url: '{host}/api/v0-beta'
+    description: Engelsystem instance to use
+    variables:
+      host:
+        default: http://localhost:5080
+
+tags:
+  - name: api
+    description: API related
+  - name: angel type
+    description: Angel types
+  - name: event
+    description: Event information
+  - name: location
+    description: Event locations
+  - name: news
+    description: News and meeting announcements
+  - name: shift
+    description: Event shifts
+  - name: shift type
+    description: Shift types
+  - name: user
+    description: Users
+  - name: worklog
+    description: Worklogs
+
+security:
+  - bearer-auth: [ ]
+  - api-key-header: [ ]
+
+components:
+  securitySchemes:
+    bearer-auth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key from settings
+    api-key-header:
+      type: apiKey
+      name: x-api-key
+      in: header
+
+  responses:
+    UnauthorizedError: # 401
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ForbiddenError: # 403
+      description: The client is not allowed to access
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFoundError: # 404
+      description: This resource can not be found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotImplementedError: # 405
+      description: This endpoint or method is not implemented
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    AngelType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Angel
+        description:
+          type: string
+          example: Standard angel type, without further requirements
+        restricted:
+          type: boolean
+          example: false
+          description: True if the angel type requires an introduction
+        contact:
+          allOf:
+            - $ref: '#/components/schemas/ContactName'
+            - $ref: '#/components/schemas/ContactEmail'
+            - $ref: '#/components/schemas/ContactDect'
+        url:
+          type: string
+          example: https://example.com/angeltype/42
+          description: Link to the page of the given angel type.
+      required:
+        - id
+        - name
+        - description
+        - contact
+        - url
+    ContactDect:
+      type: object
+      properties:
+        dect:
+          type: string
+          nullable: true
+          example: 4242
+          description: The DECT number is a short internal number where users can be easily reached
+    ContactEmail:
+      type: object
+      properties:
+        email:
+          type: string
+          nullable: true
+          example: testteam@example.com
+    ContactMobile:
+      type: object
+      properties:
+        mobile:
+          type: string
+          nullable: true
+          example: +421234567890
+    ContactName:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: Testteam
+    UserAngelType:
+      allOf:
+        - type: object
+          properties:
+            angeltype:
+              $ref: '#/components/schemas/Reference'
+          required:
+            - angeltype
+        - $ref: '#/components/schemas/UserAngelTypeRelation'
+    AngelTypeUser:
+      allOf:
+        - type: object
+          properties:
+              user:
+                $ref: '#/components/schemas/Reference'
+          required:
+            - user
+        - $ref: '#/components/schemas/UserAngelTypeRelation'
+    UserAngelTypeRelation:
+        properties:
+          confirmed:
+            type: boolean
+            example: true
+            description: >
+              If the user is confirmed
+              (either by the angel type not requiring confirmation, being a supporter or being confirmed by one).
+          supporter:
+            type: boolean
+            example: false
+            description: If the user is a supporter of the angel type.
+        required:
+          - confirmed
+          - supporter
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: First helper introduction
+          description: Title of the news
+        text:
+          type: string
+          example: |
+            The first introduction meeting takes place at the **Foo Hall** at 13:37.
+            Please bring your own seating as it might take some time.
+          description: |
+            The complete news text with markdown formatting.
+            Might include a `[more]` tag to be used as a separator which must be removed from the text when shown.
+        is_meeting:
+          type: boolean
+          example: true
+          description: Whether or not the news announces a meeting
+        is_pinned:
+          type: boolean
+          example: false
+          description: True if the news is pinned to the top
+        is_highlighted:
+          type: boolean
+          example: false
+          description: True if the news should be highlightet and shown on the dashboard
+        created_at:
+          $ref: '#/components/schemas/DateTime'
+        updated_at:
+          $ref: '#/components/schemas/DateTimeOptional'
+        url:
+          type: string
+          example: https://example.com/news/42
+          description: Direct link to the news page
+      required:
+        - id
+        - name
+        - text
+        - is_meeting
+        - is_pinned
+        - is_highlighted
+        - created_at
+        - updated_at
+        - url
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Heaven
+        description:
+          type: string
+          example: Located behind room 42
+          description: Description of the room
+        map_url:
+          type: string
+          example: https://nav.example.com/embed/l/heaven/@1,203.21,193.15,4.71
+          description: Map URL of the location
+          nullable: true
+        contact:
+          $ref: '#/components/schemas/ContactDect'
+        url:
+          type: string
+          example: https://example.com/location/42
+          description: Link of the location page
+      required:
+        - id
+        - name
+        - description
+        - contact
+        - url
+    NeededAngelType:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftEntry'
+        angel_type:
+          $ref: '#/components/schemas/Reference'
+        needs:
+          type: integer
+          description: >
+            Number of users needed for the shift of the given angel type.
+            Will be greater than users count when not full, less when overbooked
+            or 0 when only additional users with given type have been added.
+          example: 3
+      required:
+        - entries
+        - angel_type
+        - needs
+    Shift:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Cleanup the venue
+          description: Title of the shift
+        description:
+          type: string
+          example: You clean up the venue after the event. Its fun, we promise!
+          description: >
+            Shift description, should be added to the shift type description but might be empty.
+            Normally contains additional information for a specific shift / task.
+        starts_at:
+          $ref: '#/components/schemas/DateTime'
+        ends_at:
+          $ref: '#/components/schemas/DateTime'
+        location:
+          $ref: '#/components/schemas/Reference'
+        shift_type:
+          $ref: '#/components/schemas/Reference'
+        schedule_guid:
+          type: string
+          format: uuid
+          nullable: true
+          description: schedule.xml event guid
+        created_at:
+          $ref: '#/components/schemas/DateTimeOptional'
+        updated_at:
+          $ref: '#/components/schemas/DateTimeOptional'
+        needed_angel_types:
+          type: array
+          description: Needed angel types and user entries, can be empty (for example on Schedule import of unused room)
+          items:
+            $ref: '#/components/schemas/NeededAngelType'
+        url:
+          type: string
+          example: https://example.com/shifts/42
+          description: Direct link to the shift
+      required:
+        - id
+        - name
+        - description
+        - starts_at
+        - ends_at
+        - location
+        - shift_type
+        - schedule_guid
+        - created_at
+        - updated_at
+        - needed_angel_types
+        - url
+    ShiftEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+          description: The shift entry ID
+        user:
+          $ref: '#/components/schemas/Reference'
+        freeloaded_by:
+          oneOf:
+            - $ref: '#/components/schemas/Reference'
+          nullable: true
+          description: >
+            Contains a reference to the user who has marked this shift entry as freeloaded, if
+            for a user not arriving to their shift
+      required:
+        - id
+        - user
+        - freeloaded_by
+    ShiftType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: Build-Up
+        description:
+          type: string
+          example: This is a generic build-up shift, mostly involving heavy lifting.
+      required:
+        - id
+        - name
+        - description
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: HelpfulUser
+        first_name:
+          type: string
+          nullable: true
+          example: Helpful
+        last_name:
+          type: string
+          nullable: true
+          example: User
+        pronoun:
+          type: string
+          nullable: true
+          example: They/Them
+          description: Should be displayed where possible to allow users to be addressed properly
+        contact:
+          allOf:
+            - $ref: '#/components/schemas/ContactDect'
+            - $ref: '#/components/schemas/ContactMobile'
+        url:
+          type: string
+          example: https://example.com/users/42
+          description: Links to the users profile page
+      required:
+        - id
+        - name
+        - first_name
+        - last_name
+        - pronoun
+        - contact
+        - url
+    UserDetail:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            email:
+              type: string
+              example: user@example.com
+            tshirt_size:
+              type: string
+              nullable: true
+              example: XL
+            dates:
+              type: object
+              properties:
+                planned_arrival:
+                  $ref: '#/components/schemas/DateTimeOptional'
+                planned_departure:
+                  $ref: '#/components/schemas/DateTimeOptional'
+                arrival:
+                  type: string
+                  nullable: true
+                  format: date-time
+                  description: Actual arrival date, DateTime in ISO-8601 format
+                  example: 2023-05-23T13:37:42.000000Z
+              required:
+                - planned_arrival
+                - planned_departure
+                - arrival
+            language:
+              type: string
+              example: en_US
+            arrived:
+              type: boolean
+              example: true
+      required:
+        - email
+        - tshirt_size
+        - dates
+        - language
+        - arrived
+    Worklog:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        description:
+          type: string
+          example: Main stage build-up
+        hours:
+          type: number
+          format: float
+          example: 4.23
+          description: Hours worked with up to two decimals precision
+        created_by:
+          $ref: '#/components/schemas/Reference'
+        worked_at:
+          $ref: '#/components/schemas/DateTime'
+        created_at:
+          $ref: '#/components/schemas/DateTimeOptional'
+        updated_at:
+          $ref: '#/components/schemas/DateTimeOptional'
+      required:
+        - id
+        - description
+        - hours
+        - created_by
+        - worked_at
+        - created_at
+        - updated_at
+
+    DateTime:
+      type: string
+      format: date-time
+      description: DateTime in ISO-8601 format
+      example: 2023-05-23T00:00:00.000000Z
+    DateTimeOptional:
+      type: string
+      format: date-time
+      description: DateTime in ISO-8601 format
+      example: 2023-05-23T00:00:00.000000Z
+      nullable: true
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    EventInfo:
+      type: object
+      properties:
+        api:
+          type: string
+          description: API version for easier version detection
+          example: 1.2.3
+        spec:
+          type: string
+          description: Link to OpenAPI specification
+          example: https://galactic-help.example/api/v1.2.3/openapi
+        name:
+          type: string
+          example: 42. Galactic Conglomeration Congress
+        app_name:
+          type: string
+          example: Engelsystem
+        url:
+          type: string
+          description: URL to be used when linking to the application
+          example: https://galactic-help.example
+        timezone:
+          type: string
+          example: Europe/Berlin
+          description: Timezone of the event
+        buildup:
+          type: object
+          properties:
+            start:
+              $ref: '#/components/schemas/DateTimeOptional'
+          required:
+            - start
+        event:
+          type: object
+          properties:
+            start:
+              $ref: '#/components/schemas/DateTimeOptional'
+            end:
+              $ref: '#/components/schemas/DateTimeOptional'
+          required:
+            - start
+            - end
+        teardown:
+          type: object
+          properties:
+            end:
+              $ref: '#/components/schemas/DateTimeOptional'
+          required:
+            - end
+      required:
+        - api
+        - spec
+        - name
+        - app_name
+        - url
+        - timezone
+        - buildup
+        - event
+        - teardown
+    Reference:
+      type: object
+      description: Reference to other resources
+      properties:
+        id:
+          type: integer
+          example: 42
+          description: The ID of the related resource
+        name:
+          type: string
+          nullable: true
+          example: Foo
+          description: A name of the related resource, should only be used for reference
+      required:
+        - id
+
+paths:
+  /angeltypes:
+    get:
+      tags:
+        - angel type
+      summary: Get a list of angel types
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AngelType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /angeltypes/{id}/shifts:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Angel type identifier
+        example: 42
+        schema:
+          type: integer
+    get:
+      tags:
+        - angel type
+        - shift
+      summary: Get all shifts of the requested angel type
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /angeltypes/{id}/users:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Angel type identifier
+        example: 42
+        schema:
+          type: integer
+    get:
+      tags:
+        - angel type
+        - user
+      summary: Get all users of the requested angel type
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AngelTypeUser'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /news:
+    get:
+      tags:
+        - news
+      summary: Get a list of all news
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/News'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /locations:
+    get:
+      tags:
+        - location
+      summary: Get a list of locations
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Location'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /locations/{id}/shifts:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Location identifier
+        example: 42
+        schema:
+          type: integer
+    get:
+      tags:
+        - location
+        - shift
+      summary: Get all shifts in the requested location
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /shifttypes:
+    get:
+      tags:
+        - shift type
+      summary: Get a list of shift types
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ShiftType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /shifttypes/{id}/shifts:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Shift type identifier
+        example: 42
+        schema:
+          type: integer
+    get:
+      tags:
+        - shift type
+        - shift
+      summary: Get all shifts of the requested shift type
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /users:
+    get:
+      tags:
+        - user
+      summary: Get a list of all users
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reference'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User identifier or `self`
+        example: 42
+        schema:
+          oneOf:
+            - type: string
+            - type: integer
+    get:
+      tags:
+        - user
+      summary: Get the requesting users information
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    anyOf:
+                      - $ref: '#/components/schemas/UserDetail'
+                      - $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /users/{id}/angeltypes:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User identifier or `self`
+        example: 42
+        schema:
+          oneOf:
+            - type: string
+            - type: integer
+    get:
+      tags:
+        - angel type
+        - user
+      summary: Get the users angel types
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAngelType'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /users/{id}/shifts:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User identifier or `self`
+        example: 42
+        schema:
+          oneOf:
+            - type: string
+            - type: integer
+    get:
+      tags:
+        - shift
+        - user
+      summary: Get all shifts of the requested user
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shift'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /users/{id}/worklogs:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User identifier or `self`
+        example: 42
+        schema:
+          oneOf:
+            - type: string
+            - type: integer
+    get:
+      tags:
+        - worklog
+        - user
+      summary: Get all worklogs of the requested user
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Worklog'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /info:
+    get:
+      tags:
+        - event
+      summary: Get event information
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/EventInfo'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /openapi:
+    get:
+      tags:
+        - api
+      summary: Get the OpenAPI definition
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json: {}
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'

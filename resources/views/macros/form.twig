@@ -1,0 +1,393 @@
+{% macro entry_required() %}
+    <span class="text-info" title="{{ __('form.required') }}">*</span>
+{%- endmacro %}
+
+{% macro info(text) %}
+    <span class="bi bi-info-circle-fill text-info" data-bs-toggle="tooltip" title="{{ text | e('html_attr') }}"></span>
+{%- endmacro %}
+
+{% macro warning(text) %}
+    <span class="bi bi-exclamation-triangle-fill text-warning" data-bs-toggle="tooltip" title="{{ text | e('html_attr') }}"></span>
+{%- endmacro %}
+
+{#
+Renders an input field wrapped in a DIV with mb-3.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - If not empty a "label" element with this text will be rendered.
+@param {string} [opt.type="text"] - Optional type of the input field. Defaults to "text".
+@param {bool} [opt.hide_label=false] - If true the label will be hidden. This could be useful for screenreders.
+                                        Defaults to false.
+@param {bool} [opt.required_icon=false] - Whether an asterisk should be displayed after the label
+                                            to indicate that this field is mandatory.
+                                            Won't be displayed without a label. Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+                            Won't be displayed without a label.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+@param {string} [opt.value=""] - Optional value to set. Defaults to empty string.
+@param {int} [opt.min_length] - Optional "minlength" attribute value.
+@param {int} [opt.max_length] - Optional "maxlength" attribute value.
+@param {int|float|string} [opt.min] - Optional "min" attribute value.
+@param {int|float|string} [opt.max] - Optional "max" attribute value.
+@param {int|float} [opt.step] - Optional "step" attribute value.
+@param {string} [opt.autocomplete] - Optional "autocomplete" attribute value.
+@param {bool} [opt.required=false] - Whether to add the "required" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {bool} [opt.readonly=false] - Whether to add the "readonly" attribute. Defaults to false.
+#}
+{% macro input(name, label, opt) %}
+    <div class="mb-3">
+        {% if label -%}
+            <label for="{{ name }}" class="form-label {% if opt.hide_label|default(false) %}visually-hidden{% endif %}">
+                {{ label }}
+                {% if opt.required_icon|default(false) %}
+                    {{ _self.entry_required() }}
+                {% endif %}
+                {% if opt.info is defined %}
+                    {{ _self.info(opt.info) }}
+                {% endif %}
+                {% if opt.warning is defined %}
+                    {{ _self.warning(opt.warning) }}
+                {% endif %}
+            </label>
+        {%- endif %}
+        <input
+            type="{{ opt.type|default('text') }}" class="form-control"
+            id="{{ name }}" name="{{ name }}"
+            value="{{ opt.value|default('') }}"
+            {%- if opt.min_length is defined %} minlength="{{ opt.min_length }}"{% endif %}
+            {%- if opt.max_length is defined %} maxlength="{{ opt.max_length }}"{% endif %}
+            {%- if opt.min is defined %} min="{{ opt.min }}"{% endif %}
+            {%- if opt.max is defined %} max="{{ opt.max }}"{% endif %}
+            {%- if opt.step is defined %} step="{{ opt.step }}"{% endif %}
+            {%- if opt.placeholder is defined %} placeholder="{{ opt.placeholder }}"{% endif %}
+            {%- if opt.autocomplete is defined %} autocomplete="{{ opt.autocomplete }}"{% endif %}
+            {%- if opt.required|default(false) %} required{% endif -%}
+            {%- if opt.disabled|default(false) %} disabled{% endif -%}
+            {%- if opt.readonly|default(false) %} readonly{% endif -%}
+        >
+    </div>
+{%- endmacro %}
+
+{#
+Renders a "number" type input field wrapped in a DIV with mb-3.
+Also adds buttons to increment / decrement the value.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - If not empty a "label" element with this text will be rendered.
+@param {bool} [opt.required_icon=false] - Whether an asterisk should be displayed after the label
+                                            to indicate that this field is mandatory.
+                                            Won't be displayed without a label. Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+                                Won't be displayed without a label.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+@param {string} [opt.value=""] - Optional value to set. Defaults to empty string.
+@param {int|float|string} [opt.min] - Optional "min" attribute value.
+@param {int|float|string} [opt.max] - Optional "max" attribute value.
+@param {int|float} [opt.step] - Optional "step" attribute value.
+@param {bool} [opt.required=false] - Whether to add the "required" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {bool} [opt.readonly=false] - Whether to add the "readonly" attribute. Defaults to false.
+#}
+{% macro number(name, label, opt) %}
+    <div class="mb-3">
+        {% if label -%}
+            <label class="form-label" for="{{ name }}">{{ label }}</label>
+            {% if opt.required_icon|default(false) %}
+                {{ _self.entry_required() }}
+            {% endif %}
+            {% if opt.info is defined %}
+                {{ _self.info(opt.info) }}
+            {% endif %}
+            {% if opt.warning is defined %}
+                {{ _self.warning(opt.warning) }}
+            {% endif %}
+        {%- endif %}
+
+        <div class="input-group">
+            <input
+                type="number" class="form-control"
+                id="{{ name }}" name="{{ name }}"
+                value="{{ opt.value|default('')|escape('html_attr') }}"
+                {%- if opt.min is defined %} min="{{ opt.min }}"{% endif %}
+                {%- if opt.max is defined %} max="{{ opt.max }}"{% endif %}
+                {%- if opt.step is defined %} step="{{ opt.step }}"{% endif %}
+                {%- if opt.required|default(false) %} required{% endif -%}
+                {%- if opt.disabled|default(false) %} disabled{% endif -%}
+                {%- if opt.readonly|default(false) %} readonly{% endif -%}
+            >
+
+            <button class="btn btn-secondary spinner-down" type="button" data-input-id="{{ name }}">
+                <span class="bi bi-dash-lg"></span>
+            </button>
+
+            <button class="btn btn-secondary spinner-up" type="button" data-input-id="{{ name }}">
+                <span class="bi bi-plus-lg"></span>
+            </button>
+        </div>
+    </div>
+{% endmacro %}
+
+{#
+Renders a "textarea" element wrapped in a DIV with mb-3.
+Also adds buttons to increment / decrement the value.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - If not empty a "label" element with this text will be rendered.
+@param {bool} [opt.required_icon=false] - Whether an asterisk should be displayed after the label
+                                            to indicate that this field is mandatory.
+                                            Won't be displayed without a label. Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+                                Won't be displayed without a label.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+@param {bool} [opt.required] - Whether to add the "required" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {int} [opt.rows=0] - Optional value of the "rows" attriute. Defaults to 0.
+@param {string} [opt.value=""] - Optional value to set. Defaults to empty string.
+@param {string} [opt.label_hidden=true] - Optionaly hide the label. Defaults to false.
+@param {string} [opt.no_div=false] - Optionaly don't add a div. Defaults to false.
+#}
+{% macro textarea(name, label, opt) %}
+    {% if not opt.no_div|default(false) -%}
+        <div class="mb-3">
+    {% endif -%}
+        {% if label -%}
+            <label class="form-label
+                    {%- if opt.label_hidden|default(false) %} visually-hidden{% endif -%}
+                " for="{{ name }}">
+                {{ label }}
+            </label>
+            {% if opt.required_icon|default(false) %}
+                {{ _self.entry_required() }}
+            {% endif %}
+            {% if opt.info is defined %}
+                {{ _self.info(opt.info) }}
+            {% endif %}
+            {% if opt.warning is defined %}
+                {{ _self.warning(opt.warning) }}
+            {% endif %}
+        {%- endif %}
+        <textarea class="form-control" id="{{ name }}" name="{{ name }}"
+            {%- if opt.required|default(false) %} required{%- endif -%}
+            {%- if opt.rows|default(0) %} rows="{{ opt.rows }}"{%- endif -%}
+            {%- if opt.disabled|default(false) %} disabled{% endif %}
+                >{{ opt.value|default('') }}</textarea>
+    {% if not opt.no_div|default(false) -%}
+        </div>
+    {%- endif %}
+{%- endmacro %}
+
+{#
+Renders a select element wrapped in a DIV with mb-3.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - If not empty a "label" element with this text will be rendered.
+@param {{value, description}} data - Select options. "value" will be the option value, "description" the label.
+@param {string} [opt.selected] - Optional value of an option to initially set as "selected".
+@param {bool} [opt.required_icon=false] - Whether an asterisk should be displayed after the label
+                                            to indicate that this field is mandatory.
+                                            Won't be displayed without a label. Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+                                Won't be displayed without a label.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+@param {string} [opt.class] - Optional additional CSS classes to be added to the actual "select" element.
+@param {bool} [opt.required=false] - Whether to add the "required" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {bool} [opt.default_option] - If set a default option with the param as label and an empty value will be added.
+#}
+{% macro select(name, label, data, opt) %}
+    <div class="mb-3">
+        {% if label -%}
+            <label class="form-label" for="{{ opt.id|default(name) }}">
+                {{ label }}
+                {% if opt.required_icon|default(false) %}
+                    {{ _self.entry_required() }}
+                {% endif %}
+                {% if opt.info is defined %}
+                    {{ _self.info(opt.info) }}
+                {% endif %}
+                {% if opt.warning is defined %}
+                    {{ _self.warning(opt.warning) }}
+                {% endif %}
+            </label>
+        {% endif %}
+        <select id="{{ opt.id|default(name) }}" name="{{ name }}{%- if opt.multiple|default(false) %}[]{%- endif -%}"
+            class="form-control {%- if opt.class is defined %} {{ opt.class }}{% endif %}"
+            {%- if opt.disabled|default(false) %} disabled{%- endif -%}
+            {%- if opt.required|default(false) %} required{%- endif -%}
+            {%- if opt.multiple|default(false) %} multiple{%- endif -%}
+        >
+            {%- if opt.default_option is defined and opt.default_option %}
+                <option value="">{{ opt.default_option }}</option>
+            {% endif %}
+            {% for value,decription in data -%}
+                {% if opt.translate|default(false) %}
+                    {% set decription = __(decription) %}
+                {% endif %}
+                <option value="{{ value }}"
+                    {% if opt.selected is defined and (value == opt.selected or (opt.selected is iterable and (value in opt.selected or value in opt.selected|keys))) %} selected{% endif %}
+                >
+                    {{ decription }}
+                </option>
+            {% endfor %}
+        </select>
+        {% if opt.form_text|default('') %}
+            <div class="form-text">
+                {% if opt.raw_form_text|default(false) %}
+                    {{ opt.form_text|raw }}
+                {% else %}
+                    {{ opt.form_text }}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{#
+Renders a Bootstrap checkbox element with mb-3.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - Checkbox label
+@param {string} [opt.value="1"] - Optional value to set. Defaults to "1".
+@param {bool} [opt.checked=false] - Whether to add the "checked" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {bool} [opt.raw_label=false] - Whether to use the raw label value (=do not escape). Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+@param {string} [opt.class="mb-3"] - CSS classes for the checkbox element. Defaults to "mb-3".
+#}
+{% macro checkbox(name, label, opt) %}
+    <div class="form-check {{ opt.class is defined ? opt.class : 'mb-3' }}">
+        <input class="form-check-input" type="checkbox" id="{{ name }}" name="{{ name }}"
+            value="{{ opt.value|default('1') }}"
+            {%- if opt.checked|default(false) %} checked{% endif %}
+            {%- if opt.disabled|default(false) %} disabled{% endif %}
+        >
+        <label class="form-check-label" for="{{ name }}">
+            {%- if opt.raw_label|default(false) -%}
+                {{ label|raw }}
+            {%- else -%}
+                {{ label }}
+            {%- endif -%}
+            {% if opt.info is defined %}
+                {{ _self.info(opt.info) }}
+            {% endif %}
+            {% if opt.warning is defined %}
+                {{ _self.warning(opt.warning) }}
+            {% endif %}
+        </label>
+    </div>
+{%- endmacro %}
+
+{#
+Renders a "hidden" type input field.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} value - Field value
+#}
+{% macro hidden(name, value) %}
+    <input type="hidden" id="{{ name }}" name="{{ name }}" value="{{ value|escape('html_attr') }}">
+{%- endmacro %}
+
+{#
+Renders a button.
+
+@param {string} label - Button label
+@param {string} [opt.btn_type="secondary"] - Bootstrap button type. Defaults to "secondary".
+@param {string} [opt.size] - Optional Bootstrap button size to apply, such as "sm", "lg".
+@param {string} [opt.type] - Optional value for the "type" attribute.
+@param {string} [opt.name] - Optional value for the "name" attribute.
+@param {string} [opt.title] - Optional value for the "title" attribute.
+@param {string} [opt.value] - Optional value for the "value" attribute.
+                                Defaults to "1" if only opt.name is provided.
+@param {string} [opt.icon_left] - Optional icon to be added before the button label.
+                                    Must be a Bootstrap icon class without prefix, such as "info" or "check".
+@param {string} [opt.icon_right] - Optional icon to be added after the button label.
+                                    Must be a Bootstrap icon class without prefix, such as "info" or "check".
+@param {string} [opt.confirm_title] - Optional value for the confirmation title.
+@param {string} [opt.confirm_text] - Optional value for the confirmation text.
+@param {string} [opt.confirm_button_text] - Optional value for the text on the button.
+@param {dictionary} [opt.attr] - Optional value for additional attributes like data fields.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+#}
+{% macro button(label, opt) %}
+    {%- set icon_left = opt.icon_left is defined ? '<span class="bi bi-' ~ opt.icon_left ~ '"></span>' : '' %}
+    {%- set icon_right = opt.icon_right is defined ? '<span class="bi bi-' ~ opt.icon_right ~ '"></span>' : '' %}
+    <button
+        class="btn btn-{{ opt.btn_type|default('secondary') }}
+        {%- if opt.size is defined %} btn-{{ opt.size }}{% endif %}
+        {%- if opt.class is defined %} {{ opt.class }}{% endif %}"
+        {%- if opt.type is defined %} type="{{ opt.type }}"{% endif %}
+        {%- if opt.name is defined %} name="{{ opt.name }}"{% endif %}
+        {%- if opt.title is defined %} title="{{ opt.title }}"{% endif %}
+        {%- if opt.disabled|default(false) %} disabled{% endif %}
+        {%- if opt.value is defined or opt.name is defined %} value="{{ opt.value|default('1') }}"{% endif -%}
+        {%- if opt.confirm_title is defined %} data-confirm_submit_title="{{ opt.confirm_title }}"{% endif -%}
+        {%- if opt.confirm_text is defined %} data-confirm_submit_text="{{ opt.confirm_text }}"{% endif -%}
+        {%- if opt.confirm_button_text is defined %}
+            data-confirm_button_text="{{ icon_left ~ ' ' ~ opt.confirm_button_text ~ ' ' ~ icon_right }}"
+        {%- endif -%}
+        {%- for key, value in opt.attr|default({}) %} {{ key }}="{{ value }}"{% endfor -%}
+    >
+        {{ icon_left|raw }}
+        {{ label }}
+        {{ icon_right|raw }}
+    </button>
+{%- endmacro %}
+
+{% macro submit(label, opt) %}
+    {{ _self.button(label|default(__('form.submit')), {'type': 'submit', 'btn_type': 'primary'}|merge(opt|default({}))) }}
+{%- endmacro %}
+
+{% macro save(label, opt) %}
+    {{ _self.submit(label|default(' '), {
+        'icon_left': 'save',
+        'title': __('form.save'),
+    }|merge(opt|default({}))) }}
+{%- endmacro %}
+
+{% macro delete(label, opt) %}
+    {{ _self.submit(label|default(' '), {
+        'icon_left': 'trash',
+        'title': __('form.delete'),
+        'name': 'delete',
+        'btn_type': 'danger',
+        'confirm_text': __('confirmation.delete')
+    }|merge(opt|default({}))) }}
+{%- endmacro %}
+
+{#
+Renders a "checkbox" element that will be styled as switch.
+
+@param {string} name - Will be used as value for "id" and "name" attributes.
+@param {string} label - Switch label
+@param {string} [opt.value="1"] - Optional value to set. Defaults to "1".
+@param {bool} [opt.checked=false] - Whether to add the "checked" attribute. Defaults to false.
+@param {bool} [opt.disabled=false] - Whether to add the "disabled" attribute. Defaults to false.
+@param {string} [opt.info] - If set an additional info icon will be added to the label with the text as tooltip.
+@param {string} [opt.warning] - If set an additional warning icon will be added to the label with the text as tooltip.
+#}
+{% macro switch(name, label, opt) %}
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="{{ name }}" name="{{ name }}"
+            value="{{ opt.value|default('1') }}"
+            {%- if opt.checked|default(false) %} checked{% endif %}
+            {%- if opt.disabled|default(false) %} disabled{% endif %}
+        >
+        <label class="form-check-label" for="{{ name }}">
+            {{ label }}
+
+            {% if opt.info is defined %}
+                {{ _self.info(opt.info) }}
+            {% endif %}
+            {% if opt.warning is defined %}
+                {{ _self.warning(opt.warning) }}
+            {% endif %}
+        </label>
+    </div>
+{%- endmacro %}
+
+{% macro formData(name, default) -%}
+    {{ session_pop('form-data-' ~ name|replace({'.': '_'}), default) }}
+{%- endmacro %}

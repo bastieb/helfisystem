@@ -1,0 +1,61 @@
+{% import 'macros/base.twig' as m %}
+
+<div class="col-md-12">
+    <hr/>
+    <div class="text-center footer mb-3">
+        {% block eventinfo %}
+            {% if config('name') %}
+                {% if config('event_start') and config('event_end') %}
+                    {{ __('footer.eventinfo.name_start_end', [
+                        config('name'),
+                        config('event_start').format(__('general.date')),
+                        config('event_end').format(__('general.date'))
+                    ]) }}
+                    {%- if day_of_event is not null -%}
+                        , {{ __('event.day', [day_of_event]) }}
+                    {% endif %}
+                {% elseif config('event_start') %}
+                    {{ __('footer.eventinfo.name_start', [
+                        config('name'),
+                        config('event_start').format(__('general.date'))
+                    ]) }}
+                    {%- if day_of_event is not null -%}
+                        , {{ __('event.day', [day_of_event]) }}
+                    {% endif %}
+                {% else %}
+                    {{ config('name') }}
+                {% endif %} <br>
+            {% elseif config('event_start') and config('event_end') %}
+                {{ __('footer.eventinfo.start_end', [
+                    config('event_start').format(__('general.date')),
+                    config('event_end').format(__('general.date'))
+                ]) }}
+                {%- if day_of_event is not null -%}
+                    , {{ __('event.day', [day_of_event]) }}
+                {% endif %} <br>
+            {% endif %}
+        {% endblock %}
+
+        {% for name,opt in config('footer_items') %}
+            {% set url = opt is iterable ? opt[0] : opt %}
+            {% set permission = opt is iterable ? opt[1] : null %}
+            {% if not permission or can(permission) %}
+                <a href="
+                {%- if url starts with '/' %}
+                    {{ url(url) }}
+                {%- else -%}
+                    {{ url }}
+                {%- endif %}"
+                {%- if not (url starts with '/') %}
+                    target="_blank" rel="noopener"
+                {%- endif %}>
+                    {% if '@' in url %}{{ m.icon('envelope') }}{% endif %}
+                    {{ __(name) -}}
+                </a> ·
+            {% endif %}
+        {% endfor %}
+        <a href="https://github.com/engelsystem/engelsystem/issues" target="_blank" rel="noopener">{{ __('footer.issues') }}</a>
+        · <a href="https://github.com/engelsystem/engelsystem/" target="_blank" rel="noopener">{{ __('footer.github') }}</a>
+        · <a href="{{ url('/credits') }}">{{ __('credits.title') }}</a>
+    </div>
+</div>

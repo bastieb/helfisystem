@@ -1,0 +1,81 @@
+{% extends 'admin/schedule/index.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ __('schedule.import.load.title') }}{% endblock %}
+
+{% block content_title %}
+    {{ m.back(url('/admin/schedule')) }}
+    {{ block('title') }}
+{% endblock %}
+
+{% block row_content %}
+    <form method="post" action="{{ url('/admin/schedule/import/' ~ schedule_id) }}">
+        {{ csrf() }}
+
+        <div class="col-lg-12">
+            <p>{{ __('schedule.import.load.info', [schedule.conference.title, schedule.version]) }}</p>
+
+            <h2>{{ __('schedule.import.locations.add') }}</h2>
+            {{ _self.locationsTable(locations.add) }}
+
+            <h2>{{ __('schedule.import.shifts.add') }}</h2>
+            {{ _self.shiftsTable(shifts.add) }}
+
+            <h2>{{ __('schedule.import.shifts.update') }}</h2>
+            {{ _self.shiftsTable(shifts.update) }}
+
+            <h2>{{ __('schedule.import.shifts.delete') }}</h2>
+            {{ _self.shiftsTable(shifts.delete) }}
+
+            {{ f.submit(__('form.import'), {'icon_left': 'box-arrow-in-down'}) }}
+        </div>
+    </form>
+{% endblock %}
+
+
+{% macro locationsTable(locations) %}
+    <div class="table-responsive table-responsive-sticky-header">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>{{ __('general.name') }}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for location in locations %}
+                <tr>
+                    <td>{{ location.name }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+
+{% macro shiftsTable(shifts) %}
+    <div class="table-responsive table-responsive-sticky-header">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>{{ __('schedule.import.shift.dates') }}</th>
+                <th>{{ __('schedule.import.shift.type') }}</th>
+                <th>{{ __('title.title') }}</th>
+                <th>{{ __('schedule.import.shift.location') }}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for shift in shifts %}
+                <tr>
+                    <td>{{ shift.date.format(__('general.datetime')) }} - {{ shift.endDate.format(__('H:i')) }}</td>
+                    <td>{{ shift.type }}</td>
+                    <td>{{ shift.title }}{% if shift.subtitle %}<br><small>{{ shift.subtitle }}</small>{% endif %}</td>
+                    <td>{{ shift.room.name }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}

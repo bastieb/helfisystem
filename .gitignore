@@ -1,0 +1,7 @@
+/vendor/
+/node_modules/
+/storage/
+/config/config.php
+/public/assets/
+/localhost/
+*.log

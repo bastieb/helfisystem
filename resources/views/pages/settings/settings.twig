@@ -1,0 +1,45 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+
+{% block title %}{{ __(title|default(__('settings.settings'))) }}{% endblock %}
+
+{% block content %}
+    <div class="container user-settings">
+        {% block container_title %}
+            <h1 id="settings-title">
+                {{ __('settings.settings') }}
+                <small class="text-muted">
+                    {{ block('title') }}
+                    {% if is_admin|default(false) %}
+                        ({{ admin_user.name }})
+                    {% endif %}
+                </small>
+            </h1>
+        {% endblock %}
+
+        <div class="row">
+            <div class="col-md-3 settings-menu">
+                <ul class="nav nav-pills flex-column mt-3 user-settings">
+                    {% for url,title in settings_menu %}
+                        {% if not title.permission|default(false) or can(title.permission) %}
+                            <li class="nav-item{% if title.hidden|default(false) and url != request.url() %} d-none{% endif %}">
+                                <a class="nav-link {% if url == request.url() %}active{% endif %}" href="{{ url }}">
+                                    {{ m.icon(title.icon ?? 'gear-fill') }}
+                                    {{ __(title.title ?? title) }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="col-md-9">
+                {% include 'layouts/parts/messages.twig' %}
+
+                {% block row_content %}
+                    {{ content|raw }}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

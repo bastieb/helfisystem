@@ -1,0 +1,106 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ news and news.id ? __('news.edit.edit') : __('news.edit.add') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {{ m.back(url('/news')) }}
+            {{ block('title') }}
+        </h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        {% if news and news.id %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p>
+                        {{ m.icon('clock') }} {{ news.updated_at.format(__('general.datetime')) }}
+
+                        {% if news.updated_at != news.created_at %}
+                            &emsp;{{ __('news.updated') }}
+                            <br>
+                            {{ m.icon('clock') }} {{ news.created_at.format(__('general.datetime')) }}
+                        {% endif %}
+
+                        &emsp;{{ m.user(news.user) }}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+
+        <form action="" enctype="multipart/form-data" method="post">
+            {{ csrf() }}
+
+            <div class="row">
+                <div class="col-md-6">
+                    {{ f.input(
+                        'title',
+                        __('news.edit.subject'),
+                        {
+                            'required': true,
+                            'value': news ? news.title : '',
+                            'max_length': 150,
+                        }
+                    ) }}
+                </div>
+                <div class="col-md-6">
+                    {{ f.checkbox('is_meeting', __('news.edit.is_meeting'), {
+                        'checked': is_meeting,
+                    }) }}
+                    {{ f.checkbox('is_pinned', __('news.edit.is_pinned'), {
+                        'checked': is_pinned,
+                    }) }}
+                    {% if can('news.highlight') %}
+                        {{ f.checkbox('is_highlighted', __('news.edit.is_highlighted'), {
+                            'checked': is_highlighted,
+                        }) }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    {{ f.textarea('text', __('news.edit.message'), {
+                        'required': true,
+                        'rows': 10,
+                        'value': news ? news.text : '',
+                    }) }}
+
+                    <p>{{ m.info(__('news.edit.hint')) }}</p>
+
+                    {{ f.submit(__('form.save'), {'icon_left': 'save'}) }}
+
+                    {{ f.submit(m.icon('eye'), {'name': 'preview', 'btn_type': 'info', 'title': __('form.preview')}) }}
+
+                    {% if news and news.id %}
+                        {{ f.delete(__('form.delete'), {'confirm_title': __('news.delete.title', [news.title[:40]|e])}) }}
+                    {% endif %}
+
+                    {{ f.checkbox('send_notification', __('form.send_notification', [notifications_count]), {'checked': send_notification, 'class': 'ms-2 form-check-inline'}) }}
+                </div>
+            </div>
+
+            {% if news %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <h2>{{ __('form.preview') }}</h2>
+
+                        <div class="card {% if news.is_highlighted %}bg-warning{% elseif news.is_meeting %}bg-info{% elseif theme.type =='light' %}bg-light{% else %}bg-secondary{% endif %} mb-4">
+                            <div class="card-header {% if news.is_meeting and theme.type == 'dark' %}text-white{% endif %}">
+                                {% if news.is_meeting %}{{ __('news.is_meeting') }}{% endif %}
+                                {{ news.title }}
+                            </div>
+                            <div class="card-body bg-body">
+                                {{ news.text|markdown }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+        </form>
+    </div>
+{% endblock %}

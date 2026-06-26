@@ -1,0 +1,15 @@
+{% extends "errors/default.twig" %}
+{% import 'macros/base.twig' as m %}
+
+{% block title %}{{ __('page.403.title') }}{% endblock %}
+
+{% block content_headline_text %}{{ __('page.403.headline') }}{% endblock %}
+
+{% block content_text %}
+    {% if is_guest() %}
+        {% do session_set('previous_page', request.url) %}
+
+        <p>{{ __('page.403.login') }}</p>
+        <p>{{ m.button(__('general.login'), url('/login')) }}</p>
+    {% endif %}
+{% endblock %}

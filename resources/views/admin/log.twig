@@ -1,0 +1,100 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ __('log.log') }}{% endblock %}
+
+{% block content %}
+    <div class="col-md-12">
+        <h1>{{ block('title') }} <small>({{ entries|length }})</small></h1>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <form method="post" action="{{ url('/admin/logs') }}" class="form-inline">
+                        {{ csrf() }}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ f.input('search', __('form.search'), {
+                                    'value': search,
+                                }) }}
+                            </div>
+
+                            {% if can('logs.all') %}
+                                <div class="col-md-4">
+                                    {{ f.select('search_user_id', __('general.user'), users, {
+                                        'default_option': __('form.user_select'),
+                                        'selected': search_user_id,
+                                    }) }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ f.select('level', __('log.level'), levels, {
+                                        'default_option': __('form.all'),
+                                        'selected': level,
+                                    }) }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {{ f.submit(__('form.search'), {'icon_left': 'search'}) }}
+                    </form>
+                </div>
+
+                {% if not can('logs.all') %}
+                    <div class="mb-3">
+                        {{ m.alert(__('log.only_own')) }}
+                    </div>
+                {% endif %}
+
+                <table class="table table-striped table-sticky-header">
+                    <thead>
+                        <tr>
+                            <th>{{ __('log.time') }}</th>
+                            <th>{{ __('log.level') }}</th>
+                            <th>{{ __('general.user') }}</th>
+                            <th>{{ __('log.message') }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                            {%- set type = 'default' %}
+                            {%- if entry.level in ['notice', 'info'] %}
+                                {%- set type = 'info' %}
+                            {%- endif %}
+                            {%- if entry.level in ['warning'] %}
+                                {%- set type = 'warning' %}
+                            {%- endif %}
+                            {%- if entry.level in ['error', 'emergency', 'alert', 'critical'] %}
+                                {%- set type = 'danger' %}
+                            {%- endif %}
+
+                            {%- set td_type = '' %}
+                            {%- if type in ['warning', 'danger'] %}
+                                {%- set td_type = type %}
+                            {%- endif %}
+
+                            <tr>
+                                <td class="table-{{ td_type }} text-nowrap">
+                                    <span id="message-{{ entry.id }}" class="ref-id"></span>
+                                    {{ entry.created_at.format(__('general.datetime')) }}
+                                </td>
+                                <td class="table-{{ td_type }} text-nowrap">
+                                    <span class="badge bg-{{ type }}">{{ entry.level|capitalize }}</span> <!-- //todo bs5 -->
+                                </td>
+                                <td class="text-nowrap">{% if entry.user %}{{ m.user(entry.user) }}{% endif %}</td>
+                                <td>{{ entry.message|nl2br }}</td>
+                                <td>
+                                    <small class="text-muted">
+                                        <a class="ref-link" href="#message-{{ entry.id }}">{{ m.icon('link') }}</a>
+                                    </small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

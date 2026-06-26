@@ -1,0 +1,15 @@
+{% block title %}{{ __('email.greeting', [username]) }}{% endblock %}
+
+{% block introduction %}{{ __('email.introduction', [config('app_name')]) }}{% endblock %}
+
+{% block message %}{{ message }}{% endblock %}
+
+{{ '-- ' }}
+{% block footer %}
+{{ config('name') }}
+{%- if day_of_event is not null -%}
+{% if config('name') %}, {% endif %}{{ __('event.day', [day_of_event]) }}
+{%- endif %}
+
+{{ __('email.footer', [config('app_name')]) }}
+{% endblock %}

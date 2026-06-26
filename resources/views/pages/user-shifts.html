@@ -1,0 +1,109 @@
+<form class="form-inline" action="">
+    <input type="hidden" name="p" value="user_shifts">
+    <input type="hidden" name="tag" value="%tag_id%">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>%title% %add_link%</h1>
+            <div class="row align-items-center">
+                <div class="col-12 col-xxl-auto row pe-xxl-0">
+                    <div class="col-auto pe-xxl-0">%start_select%</div>
+                    <div class="col-auto">
+                        <div class="input-group time">
+                            <input
+                                type="time"
+                                class="form-control"
+                                id="start_time"
+                                name="start_time"
+                                size="5"
+                                pattern="^\d{1,2}:\d{2}$"
+                                placeholder="HH:MM"
+                                maxlength="5"
+                                value="%start_time%"
+                            >
+                            <button class="btn btn-secondary" title="Now" type="button">
+                                <span class="bi bi-arrow-counterclockwise"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xxl-auto text-center px-2">&#8211;</div>
+                <div class="col-12 col-xxl-auto row px-xxl-0">
+                    <div class="col-auto pe-xxl-0">%end_select%</div>
+                    <div class="col-auto">
+                        <div class="input-group time">
+                            <input
+                                type="time"
+                                class="form-control"
+                                id="end_time"
+                                name="end_time"
+                                size="5"
+                                pattern="^\d{1,2}:\d{2}$"
+                                placeholder="HH:MM"
+                                maxlength="5"
+                                value="%end_time%"
+                            >
+                            <button class="btn btn-secondary" title="Now" type="button">
+                                <span class="bi bi-arrow-counterclockwise"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group d-print-none mt-2">
+                <div class="btn-group mb-1" role="group">
+                    <button type="button" class="btn btn-secondary set-date" data-days="-1">%set_yesterday%</button>
+                    <button type="button" class="btn btn-secondary set-date" data-days="0">%set_today%</button>
+                    <button type="button" class="btn btn-secondary set-date" data-days="1">%set_tomorrow%</button>
+                </div>
+                <div class="btn-group mb-1" role="group">
+                    <button type="button" class="btn btn-secondary set-time" data-hours="-8">%set_last_8h%</button>
+                    <button type="button" class="btn btn-secondary set-time" data-hours="-4">%set_last_4h%</button>
+                    <button type="button" class="btn btn-secondary set-time" data-hours="4">%set_next_4h%</button>
+                    <button type="button" class="btn btn-secondary set-time" data-hours="8">%set_next_8h%</button>
+                </div>
+                <div class="btn-group mb-1" role="group">%random%</div>
+                <div class="btn-group mb-1" role="group">%dashboard%</div>
+            </div>
+            <div class="row d-print-none">
+                <div class="col-md-12">
+                    <button class="btn btn-primary mt-3 mb-3 w-100" type="submit">%filter%</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <button
+                class="btn btn-info btn-sm mb-3 d-print-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseShiftsFilterSelect"
+                aria-expanded="true"
+                aria-controls="collapseShiftsFilterSelect"
+            >
+                %filter_toggle%
+            </button>
+
+            <button class="btn btn-secondary btn-sm mb-3 d-print-none" type="button" id="showMoreLess">
+                <i class="bi bi-chevron-bar-expand" title="%expand_toggle_title%"></i>
+            </button>
+
+            <div class="collapse show d-print-none" id="collapseShiftsFilterSelect">
+                <div class="row">
+                    <div class="col col-12 col-sm-4 col-md-12 col-lg-5 col-xl-4 col-xxl-4">%location_select%</div>
+                    <div class="col col-12 col-sm-5 col-md-12 col-lg-7 col-xl-5 col-xxl-4">%type_select%</div>
+                    <div class="col col-12 col-sm-3 col-md-12 col-lg-5 col-xl-3 col-xxl-4">%filled_select%</div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 d-print-none d-md-none">
+                        <button class="btn btn-primary mb-3 w-100" type="submit">%filter%</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-10 offset-md-1 mb-3 text-end">%tags%</div>
+</div>
+%msg% %shifts_table%
+<div class="d-print-none">%ical_text%</div>

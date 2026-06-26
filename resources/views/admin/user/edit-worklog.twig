@@ -1,0 +1,53 @@
+{% extends "layouts/app.twig" %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ is_edit ? __('worklog.edit') : __('worklog.add') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {{ m.back(url('/users', {action: 'view', user_id: userdata.id})) }}
+            {{ block('title') }}
+        </h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        <form method="post">
+            {{ csrf() }}
+            <div class="row g-2">
+                <div class="col-12">
+                    <div>
+                        <label class="form-label">{{ __('general.user') }}</label>
+                    </div>
+                    {{ m.user(userdata, {'pronoun': true}) }}
+                </div>
+                <div class="col-12">
+                    {{ f.input('work_date', __('worklog.date'), {
+                        'type': 'date',
+                        'value': work_date.format('Y-m-d'),
+                        'required': true,
+                    }) }}
+                    {{ f.input('work_hours', __('worklog.hours'), {
+                        'type': 'number',
+                        'value': work_hours,
+                        'required': true,
+                        'step': '0.01',
+                        'min': 0,
+                    }) }}
+                    {{ f.input('description', __('worklog.description'), {
+                        'value': description,
+                        'required': true,
+                        'max_length': 200,
+                    }) }}
+                    {% if attribute(config('night_shifts'), 'enabled') %}
+                        {{ f.checkbox('night_shift', __('worklog.night_shift'), {
+                            'checked': night_shift,
+                        }) }}
+                    {% endif %}
+                    {{ f.submit(__('form.save'), {'icon_left': 'save'}) }}
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

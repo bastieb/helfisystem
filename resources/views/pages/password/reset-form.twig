@@ -1,0 +1,25 @@
+{% extends "pages/password/reset.twig" %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block row_content %}
+    <div class="col-md-8">
+        <form action="" enctype="multipart/form-data" method="post">
+            {{ csrf() }}
+
+            {{ f.input('password', __('settings.password'), {
+                'type': 'password',
+                'min_length': min_length,
+                'required': true,
+                'info': __('password.minimal_length', [config('password_min_length')]),
+            }) }}
+            {{ f.input('password_confirmation', __('password.reset.confirm'), {
+                'type': 'password',
+                'min_length': min_length,
+                'required': true,
+            }) }}
+
+            {{ f.submit(__('form.save')) }}
+        </form>
+    </div>
+{% endblock %}

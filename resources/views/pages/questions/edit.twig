@@ -1,0 +1,87 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ question and question.id ? __('question.edit') : __('question.add') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {{ m.back(url('/questions')) }}
+            {{ block('title') }}
+        </h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        {% if question and question.id %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p>
+                        {{ m.icon('clock') }} {{ question.updated_at.format(__('general.datetime')) }}
+
+                        {% if question.updated_at != question.created_at %}
+                            &emsp;{{ __('form.updated') }}
+                            <br>
+                            {{ m.icon('clock') }} {{ question.created_at.format(__('general.datetime')) }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+
+        <form action="" enctype="multipart/form-data" method="post">
+            {{ csrf() }}
+
+            <div class="row">
+                <div class="col-md-12">
+                    {{ f.textarea('text', __('question.question'), {
+                        'required': true,
+                        'rows': 10,
+                        'value': question ? question.text : '',
+                    }) }}
+                </div>
+                <div class="col-md-12">
+                    {% if is_admin|default(false) %}
+                        {{ f.textarea('answer', __('question.answer'), {
+                            'required': true,
+                            'rows': 10, 'value': question ? question.answer : '',
+                        }) }}
+                    {% endif %}
+
+                    {{ f.submit(__('form.save'), {'icon_left': 'save'}) }}
+                    {% if is_admin|default(false) %}
+                        {{ f.submit(m.icon('eye'), {'name': 'preview', 'btn_type': 'info', 'title': __('form.preview')}) }}
+                        {% if question and question.id %}
+                            {{ f.delete(__('form.delete'), {'confirm_title': __('question.delete.title', [question.text[:40]|e])}) }}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if question %}
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h2>{{ __('form.preview') }}</h2>
+
+                        <div class="card {% if theme.type =='light' %}bg-light{% else %}bg-secondary{% endif %} mb-4">
+                            <div class="card-body bg-body">
+                                {{ question.text|nl2br }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if question.answer %}
+                        <div class="col-md-11 offset-md-1">
+                            <div class="card bg-info">
+                                <div class="card-body bg-body">
+                                    {{ question.answer|markdown }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        </form>
+    </div>
+{% endblock %}

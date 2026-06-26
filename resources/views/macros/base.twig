@@ -1,0 +1,97 @@
+{% macro angel() -%}
+    <span class="icon-icon_angel"></span>
+{%- endmacro %}
+
+{% macro icon(icon, color) %}
+    <span class="bi bi-{{ icon }} {% if color %} text-{{ color }} {% endif %}"></span>
+{% endmacro %}
+
+{% macro iconBool(value) %}
+    <span class="text-{% if value %}success{% else %}danger{% endif %}">
+        {{ _self.icon(value ? 'check-lg' : 'x-lg') }}
+    </span>
+{% endmacro %}
+
+{% macro alert(message, type, raw) %}
+    <div class="alert alert-{{ type|default('info') }}" role="alert">
+        {%- if raw|default(false) -%}
+            {{ message|raw }}
+        {%- else -%}
+            {{ message }}
+        {%- endif -%}
+    </div>
+{% endmacro %}
+
+{% macro user(user, opt) %}
+    <a href="{{ opt.url|default(url('/users', {'action': 'view', 'user_id': user.id})) }}"
+            {%- if not user.state.arrived %} class="text-muted"{% endif -%}
+    >
+        <span class="text-nowrap">{{ _self.angel() }} {{ user.displayName }}</span>
+        {%- if opt.pronoun|default(false) and config('enable_pronoun')
+            and user.personalData.pronoun %}
+            ({{ user.personalData.pronoun }})
+        {% endif -%}
+    </a>
+{% endmacro %}
+
+{% macro user_info(user, opt) %}
+    {% if user.state.user_info and can('admin_arrive') %}
+        <span
+        {% if can('user.info.hint') %}
+            data-bs-toggle="tooltip"
+            {% if can('user.info.view') %}
+                title="{{ user.state.user_info|escape('html_attr') }}"
+            {% endif %}
+        {% endif %}
+        >
+            {{ _self.icon('info-circle-fill', 'info') }}
+        </span>
+    {% endif %}
+{% endmacro %}
+
+{% macro button(label, url, opt) %}
+    <a href="{{ url }}" class="btn btn-{{ opt.type|default('secondary') }}
+        {%- if opt.size is defined %} btn-{{ opt.size }}{% endif %}
+        {%- if opt.class is defined %} {{ opt.class }}{% endif %}"
+        {%- if opt.title is defined %} title="{{ opt.title }}"{% endif -%}
+    >
+        {%- if opt.icon_left is defined %}{{ _self.icon(opt.icon_left) }}{% endif %}
+        {{ label }}
+        {%- if opt.icon_right is defined %}{{ _self.icon(opt.icon_right) }}{% endif %}
+    </a>
+{% endmacro %}
+
+{% macro view(url, opt) %}
+    {{ _self.button(_self.icon('eye'), url, {'type': 'info','size': 'sm', 'title': __('form.view')}|merge(opt|default({}))) }}
+{% endmacro %}
+
+{% macro edit(url, opt) %}
+    {{ _self.button(_self.icon('pencil'), url, {'size': 'sm', 'title': __('form.edit')}|merge(opt|default({}))) }}
+{% endmacro %}
+
+{% macro back(url, opt) %}
+    {{ _self.button(_self.icon('chevron-left'), url, {'size': 'sm', 'title': __('general.back')}|merge(opt|default({}))) }}
+{% endmacro %}
+
+{% macro add(url, opt) %}
+    {{ _self.button(_self.icon('plus-lg'), url, {'size': 'sm', 'title': __('general.add')}|merge(opt|default({}))) }}
+{% endmacro %}
+
+{% macro info(text, raw) %}
+    <span class="help-block">
+        {{ _self.icon('info-circle') }}
+        {%- if raw|default(false) -%}
+            {{ text|raw }}
+        {%- else -%}
+            {{ text }}
+        {%- endif -%}
+    </span>
+{%- endmacro %}
+
+{% macro type_bg_class() -%}
+    {% if theme.type == 'light' %}bg-white{% else %}bg-dark{% endif %}
+{%- endmacro %}
+
+{% macro type_text_class() -%}
+    {% if theme.type == 'light' %}text-dark{% else %}text-light{% endif %}
+{%- endmacro %}

@@ -1,0 +1,131 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}
+    {{ __('faq.faq') }}
+
+    {% if tag|default(null) %}
+        - {{ tag.name }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {% if tag|default(null) %}
+                {{ m.button(m.icon('chevron-left'), url('/faq'), null, 'sm', __('general.back')) }}
+            {% endif %}
+
+            {{ __('faq.faq') }}
+
+            {% if tag|default(null) %}
+                <small>- {{ tag.name }}</small>
+            {% endif %}
+
+            {%- if can('faq.edit') -%}
+                {{ m.add(url('/admin/faq')) }}
+            {%- endif %}
+        </h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        <div class="row">
+            {% block questions_text %}
+                {% if can('question.add') %}
+                    <p>{{ __('faq.questions_link', [url('/questions')]) | raw }}</p>
+                {% endif %}
+            {% endblock %}
+
+            {% block text %}
+                {% if text|default(null) %}
+                    <div class="col-md-12">
+                        {{ text|markdown }}
+                    </div>
+                {% endif %}
+            {% endblock %}
+
+            {% block tags %}
+                <div class="col-md-12 mb-4">
+                    {% if tags|default(null) %}
+                        {{ __('form.tags') }}:
+                    {% endif %}
+
+                    {% for tag in tags|default([]) %}
+                        <a href="{{ url('/faq/tag/' ~ tag.id) }}" class="badge bg-secondary">
+                            {{ tag.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endblock %}
+
+            {% block row %}
+                {% for item in items %}
+                    <div class="col-md-12 faq">
+                        <span id="faq-{{ item.id }}" class="ref-id"></span>
+                        <div class="card {{ m.type_bg_class() }} mb-4">
+                            <h4 class="card-header">
+                                {{ item.question }}
+                                <small class="text-muted">
+                                    <a class="ref-link" href="#faq-{{ item.id }}">{{ m.icon('link') }}</a>
+                                </small>
+                            </h4>
+
+                            <div class="card-body bg-body">
+                                {{ item.text|markdown }}
+                            </div>
+
+                            <div class="card-footer {{ m.type_bg_class() }} d-flex align-items-center">
+                                <div class="me-3">
+                                    {{ m.icon('clock') }} {{ item.updated_at.format(__('general.datetime')) }}
+                                </div>
+
+                                <div class="me-3">
+                                    {% for tag in item.tags %}
+                                        <a href="{{ url('/faq/tag/' ~ tag.id ~ '#faq-' ~ item.id) }}" class="badge bg-secondary">
+                                            {{ tag.name }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+
+                                {% if can('faq.edit') %}
+                                    <span class="ms-auto">
+                                        {{ m.edit(url('/admin/faq/' ~ item.id)) }}
+                                    </span>
+
+                                    <form class="ps-1"
+                                        action="{{ url('/admin/faq/' ~ item.id) }}"
+                                        enctype="multipart/form-data"
+                                        method="post">
+                                        {{ csrf() }}
+                                        {{ f.delete(null, {
+                                            'size': 'sm',
+                                            'confirm_title': __('faq.delete.title', [item.question[:40]|e]),
+                                            'confirm_button_text': __('form.delete'),
+                                        }) }}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endblock %}
+
+            {% block ask_question %}
+                {% if can('question.add') %}
+                    <form action="{{ url('/questions/new') }}" enctype="multipart/form-data" method="post">
+                        {{ csrf() }}
+                        <div class="col-md-12">
+                            <h4>{{ __('question.add') }}</h4>
+                            {{ f.textarea('text', __('question.question'), {
+                                'required': true,
+                                'rows': 5,
+                            }) }}
+                            {{ f.submit() }}
+                        </div>
+                    </form>
+                {% endif %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

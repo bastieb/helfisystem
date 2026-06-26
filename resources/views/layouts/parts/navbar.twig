@@ -1,0 +1,137 @@
+{% import 'macros/base.twig' as m %}
+
+{% macro toolbar_item(label, link, active_page, icon, title) %}
+    <li class="nav-item">
+        <a
+            class="nav-link{% if page() == active_page %} active{% endif %}"
+            {% if page() == active_page %}aria-current="page"{% endif %}
+            {% if title %}title="{{ title }}"{% endif %}
+            href="{{ link }}"
+        >
+            {% if icon %}{{ m.icon(icon) }}{% endif %}
+            {{ label|raw }}
+        </a>
+    </li>
+{% endmacro %}
+
+{% macro dropdown_item(label, link, active_page, icon) %}
+    <li>
+        <a class="dropdown-item{% if page() == active_page %} active{% endif %}"{% if page() == active_page %} aria-current="page"{% endif %} href="{{ link }}">
+            {{ icon }} {{ label }}
+        </a>
+    </li>
+{% endmacro %}
+
+
+{% if is_guest() %}
+    {% set navbar_expand_class = 'navbar-expand-md' %}
+{% else %}
+    {% set navbar_expand_class = 'navbar-expand-xxl' %}
+{% endif %}
+
+<nav class="navbar fixed-top {{ navbar_expand_class }} border-bottom {{ theme['navbar_classes'] }}">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url('/') }}">
+            {{ m.angel() }}
+            <strong class="visible-lg-inline">{{ config('app_name')|upper }}</strong>
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse navbar-nav-scroll" id="navbarSupportedContent">
+            <ul class="navbar-nav mb-2 mb-lg-0">
+                {% for name,opt in menu() %}
+                    {% set url = opt is iterable ? opt[0] : opt %}
+                    {% set permission = opt is iterable ? opt[1] : null %}
+                    {% set dropdown = opt is iterable ? opt[2] ?? false : null %}
+                    {% if not permission or can(permission) %}
+                        {% if dropdown %}
+                            <li class="nav-item dropdown">
+                                <a
+                                    class="nav-link dropdown-toggle" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false"
+                                >
+                                    {{ name }}
+                                </a>
+                                <ul class="dropdown-menu">
+                                    {% for name,opt in opt[0] %}
+                                        {% set url = opt is iterable ? opt[0] : opt %}
+                                        {% set url=url|replace({'%lang%': session_get('locale')|split('_')[0]}) %}
+                                        {{ _self.dropdown_item(__(name), url, url == request.url() or request.url() starts with url ~ '/') }}
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% else %}
+                            {% set url=url|replace({'%lang%': session_get('locale')|split('_')[0]}) %}
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link {% if url == request.url() or request.url() starts with url ~ '/' %}active{% endif %}"
+                                    href="{{ url|escape('html_attr') }}"
+                                >
+                                    {{ __(name) }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                {% if is_guest() %}
+                    {% include "layouts/parts/language_dropdown.twig" %}
+
+                    {% if can('register') and config('registration_enabled') and config('enable_password') %}
+                        {{ _self.toolbar_item(
+                            __('general.register'),
+                            config('external_registration_url') ?: url('/register'),
+                            'register',
+                            'plus'
+                        ) }}
+                    {% endif %}
+
+                    {% if can('login') %}
+                        {{ _self.toolbar_item(__('general.login'), url('/login'), 'login', 'box-arrow-in-right') }}
+                    {% endif %}
+                {% endif %}
+
+                {% if is_user() %}
+                    {{ _self.toolbar_item(menuUserShiftState(user), url('/shifts', {'action': 'next'}), '', 'clock', __('shift.next')) }}
+
+                    {% if can('user_messages') %}
+                        {{ _self.toolbar_item(
+                            '<span class="d-xxl-none">' ~ __('message.title') ~ '</span>'
+                            ~ (user_messages ? ' <span class="badge bg-danger">' ~ user_messages ~ '</span>' : ''),
+                            url('/messages'),
+                            'messages',
+                            'envelope'
+                        ) }}
+                    {% endif %}
+
+                    {{ menuUserHints() }}
+
+                    {% include "layouts/parts/language_dropdown.twig" %}
+                    <li class="nav-item dropdown dropdown-user-menu">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="text-nowrap">{{ m.angel() }} {{ user.displayName }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% if can('user_myshifts') %}
+                                {{ _self.dropdown_item(__('profile.my_shifts'), url('/users', {'action': 'view'}), 'users', m.icon('calendar-range')) }}
+                            {% endif %}
+
+                            {% if can('user_settings') %}
+                                {{ _self.dropdown_item(__('settings.settings'), url('/settings/profile'), 'settings/profile', m.icon('person-fill-gear')) }}
+                            {% endif %}
+
+                            {% if can('logout') %}
+                                {{ _self.dropdown_item(__('general.logout'), url('/logout'), 'logout', m.icon('box-arrow-left')) }}
+                            {% endif %}
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

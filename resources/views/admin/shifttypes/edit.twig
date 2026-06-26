@@ -1,0 +1,68 @@
+{% extends 'admin/shifttypes/index.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ shifttype ? __('shifttype.edit.title') : __('shifttype.create.title') }}{% endblock %}
+
+{% block row_content %}
+    <form method="post">
+        {{ csrf() }}
+        {{ f.hidden('id', shifttype ? shifttype.id : '') }}
+
+        <div class="row">
+            <div class="col-lg-6">
+                {{ f.input('name', __('general.name'), {
+                    'required': true,
+                    'required_icon': true,
+                    'value': f.formData('shifttype', shifttype ? shifttype.name : ''),
+                    'max_length': 255,
+                }) }}
+
+                {{ f.textarea('description', __('general.description'), {
+                    'value': f.formData('description', shifttype ? shifttype.description : ''),
+                    'rows': 5,
+                    'info': __('form.markdown')
+                }) }}
+
+                {{ f.number('signup_advance_hours', __('shifttype.edit.signup_advance_hours'), {
+                    'value': f.formData('signup_advance_hours', shifttype ? shifttype.signup_advance_hours : ''),
+                    'info': __('shifttype.edit.signup_advance_hours.info'),
+                    'step': 0.01,
+                    'min': 0,
+                }) }}
+            </div>
+
+            <div class="col-lg-6">
+                <h4>{{ __('shifttype.required_angels') }}</h4>
+                {% for types in angel_types.chunk(3) %}
+                    <div class="row">
+                        {% for angel_type in types %}
+                            {% set needed = shifttype
+                                ? shifttype.neededAngelTypes.where('angel_type_id', angel_type.id).first()
+                                : null %}
+                            {% set name = 'angel_type_' ~ angel_type.id %}
+                            <div class="col-md-4">
+                                {{ f.number(name, angel_type.name, {
+                                    'value': f.formData(name, needed ? needed.count : 0),
+                                    'min': 0,
+                                    'step': 1,
+                                }) }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="btn-group">
+                {{ f.submit(__('form.save'), {'icon_left': 'save'}) }}
+                {% if shifttype %}
+                    {{ f.delete(__('form.delete'),
+                        {'title' : '', 'confirm_title': __('shifttype.delete.title', [shifttype.name|e])}) }}
+                {% endif %}
+            </div>
+        </div>
+
+    </form>
+{% endblock %}

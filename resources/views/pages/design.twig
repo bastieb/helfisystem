@@ -1,0 +1,633 @@
+{% extends "layouts/app.twig" %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ __('design.title') }}{% endblock %}
+
+{% set colors=['success', 'info', 'warning', 'danger'] %}
+{% set types=[
+    'primary',
+    'secondary',
+    'success',
+    'danger',
+    'warning',
+    'info',
+    'light',
+    'dark'
+]
+%}
+{% set types_buttons=['link']|merge(types) %}
+{% set shortsum='Lorem ipsum dolor…' %}
+{% set lipsum='Lorem ipsum dolor sit amet, consectetur adipisici elit…' %}
+{% set linksum='Lorem ipsum! Dolor <a href="#" class="prevent-default">link</a> amet, consectetur adipisici elit!' %}
+
+{% block content %}
+    <div class="col-12">
+        <div class="container">
+        <h1 class="mb-4">
+            {{ block('title') }} <small class="text-muted">{{ themes[themeId]['name'] }}</small>
+        </h1>
+        <span id="elements" class="ref-id"></span>
+        <h2>Elements <small class="text-muted">small</small> <a href="#elements" class="ref-link">{{ m.icon('link') }}</a></h2>
+        <div class="row">
+            <div class="col-md-6 col-lg-2 mb-4">
+                <h3>Headings <small class="text-muted">small</small></h3>
+                <h4>H4 <small class="text-muted">small</small></h4>
+                <h5>H5 <small class="text-muted">small</small></h5>
+                <h6>H6 <small class="text-muted">small</small></h6>
+            </div>
+            <div class="col-md-6 mb-4">
+                <h3>Lists</h3>
+                <p>
+                    This page should be used when creating and testing new designs to find usability and/or design issues.
+                    {{ lipsum|replace({'…': '.'}) }}
+                </p>
+                <ul>
+                    <li>Unordered</li>
+                    <li>List</li>
+                    <li>Items</li>
+                </ul>
+                <ol>
+                    <li>Ordered</li>
+                    <li>List</li>
+                    <li>Items</li>
+                </ol>
+                <p>{{ linksum|raw }} {{ lipsum }}</p>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <h3>Themes</h3>
+                <ul>
+                    {% for id,theme in themes %}
+                        <li>
+                            <a href="{{ url('/design', {'theme': id}) }}"
+                                {%- if id == themeId %} class="text-info"{% endif %}>
+                                {{ theme['name'] }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <span id="tables" class="ref-id"></span>
+                <h3>Tables <a href="#tables" class="ref-link">{{ m.icon('link') }}</a></h3>
+                <table class="table table-striped table-sticky-header">
+                    <thead>
+                        <tr>
+                            <th>Header 1</th>
+                            <th>Header 2</th>
+                            <th>Header 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Table content</td>
+                            <td>{{ lipsum }}</td>
+                            <td><span class="text-success">{{ m.icon('check-lg') }}</span></td>
+                        </tr>
+                        <tr>
+                            <td>Another content</td>
+                            <td>Lorem ipsum</td>
+                            <td><span class="text-danger">{{ m.icon('x-lg') }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <h3>Navigation Tabs</h3>
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active prevent-default" href="#">Lorem</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link prevent-default" href="#">Ipsum</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link prevent-default" href="#">Dolor</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <h3>Navigation Pills</h3>
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active prevent-default" href="#">Some</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link prevent-default" href="#">Test</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link prevent-default" href="#">Menu</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6 col-md-12 mb-4">
+                <span id="texts" class="ref-id"></span>
+                <h3>Texts <a href="#texts" class="ref-link">{{ m.icon('link') }}</a></h3>
+                <p>
+                    {{ linksum|raw }}<br>
+                    {{ lipsum }} {{ lipsum|replace({'…': '.'}) }} {{ lipsum|replace({'…': '.'}) }} {{ lipsum }}
+                </p>
+
+                <div class="row mb-4">
+                    {% for color in types %}
+                        <div class="col-12 col-md-3">
+                            <p class="text-{{ color }}">{{ color|capitalize }}: {{ linksum|raw }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <span id="markdown" class="ref-id"></span>
+                <h4>Markdown <a href="#markdown" class="ref-link">{{ m.icon('link') }}</a></h4>
+                {{ 'In _texts_ you can use **Markdown**! (Can be [GitHub Flavoured](https://commonmark.thephpleague.com/2.x/extensions/github-flavored-markdown/) with [Attributes](https://commonmark.thephpleague.com/2.x/extensions/attributes/)).' | md }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6 col-md-12 mb-4">
+                <span id="badges" class="ref-id"></span>
+                <h3>Badges <a href="#badges" class="ref-link">{{ m.icon('link') }}</a></h3>
+                <p>
+                    {% for type in types %}
+                        <span class="badge bg-{{ type }}">{{ type|capitalize }}</span>
+                    {% endfor %}
+                </p>
+            </div>
+            <div class="col-6 col-md-12 mb-4">
+                <span id="buttons" class="ref-id"></span>
+                <h3>Buttons <a href="#buttons" class="ref-link">{{ m.icon('link') }}</a></h3>
+                <p>
+                    {% for type in types_buttons %}
+                        {{ f.button(type|capitalize, {'btn_type': type, 'name': 'button-' ~ type}) }}
+                    {% endfor %}
+                </p>
+            </div>
+        </div>
+            <div class="col-6 col-md-12 mb-4">
+            <span id="icons" class="ref-id"></span>
+            <h3>Icons <a href="#icons" class="ref-link">{{ m.icon('link') }}</a></h3>
+            <div class="row">
+                <div class="col-md-6 col-lg-4 mb-4">
+                    cancel: {{ m.icon('x-lg') }}<br>
+                    delete: {{ m.icon('trash', 'danger') }}<br>
+                    edit: {{ m.icon('pencil') }}<br>
+                    preview: {{ m.icon('eye','info') }}<br>
+                    reset: {{ m.icon('arrow-counterclockwise') }}<br>
+                    save: {{ m.icon('save', 'primary') }}<br>
+                    <br>
+                    {{ f.button('Cancel', {'icon_left': 'x-lg'}) }}<br class="mb-3">
+                    {{ f.delete('Delete') }}<br class="mb-3">
+                    {{ f.button('Edit', {'icon_left': 'pencil'}) }}<br class="mb-3">
+                    {{ f.button('Reset', {'icon_left': 'arrow-counterclockwise'}) }}<br class="mb-3">
+                    {{ f.submit('Save', {'icon_left': 'save'}) }}<br class="mb-3">
+                    {{ f.button('View', {'icon_left': 'eye', 'btn_type': 'info'}) }}
+                    <br><br>
+                    <code>f.entry_required()</code>: {{ f.entry_required() }}<br>
+                    <code>f.info(text)</code>: {{ f.info('Info text') }}<br>
+                    <code>f.warning()</code>: {{ f.warning('Warning text') }}<br>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    angel: {{ m.angel() }}<br>
+                    dashboard: {{ m.icon('speedometer2') }}<br>
+                    documentation: {{ m.icon('question-circle') }}<br>
+                    drivers license / ifsg: {{ m.icon('card-checklist') }}<br>
+                    form required: {{ f.entry_required() }}<br>
+                    heading add / add anything else: {{ m.icon('plus-lg') }}<br>
+                    heading back: {{ m.icon('chevron-left') }}<br>
+                    info: {{ m.icon('info-circle') }} / {{ m.icon('info-circle-fill', 'info') }}<br>
+                    info hidden: {{ m.icon('eye-slash') }}<br>
+                    warning: {{ m.icon('exclamation-triangle') }} / {{ m.icon('exclamation-triangle-fill', 'warning') }}<br>
+                    language: {{ m.icon('translate') }}<br>
+                    location: {{ m.icon('pin-map-fill') }}<br>
+                    random / shuffle: {{ m.icon('shuffle') }}<br>
+                    remove / subtract: {{ m.icon('dash-lg') }}<br>
+                    requires introduction: {{ m.icon('mortarboard-fill') }}<br>
+                    search: {{ m.icon('search') }}<br>
+                    settings: {{ m.icon('gear-fill') }}<br>
+                    sign off / leave: {{ m.icon('box-arrow-right') }}<br>
+                    sign up / import: {{ m.icon('box-arrow-in-right') }}<br>
+                    sign up allowed: {{ m.icon('pencil-square') }}<br>
+                    yes / no: {{ m.iconBool(true) }} / {{ m.iconBool(false) }}<br>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-4">
+                    angel types: {{ m.icon('person-lines-fill') }}<br>
+                    arrived: {{ m.icon('house') }}<br>
+                    comment: {{ m.icon('chat-left-text') }}<br>
+                    email: {{ m.icon('envelope') }}<br>
+                    iCal: {{ m.icon('calendar-week') }}<br>
+                    json export: {{ m.icon('braces') }}<br>
+                    lists: {{ m.icon('list') }}<br>
+                    logout: {{ m.icon('box-arrow-left') }}<br>
+                    message: {{ m.icon('envelope') }}<br>
+                    next shift: {{ m.icon('clock') }}<br>
+                    night shift: {{ m.icon('moon-stars') }}<br>
+                    occupancy: {{ m.icon('person-fill-slash') }}<br>
+                    password: {{ m.icon('key-fill') }}<br>
+                    phone: {{ m.icon('phone') }}<br>
+                    Goodie: {{ m.icon('gift') }}<br>
+                    supporter: {{ m.icon('patch-check') }}<br>
+                    user settings: {{ m.icon('person-fill-gear') }}<br>
+                    voucher: {{ m.icon('valentine') }}<br>
+                    worklog / history: {{ m.icon('clock-history') }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <span id="alerts" class="ref-id"></span>
+                <h3>Alerts <a href="#alerts" class="ref-link">{{ m.icon('link') }}</a></h3>
+
+                <div class="row">
+                    {% for color in colors %}
+                        <div class="col">
+                            <h4>{{ color|capitalize }}</h4>
+                            {{ m.alert(linksum, color, true) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12 mb-3">
+                <span id="cards" class="ref-id"></span>
+                <h3>Cards <a href="#cards" class="ref-link">{{ m.icon('link') }}</a></h3>
+
+                <div class="row">
+                    {% for type in types %}
+                        <div class="col mb-3">
+                            <div class="card border-{{ type }} {{ m.type_bg_class() }}">
+                                <h4 class="card-header bg-{{ type }}">{{ type|capitalize }}</h4>
+                                <div class="card-body">
+                                    <p class="card-text">{{ shortsum }}</p>
+                                    <p class="card-text"><a href="#" class="card-link prevent-default">Some link</a></p>
+                                </div>
+                                <div class="card-footer text-muted">
+                                    Footer
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-3 col-md-6 mb-2">
+                <span id="modal" class="ref-id"></span>
+                <h3>Modal <a href="#modal" class="ref-link">{{ m.icon('link') }}</a></h3>
+                <div class="modal position-static d-block" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content {{ m.type_bg_class() }}">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Title</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>{{ lipsum }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <span id="forms" class="ref-id"></span>
+                <h3>Forms <a href="#forms" class="ref-link">{{ m.icon('link') }}</a></h3>
+
+                <div class="row">
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Text</h5>
+                        <code>f.input(name, label, opt)</code>
+                        {{ f.input('form-input-text', 'Text field', {
+                            'value': 'Value',
+                        }) }}
+                        {{ f.input('form-input-text-label-icons', 'Text field with required and info icon', {
+                            'value': 'Value',
+                            'required_icon': true,
+                            'info': 'Very important field info!',
+                        }) }}
+                        {{ f.input('form-input-text-hidden-label', 'Hidden label', {
+                            'value': 'Hidden label',
+                            'hide_label': true,
+                        }) }}
+                        {{ f.input('form-input-text-disabled', 'Disabled', {
+                            'disabled': true,
+                            'value': 'Value',
+                        }) }}
+                        {{ f.input('form-input-text-readonly', null, {
+                            'type': 'readonly',
+                            'readonly': true,
+                            'value': 'w/o label',
+                        }) }}
+                        {{ f.input('form-input-url', 'Url', {
+                            'type': 'url',
+                            'value': 'https://example.com/test',
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Password</h5>
+                        <code>f.input(id, label, opt)</code>
+                        {{ f.input('form-input-password', 'Password', {
+                            'type': 'password',
+                            'value': 'Value',
+                            'placeholder': __('form.password.placeholder'),
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Number</h5>
+                        <code>f.number(name, label, opt)</code>
+                        {{ f.number('form-input-number', 'Number field', {
+                            'type': 'number',
+                            'value': 42,
+                        }) }}
+                        {{ f.number('form-input-number-label-icons', 'Number field with required and info icon', {
+                            'type': 'number',
+                            'value': 42,
+                            'required_icon': true,
+                            'info': 'Very important field info!',
+                        }) }}
+                        {{ f.number('form-input-number-disabled', 'Disabled', {
+                            'disabled': true,
+                            'value': 42,
+                        }) }}
+                        {{ f.number('form-input-number-readonly', 'Readonly', {
+                            'readonly': true,
+                            'value': 42,
+                        }) }}
+                        {{ f.number('form-input-number-wo-label', null, {
+                            'type': 'number',
+                            'value': 42,
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Textarea</h5>
+                        <code>f.textarea(name, label, opt)</code>
+                        {{ f.textarea('form-input-textarea', 'Textarea', {
+                            'rows': 2,
+                            'value': lipsum,
+                        }) }}
+                        {{ f.textarea('form-input-textarea-label-icons', 'Textarea with required and info icon', {
+                            'required_icon': true,
+                            'info': 'Very important field info!',
+                            'rows': 2,
+                            'value': lipsum,
+                        }) }}
+                        {{ f.textarea('form-input-textarea-wo-label', null, {
+                            'required_icon': true,
+                            'rows': 2,
+                            'value': 'w/o label',
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Select</h5>
+                        <code>f.select(name, label, data, opt)</code>
+                        {{ f.select('form-input-select-1', 'Select 1', {
+                                'opt1': 'Option 1',
+                                'opt2': 'Option 2',
+                                'opt3': 'Another option',
+                                'opt4': 'A looooooooong item item item item',
+                        }) }}
+                        {{ f.select(
+                            'form-input-select-2',
+                            'Select 2',
+                            {
+                                'sh': 'Bash',
+                                'js': 'JavaScript',
+                                'p': 'PHP',
+                                'py': 'Python',
+                            },
+                            {
+                                'selected': 'js',
+                            },
+                        ) }}
+                        {{ f.select('form-input-select-2', 'Select 3', selectOptions, {
+                            'selected': 'option_7',
+                        }) }}
+                        {{ f.select('date-select', 'Date select', dateSelectOptions) }}
+                        {{ f.select('multi-select', 'Select multi', selectOptions, {
+                            'multiple': true,
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Buttons</h5>
+                        <code>f.button(label, opt)</code>
+                        <div class="mb-3">
+                            {{ f.button('Button') }}
+                        </div>
+                        <div class="mb-3">
+                            {{ f.button('sm button with icons', {
+                                'size': 'sm',
+                                'icon_left': 'check',
+                                'icon_right': 'info',
+                                'title': 'Click me!',
+                            }) }}
+                        </div>
+                        <code>f.submit(label, opt)</code>
+                        <form class="prevent-default">
+                            {{ f.submit('Go!') }}
+                        </form>
+                        <code>f.save(label, opt)</code>
+                        <form class="prevent-default">
+                            {{ f.save('Save!') }}
+                        </form>
+                        <code>f.delete(label, opt)</code>
+                        <form id="delete-form">
+                            {{ f.delete('Delete it', {'confirm_title': 'Delete some item'}) }}
+                        </form>
+                    </div>
+
+                    <div id="checkboxes" class="col-md-3 col-lg-2">
+                        <h5>Checkbox</h5>
+                        <code>f.checkbox(name, label, opt)</code>
+                        {{ f.checkbox('form-input-checkbox', 'Checkbox 1', {
+                            'checked': true, 'value': '1',
+                        }) }}
+                        {{ f.checkbox('form-input-checkbox-2', 'Checkbox 2', {
+                            'checked': false, 'value': '2',
+                        }) }}
+                        {{ f.checkbox('form-input-checkbox-3', 'Checkbox 3', {
+                            'checked': false, 'value': '3',
+                        }) }}
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-secondary d-print-none checkbox-selection" data-id="checkboxes" data-value="true">
+                                Select all
+                            </button>
+                            <button type="button" class="btn btn-secondary d-print-none checkbox-selection" data-id="checkboxes" data-value="[2,3]">
+                                Select 2, 3
+                            </button>
+                            <button type="button" class="btn btn-secondary d-print-none checkbox-selection" data-id="checkboxes" data-value="false">
+                                Unselect all
+                            </button>
+                        </div>
+                        <hr>
+                        {{ f.checkbox('form-input-checkbox-disabled', 'Disabled', {
+                            'disabled': true,
+                        }) }}
+                        {{ f.checkbox('form-input-checkbox-raw-label', '<i>Raw label</i>', {
+                            'raw_label': true,
+                        }) }}
+                    </div>
+
+                    <div id="checkboxes" class="col-md-3 col-lg-2">
+                        <h5>Switch</h5>
+                        <code>f.switch(id, label, opt)</code>
+                        {{ f.switch('form-switch', 'Switch') }}
+                        {{ f.switch('form-switch-checked', 'Switch (checked)', {
+                            'checked': true,
+                        }) }}
+                        {{ f.switch('form-switch-disabled', 'Switch (disabled)', {
+                            'disabled': true,
+                        }) }}
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Hidden</h5>
+                        <code>hidden(name, value)</code><br>
+                        Creates<br>
+                        <code>
+                        {{ f.hidden('hidden-name', 'hidden_value') | escape }}
+                        </code>
+                    </div>
+
+                    <div class="col-md-3 col-lg-2 checkbox-inline">
+                        <h5>Radio</h5>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="yey" checked="checked" name="form-input-radio" value="1">
+                            <label class="form-check-label" for="yey">Yey</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="nay" name="form-input-radio">
+                            <label class="form-check-label" for="nay">Nay</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
+                        <h5>Date / time</h5>
+                        <div class="mb-3">
+                            <label class="form-label" for="input_date">Date</label>
+                            <input id="input_date" type="date" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" name="design-date" class="form-control" value="2021-09-15">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="input_datetime_local">Datetime</label>
+                            <input id="input_datetime_local" type="datetime-local" placeholder="YYYY-MM-DD HH:MM" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2} ([01][0-9]|2[0-3]):[0-5][0-9]" name="design-datetime" class="form-control" value="2021-09-15T13:37">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="input_time">Time</label>
+                            <input type="time" class="form-control" id="input_time" name="input_time" size="5" pattern="^\d{1,2}:\d{2}$" placeholder="HH:MM" maxlength="5" value="13:37">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <span id="other" class="ref-id"></span>
+        <h3>Other <a href="#other" class="ref-link">{{ m.icon('link') }}</a></h3>
+        <div class="row mb-4">
+            <div class="col">
+                <h4>Code</h4>
+                <p>
+                    <code>3.1415926535897932384626433832795</code>
+                </p>
+                <pre><code>Li Europan lingues es membres del sam familie.
+Lor separat existentie es un myth.
+Por scientie, musica, sport etc, litot Europa usa li sam vocabular.</code></pre>
+            </div>
+            <div class="col">
+                <h4>Pagination</h4>
+                <ul class="pagination">
+                    <li class="page-item active">
+                        <a class="page-link prevent-default" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link prevent-default" href="#">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link prevent-default" href="#">3</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col">
+                <h4>Countdowns</h4>
+                <ul>
+                    <li title="{{ timestamp30s.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp30s.getTimestamp() }}">30s: %c</li>
+                    <li title="{{ timestamp30m.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp30m.getTimestamp() }}">30m: %c</li>
+                    <li title="{{ timestamp59m.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp59m.getTimestamp() }}">59m: %c</li>
+                    <li title="{{ timestamp1h.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp1h.getTimestamp() }}">1h: %c</li>
+                    <li title="{{ timestamp1h30m.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp1h30m.getTimestamp() }}">1h 30m: %c</li>
+                    <li title="{{ timestamp1h31m.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp1h31m.getTimestamp() }}">1h 31m: %c</li>
+                    <li title="{{ timestamp2h.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp2h.getTimestamp() }}">2h: %c</li>
+                    <li title="{{ timestamp2d.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp2d.getTimestamp() }}">2d: %c</li>
+                    <li title="{{ timestamp3m.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp3m.getTimestamp() }}">3m: %c</li>
+                    <li title="{{ timestamp22y.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp22y.getTimestamp() }}">22y: %c</li>
+                </ul>
+                <ul>
+                    <li title="{{ timestamp30mago.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp30mago.getTimestamp() }}">30m ago: %c</li>
+                    <li title="{{ timestamp45mago.format(__('general.datetime')) }}" data-countdown-ts="{{ timestamp45mago.getTimestamp() }}">45m ago: %c</li>
+                </ul>
+            </div>
+        </div>
+
+        <span id="macros" class="ref-id"></span>
+        <h2>Macros <a href="#macros" class="ref-link">{{ m.icon('link') }}</a></h2>
+        <h3>base.twig</h3>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <h4><code>angel()</code></h4>
+                <p>{{ m.angel() }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>icon(icon_name)</code></h4>
+                <p>{{ m.icon('star') }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>iconBool(true)</code></h4>
+                <p>{{ m.iconBool(true) }} {{ m.iconBool(false) }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>alert(message, type)</code></h4>
+                <p>{{ m.alert('Test content', 'info') }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>user(user, opt)</code></h4>
+                <p>
+                    {{ m.user(demo_user) }}<br>
+                    {{ m.user(demo_user_2, {'pronoun': true}) }}
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>button(label, opt)</code></h4>
+                <p>{{ m.button('Label', '#', {'type': 'info', 'size': 'sm'}) }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>edit(url)</code></h4>
+                <p>{{ m.edit('#') }}</p>
+            </div>
+            <div class="col-md-3">
+                <h4><code>back(url)</code></h4>
+                <p>{{ m.back('#') }}</p>
+            </div>
+        </div>
+
+        <span id="bar_chart" class="ref-id"></span>
+        <h3>Bar Chart <a href="#bar_chart" class="ref-link">{{ m.icon('link') }}</a></h3>
+        {{ bar_chart | raw }}
+    </div>
+    </div>
+{% endblock %}
