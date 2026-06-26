@@ -160,6 +160,13 @@ function admin_user()
             $html .= '</td></tr>' . "\n";
         }
 
+        // helfisystem: Erstattung ausbezahlt?
+        if ($user_goodie_edit) {
+            $html .= '  <tr><td>' . __('Has been paid') . '</td><td>' . "\n";
+            $html .= html_options('has_payday', $options, (int) $user_source->personalData->has_payday);
+            $html .= '</td></tr>' . "\n";
+        }
+
         $html .= '</table>' . "\n" . '</td><td></td></tr>';
 
         $html .= '</td></tr>' . "\n";
@@ -350,6 +357,9 @@ function admin_user()
                 }
                 if ($goodie_tshirt && $user_goodie_edit) {
                     $user_source->personalData->shirt_size = $request->postData('shirt_size');
+                }
+                if ($user_goodie_edit) {
+                    $user_source->personalData->has_payday = (bool) $request->postData('has_payday');
                 }
                 $user_source->personalData->save();
 
