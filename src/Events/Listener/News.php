@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Engelsystem\Events\Listener;
 
+use Engelsystem\Helpers\NewsTargeting;
 use Engelsystem\Mail\EngelsystemMailer;
 use Engelsystem\Models\News as NewsModel;
 use Engelsystem\Models\User\Settings as UserSettings;
@@ -37,11 +38,15 @@ class News
 
         /** @var UserSettings[]|Collection $recipients */
         $recipients = $this->settings
-            ->with('user.personalData')
+            ->with(['user.personalData', 'user.state'])
             ->where('email_news', true)
             ->get();
 
         foreach ($recipients as $recipient) {
+            // helfisystem: nur an Empfänger, die zum Zielgruppen-Filter passen
+            if (!NewsTargeting::matchesUser($news, $recipient->user)) {
+                continue;
+            }
             $this->mailer->sendViewTranslated(
                 $recipient->user,
                 $subject,

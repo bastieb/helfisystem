@@ -61,6 +61,85 @@
                 </div>
             </div>
 
+            <div class="card mb-4">
+                <div class="card-header">
+                    <button class="btn btn-link p-0 text-decoration-none" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#news-targeting">
+                        {{ m.icon('people') }} {{ __('news.target.title') }}
+                    </button>
+                </div>
+                <div id="news-targeting" class="collapse {% if target is not empty %}show{% endif %}">
+                    <div class="card-body">
+                        <p class="text-muted">{{ __('news.target.hint') }}</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ __('news.target.mode') }}</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="target_mode" id="tm_all"
+                                           value="all" {% if (target.mode|default('all')) != 'any' %}checked{% endif %}>
+                                    <label class="form-check-label" for="tm_all">{{ __('news.target.mode.all') }}</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="target_mode" id="tm_any"
+                                           value="any" {% if (target.mode|default('all')) == 'any' %}checked{% endif %}>
+                                    <label class="form-check-label" for="tm_any">{{ __('news.target.mode.any') }}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="target_angel_types">{{ __('news.target.angel_types') }}</label>
+                                <select class="form-select" multiple size="5" id="target_angel_types" name="target_angel_types[]">
+                                    {% for at in target_options.angel_types %}
+                                        <option value="{{ at.id }}" {% if at.id in (target.angel_types|default([])) %}selected{% endif %}>{{ at.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="target_shift_types">{{ __('news.target.shift_types') }}</label>
+                                <select class="form-select" multiple size="5" id="target_shift_types" name="target_shift_types[]">
+                                    {% for st in target_options.shift_types %}
+                                        <option value="{{ st.id }}" {% if st.id in (target.shift_types|default([])) %}selected{% endif %}>{{ st.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="target_locations">{{ __('news.target.locations') }}</label>
+                                <select class="form-select" multiple size="5" id="target_locations" name="target_locations[]">
+                                    {% for loc in target_options.locations %}
+                                        <option value="{{ loc.id }}" {% if loc.id in (target.locations|default([])) %}selected{% endif %}>{{ loc.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="target_days">{{ __('news.target.days') }}</label>
+                                <select class="form-select" multiple size="5" id="target_days" name="target_days[]">
+                                    {% for d in target_options.days %}
+                                        <option value="{{ d }}" {% if d in (target.days|default([])) %}selected{% endif %}>{{ d }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-12 mb-1">
+                                <label class="form-label">{{ __('news.target.status') }}</label>
+                                <div>
+                                    {% for s in target_options.status %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="target_status[]"
+                                                   id="ts_{{ s }}" value="{{ s }}"
+                                                   {% if s in (target.status|default([])) %}checked{% endif %}>
+                                            <label class="form-check-label" for="ts_{{ s }}">{{ __('news.target.status.' ~ s) }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0"><small>{{ __('news.target.empty_hint') }}</small></p>
+                    </div>
+                </div>
+            </div>
+
             <div class="row mb-4">
                 <div class="col-md-12">
                     {{ f.textarea('text', __('news.edit.message'), {

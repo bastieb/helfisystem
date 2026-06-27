@@ -8,6 +8,7 @@ use Engelsystem\Controllers\BaseController;
 use Engelsystem\Controllers\HasUserNotifications;
 use Engelsystem\Controllers\NotificationType;
 use Engelsystem\Helpers\Authenticator;
+use Engelsystem\Helpers\NewsTargeting;
 use Engelsystem\Http\Redirector;
 use Engelsystem\Http\Request;
 use Engelsystem\Http\Response;
@@ -55,6 +56,8 @@ class NewsController extends BaseController
                 'is_highlighted' => $news ? $news->is_highlighted : false,
                 'send_notification' => $sendNotification,
                 'notifications_count' => $notificationsCount,
+                'target'            => $news ? ($news->target_filter ?? []) : [],
+                'target_options'    => NewsTargeting::formOptions(),
             ],
         );
     }
@@ -89,6 +92,8 @@ class NewsController extends BaseController
         $news->text = $data['text'];
         $news->is_meeting = !is_null($data['is_meeting']);
         $news->is_pinned = !is_null($data['is_pinned']);
+        // helfisystem: Zielgruppen-Filter aus dem Formular
+        $news->target_filter = NewsTargeting::fromRequest($request->request->all());
         $notify = !is_null($data['send_notification']);
 
         if ($this->auth->can('news.highlight')) {

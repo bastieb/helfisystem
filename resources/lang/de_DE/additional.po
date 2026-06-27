@@ -821,3 +821,54 @@ msgstr "Summe geleisteter Stunden"
 
 msgid "Reimbursement pending"
 msgstr "Erstattung ausstehend"
+
+msgid "news.target.title"
+msgstr "Zielgruppe (wer sieht/erhält diese News?)"
+
+msgid "news.target.hint"
+msgstr "Ohne Auswahl geht die News an alle. Mit Auswahl nur an passende Helfer (Anzeige im Dashboard und E-Mail)."
+
+msgid "news.target.mode"
+msgstr "Verknüpfung der Kriterien"
+
+msgid "news.target.mode.all"
+msgstr "Alle gewählten Kriterien müssen zutreffen (UND)"
+
+msgid "news.target.mode.any"
+msgstr "Mindestens ein Kriterium muss zutreffen (ODER)"
+
+msgid "news.target.angel_types"
+msgstr "Engeltypen"
+
+msgid "news.target.shift_types"
+msgstr "Schichttypen"
+
+msgid "news.target.locations"
+msgstr "Orte"
+
+msgid "news.target.days"
+msgstr "Tage (mit Schicht)"
+
+msgid "news.target.status"
+msgstr "Status"
+
+msgid "news.target.empty_hint"
+msgstr "Mehrfachauswahl innerhalb eines Feldes = ODER (z. B. mehrere Engeltypen). Nichts ausgewählt = an alle."
+
+msgid "news.target.status.reimbursement_pending"
+msgstr "Erstattung ausstehend"
+
+msgid "news.target.status.paid"
+msgstr "Ist ausbezahlt"
+
+msgid "news.target.status.not_paid"
+msgstr "Noch nicht ausbezahlt"
+
+msgid "news.target.status.arrived"
+msgstr "Angekommen"
+
+msgid "news.target.status.active"
+msgstr "Aktiv"
+
+msgid "news.target.status.all_shifts_completed"
+msgstr "Alle Schichten geleistet"

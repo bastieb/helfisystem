@@ -6,6 +6,7 @@ namespace Engelsystem\Controllers;
 
 use Engelsystem\Config\Config;
 use Engelsystem\Helpers\Authenticator;
+use Engelsystem\Helpers\NewsTargeting;
 use Engelsystem\Http\Exceptions\HttpForbidden;
 use Engelsystem\Http\Redirector;
 use Engelsystem\Http\Request;
@@ -55,6 +56,11 @@ class NewsController extends BaseController
         $news = $this->news
             ->with(['user', 'comments.user.state', 'comments.user.personalData'])
             ->findOrFail($newsId);
+
+        // helfisystem: Zielgruppen-Filter; Admins dürfen immer sehen
+        if (!$this->auth->can('admin_news') && !NewsTargeting::matchesUser($news, $this->auth->user())) {
+            throw new HttpForbidden();
+        }
 
         return $this->renderView('pages/news/news.twig', ['news' => $news]);
     }
@@ -128,20 +134,26 @@ class NewsController extends BaseController
             $query = $query->where('is_meeting', true);
         }
 
-        $count = $query->count();
-        $pagesCount = max(1, ceil($count / $perPage));
-        $page = max(1, min($page, $pagesCount));
-
-        $news = $query
+        $allNews = $query
             ->with('user')
             ->withCount('comments')
             ->orderByDesc('is_pinned')
             ->orderByDesc('is_highlighted')
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
-            ->limit($perPage)
-            ->offset(($page - 1) * $perPage)
             ->get();
+
+        // helfisystem: nur News anzeigen, deren Zielgruppen-Filter auf den User passt
+        // (News-Verwalter sehen zur Kontrolle alle News)
+        if (!$this->auth->can('admin_news')) {
+            $allNews = NewsTargeting::filterForUser($allNews, $this->auth->user());
+        }
+
+        $count = count($allNews);
+        $pagesCount = (int) max(1, ceil($count / $perPage));
+        $page = (int) max(1, min((int) $page, $pagesCount));
+
+        $news = array_slice($allNews, ($page - 1) * (int) $perPage, (int) $perPage);
 
         return $this->renderView(
             'pages/news/index.twig',

@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  * @property bool                          $is_highlighted
  * @property bool                          $is_meeting
  * @property bool                          $is_pinned
+ * @property array|null                    $target_filter
  * @property Carbon|null                   $created_at
  * @property Carbon|null                   $updated_at
  *
@@ -48,6 +49,7 @@ class News extends BaseModel
         'is_meeting'     => 'boolean',
         'is_pinned'      => 'boolean',
         'is_highlighted' => 'boolean',
+        'target_filter'  => 'array',
     ];
 
     /** @var array<string, bool> Default attributes */
@@ -64,6 +66,7 @@ class News extends BaseModel
         'is_meeting',
         'is_pinned',
         'is_highlighted',
+        'target_filter',
         'user_id',
     ];
 

@@ -57,10 +57,20 @@ function public_dashboard_controller()
         }
     }
 
+    // helfisystem: hervorgehobene News mit Zielgruppen-Filter berücksichtigen
+    $dashboard_user = auth()->user();
     $highlighted_news = News::whereIsHighlighted(true)
-        ->orderBy('updated_at')
-        ->limit(1)
-        ->get();
+        ->orderByDesc('updated_at')
+        ->get()
+        ->filter(function ($news) use ($dashboard_user) {
+            if (empty($news->target_filter)) {
+                return true;
+            }
+            return $dashboard_user
+                && \Engelsystem\Helpers\NewsTargeting::matchesUser($news, $dashboard_user);
+        })
+        ->take(1)
+        ->values();
 
     return [
         __('Public Dashboard'),
