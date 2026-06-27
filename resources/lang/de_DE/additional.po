@@ -872,3 +872,48 @@ msgstr "Aktiv"
 
 msgid "news.target.status.all_shifts_completed"
 msgstr "Alle Schichten geleistet"
+
+msgid "shift_release.title"
+msgstr "Schichtfreischaltung"
+
+msgid "shift_release.hint"
+msgstr "Hier kannst du die Selbst-Anmeldung für Schichten tageweise freischalten. Gesperrte Tage sind für Helfer sichtbar, aber erst ab dem Freischalt-Zeitpunkt anmeldbar. Admins/Schicht-Koordination können immer eintragen."
+
+msgid "shift_release.day"
+msgstr "Tag"
+
+msgid "shift_release.shifts"
+msgstr "Schichten"
+
+msgid "shift_release.status"
+msgstr "Status"
+
+msgid "shift_release.action"
+msgstr "Freischaltung"
+
+msgid "shift_release.status_free"
+msgstr "Sofort frei"
+
+msgid "shift_release.status_at"
+msgstr "Frei ab %s"
+
+msgid "shift_release.status_mixed"
+msgstr "Gemischt"
+
+msgid "shift_release.btn_set"
+msgstr "Freischalten ab"
+
+msgid "shift_release.btn_now"
+msgstr "Sofort freischalten"
+
+msgid "shift_release.released_now"
+msgstr "Tag %s wurde sofort freigeschaltet."
+
+msgid "shift_release.set_done"
+msgstr "Tag %s wird ab %s freigeschaltet."
+
+msgid "shift_release.invalid_datetime"
+msgstr "Ungültiger Zeitpunkt."
+
+msgid "shift_release.no_shifts"
+msgstr "Es gibt noch keine Schichten."

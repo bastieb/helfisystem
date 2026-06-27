@@ -58,6 +58,10 @@ class LegacyMiddleware implements MiddlewareInterface
         if ($page === 'shift_change_requests') {
             $allowPage = $this->auth->can('user_shifts_admin');
         }
+        // helfisystem: tageweise Schichtfreischaltung
+        if ($page === 'shift_release') {
+            $allowPage = $this->auth->can('user_shifts_admin');
+        }
 
         $title = $content = '';
         if (
@@ -100,6 +104,8 @@ class LegacyMiddleware implements MiddlewareInterface
                 return shift_entries_controller();
             case 'shift_change_requests':
                 return shift_change_requests_controller();
+            case 'shift_release':
+                return shift_release_controller();
             case 'shifts':
                 return shifts_controller();
             case 'users':

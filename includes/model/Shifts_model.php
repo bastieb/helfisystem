@@ -554,6 +554,11 @@ function Shift_signup_allowed_angel(
         return new ShiftSignupState(ShiftSignupStatus::NOT_YET, $free_entries);
     }
 
+    // helfisystem: tageweise/zeitliche Freischaltung - Selbst-Anmeldung erst ab signup_starts_at
+    if (!is_null($shift->signup_starts_at) && $shift->signup_starts_at->isFuture()) {
+        return new ShiftSignupState(ShiftSignupStatus::NOT_YET, $free_entries);
+    }
+
     if (config('signup_requires_arrival') && !$user->state->arrived) {
         return new ShiftSignupState(ShiftSignupStatus::NOT_ARRIVED, $free_entries);
     }

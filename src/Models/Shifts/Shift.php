@@ -28,6 +28,7 @@ use Illuminate\Database\Query\JoinClause;
  * @property string                            $url
  * @property Carbon                            $start
  * @property Carbon                            $end
+ * @property Carbon|null                       $signup_starts_at
  * @property int                               $shift_type_id
  * @property int                               $location_id
  * @property string|null                       $transaction_id
@@ -83,6 +84,7 @@ class Shift extends BaseModel
         'updated_by'    => 'integer',
         'start'         => 'datetime',
         'end'           => 'datetime',
+        'signup_starts_at' => 'datetime',
     ];
 
     /** @var array<string> Values that are mass assignable */
@@ -92,6 +94,7 @@ class Shift extends BaseModel
         'url',
         'start',
         'end',
+        'signup_starts_at',
         'shift_type_id',
         'location_id',
         'transaction_id',

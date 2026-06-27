@@ -145,7 +145,9 @@ class NewsController extends BaseController
 
         // helfisystem: nur News anzeigen, deren Zielgruppen-Filter auf den User passt
         // (News-Verwalter sehen zur Kontrolle alle News)
-        if (!$this->auth->can('admin_news')) {
+        if ($this->auth->can('admin_news')) {
+            $allNews = $allNews->all();
+        } else {
             $allNews = NewsTargeting::filterForUser($allNews, $this->auth->user());
         }
 

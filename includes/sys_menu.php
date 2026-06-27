@@ -73,6 +73,7 @@ function make_navigation(): array
         'admin/questions'    => ['Answer questions', 'question.edit'],
         'admin/shifttypes'   => ['shifttype.shifttypes', 'shifttypes.view'],
         'admin_shifts'       => 'Create shifts',
+        'shift_release'      => [shift_release_title(), 'user_shifts_admin'],
         'shift_change_requests' => [shift_change_requests_title(), 'user_shifts_admin'],
         'admin_groups'       => 'Group rights',
         'admin/schedule'     => ['schedule.import', 'schedule.import'],
