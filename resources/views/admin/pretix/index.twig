@@ -1,0 +1,89 @@
+{% extends 'layouts/app.twig' %}
+{% import 'macros/base.twig' as m %}
+{% import 'macros/form.twig' as f %}
+
+{% block title %}{{ __('Pretix vouchers') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>{{ block('title') }}</h1>
+
+        {% include 'layouts/parts/messages.twig' %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <h2>{{ __('Settings') }}</h2>
+                <form method="post" action="{{ url('/admin/pretix/settings') }}">
+                    {{ csrf() }}
+
+                    {{ f.switch('enable_pretix_voucher', __('Automatically issue Pretix vouchers'), {
+                        'checked': enablePretixVoucher,
+                    }) }}
+
+                    {{ f.input('pretix_redeem_link', __('Pretix redeem link'), {
+                        'value': pretixRedeemLink,
+                        'placeholder': 'https://tickets.example.com/redeem?voucher={code}',
+                        'info': __('Use {code} as placeholder, it will be replaced with the actual voucher code.'),
+                    }) }}
+
+                    {% if pretixRedeemLink %}
+                        <div class="form-text mb-3">
+                            {{ __('Preview with an example code:') }}
+                            <a href="{{ examplePreview }}" target="_blank" rel="noopener">{{ examplePreview }}</a>
+                        </div>
+                    {% endif %}
+
+                    {{ f.number('pretix_min_hours', __('Minimum rostered hours for a voucher'), {
+                        'value': pretixMinHours,
+                        'min': 0,
+                        'step': 0.5,
+                        'info': __('As soon as a helper is signed up for at least this many hours (across all their shifts), they automatically get a voucher code and an email.'),
+                    }) }}
+
+                    {{ f.save(__('form.save')) }}
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <h2>{{ __('Voucher code pool') }}</h2>
+                <p>
+                    {{ __('%d unused codes, %d already assigned.', [unusedCount, usedCount]) }}
+                </p>
+
+                <form method="post" action="{{ url('/admin/pretix/codes') }}">
+                    {{ csrf() }}
+
+                    {{ f.textarea('codes', __('Add voucher codes (one per line)'), {
+                        'rows': 10,
+                        'placeholder': "CODE-0001\nCODE-0002\nCODE-0003",
+                        'info': __('Codes already in the pool are skipped automatically.'),
+                    }) }}
+
+                    {{ f.submit(__('Add codes'), {'icon_left': 'plus-lg'}) }}
+                </form>
+
+                {% if recentlyUsed|length %}
+                    <h3 class="mt-4">{{ __('Recently assigned') }}</h3>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ __('general.name') }}</th>
+                                <th>{{ __('Code') }}</th>
+                                <th>{{ __('general.date') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for voucher in recentlyUsed %}
+                                <tr>
+                                    <td>{{ voucher.usedBy ? m.user(voucher.usedBy) : '-' }}</td>
+                                    <td>{{ voucher.code }}</td>
+                                    <td>{{ voucher.used_at ? voucher.used_at.format(__('general.date')) : '-' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

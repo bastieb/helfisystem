@@ -16,6 +16,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property Carbon|null $planned_arrival_date
  * @property Carbon|null $planned_departure_date
  * @property bool        $has_payday
+ * @property string      $voucher_code
  *
  * @method static QueryBuilder|PersonalData[] whereFirstName($value)
  * @method static QueryBuilder|PersonalData[] whereLastName($value)
@@ -40,6 +41,7 @@ class PersonalData extends HasUserModel
         'planned_arrival_date'   => null,
         'planned_departure_date' => null,
         'has_payday'             => false,
+        'voucher_code'           => '',
     ];
 
     /** @var array<string, string> */
@@ -64,5 +66,6 @@ class PersonalData extends HasUserModel
         'planned_arrival_date',
         'planned_departure_date',
         'has_payday',
+        'voucher_code',
     ];
 }

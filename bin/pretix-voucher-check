@@ -1,0 +1,121 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Carbon\Carbon;
+use Engelsystem\Config\Config;
+use Engelsystem\Mail\EngelsystemMailer;
+use Engelsystem\Models\PretixVoucher;
+use Engelsystem\Models\Shifts\ShiftEntry;
+use Engelsystem\Models\User\User;
+use Psr\Log\LoggerInterface;
+
+require_once __DIR__ . '/../includes/application.php';
+
+/** @var Config $config */
+$config = app(Config::class);
+
+if (!$config->get('enable_pretix_voucher')) {
+    echo 'Pretix voucher automation is disabled (enable_pretix_voucher), nothing to do.' . PHP_EOL;
+    exit(0);
+}
+
+$minHours = (float) $config->get('pretix_min_hours', 0);
+if ($minHours <= 0) {
+    echo 'No minimum hours configured (pretix_min_hours), nothing to do.' . PHP_EOL;
+    exit(0);
+}
+
+/** @var LoggerInterface $log */
+$log = app(LoggerInterface::class);
+/** @var EngelsystemMailer $mailer */
+$mailer = app(EngelsystemMailer::class);
+$redeemLinkTemplate = (string) $config->get('pretix_redeem_link', '');
+
+// Same "rostered hours" logic as the "Sum hours rostered" user list column: all assigned
+// shifts count, regardless of whether they already took place.
+$eligibleUserIds = ShiftEntry::query()
+    ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+    ->selectRaw('shift_entries.user_id as user_id')
+    ->groupBy('shift_entries.user_id')
+    ->havingRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)), 0) / 3600 >= ?', [$minHours])
+    ->pluck('user_id');
+
+if ($eligibleUserIds->isEmpty()) {
+    echo 'No helpers reached the minimum hours yet.' . PHP_EOL;
+    exit(0);
+}
+
+$usersWaitingForVoucher = User::query()
+    ->whereIn('id', $eligibleUserIds)
+    ->whereHas('personalData', fn ($query) => $query->where('voucher_code', ''))
+    ->with('personalData', 'contact')
+    ->get();
+
+if ($usersWaitingForVoucher->isEmpty()) {
+    echo 'All eligible helpers already have a voucher code.' . PHP_EOL;
+    exit(0);
+}
+
+$assigned = 0;
+$poolEmpty = false;
+
+foreach ($usersWaitingForVoucher as $user) {
+    if ($poolEmpty) {
+        break;
+    }
+
+    (new PretixVoucher())->getConnection()->transaction(function () use ($user, $mailer, $redeemLinkTemplate, $log, &$assigned, &$poolEmpty): void {
+        /** @var PretixVoucher|null $voucher */
+        $voucher = PretixVoucher::query()
+            ->whereNull('used_by_user_id')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$voucher) {
+            $poolEmpty = true;
+
+            return;
+        }
+
+        $voucher->used_by_user_id = $user->id;
+        $voucher->used_at = new Carbon();
+        $voucher->save();
+
+        $user->personalData->voucher_code = $voucher->code;
+        $user->personalData->save();
+
+        $redeemLink = ($redeemLinkTemplate && str_contains($redeemLinkTemplate, '{code}'))
+            ? str_replace('{code}', $voucher->code, $redeemLinkTemplate)
+            : $redeemLinkTemplate;
+
+        $mailer->sendViewTranslated(
+            $user,
+            'You have earned a Pretix voucher!',
+            'emails/pretix-voucher',
+            [
+                'code' => $voucher->code,
+                'link' => $redeemLink,
+                'username' => $user->displayName,
+            ]
+        );
+
+        $log->info(
+            'Assigned Pretix voucher {code} to {name} ({id})',
+            ['code' => $voucher->code, 'name' => $user->name, 'id' => $user->id]
+        );
+        $assigned++;
+    });
+}
+
+echo sprintf('Assigned %d voucher(s).', $assigned) . PHP_EOL;
+if ($poolEmpty) {
+    $remaining = $usersWaitingForVoucher->count() - $assigned;
+    echo sprintf(
+        'Voucher pool is empty, %d eligible helper(s) still waiting for a code.',
+        $remaining
+    ) . PHP_EOL;
+    $log->warning('Pretix voucher pool is empty, {count} helpers waiting', ['count' => $remaining]);
+}

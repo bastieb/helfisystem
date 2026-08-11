@@ -1,0 +1,14 @@
+{% extends "emails/mail.text.twig" %}
+
+{% block introduction %}
+{{ __('You have signed up for enough hours, thank you for helping out! Here is your Pretix voucher code:', [code]) }}
+{% endblock %}
+
+{% block message %}
+{{ code }}
+
+{% if link %}
+{{ __('Redeem it here:') }}
+{{ link }}
+{% endif %}
+{% endblock %}

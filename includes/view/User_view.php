@@ -912,6 +912,30 @@ function User_view_state($admin_user_privilege, $freeloader, $user_source)
             . '</span>';
     }
 
+    if (config('enable_pretix_voucher') && ($admin_user_privilege || $its_me)) {
+        $voucherCode = $user_source->personalData->voucher_code;
+        if ($voucherCode) {
+            $redeemLink = config('pretix_redeem_link');
+            $redeemLink = ($redeemLink && str_contains($redeemLink, '{code}'))
+                ? str_replace('{code}', $voucherCode, $redeemLink)
+                : $redeemLink;
+            $state[] = '<span class="text-success">'
+                . icon('ticket-perforated')
+                . ' '
+                . ($redeemLink
+                    ? '<a href="' . htmlspecialchars($redeemLink) . '" target="_blank" rel="noopener">'
+                        . htmlspecialchars($voucherCode) . '</a>'
+                    : htmlspecialchars($voucherCode))
+                . '</span>';
+        } else {
+            $state[] = '<span class="text-muted">'
+                . icon('ticket-perforated')
+                . ' '
+                . __('Please wait for your voucher code to become available.')
+                . '</span>';
+        }
+    }
+
     if ($password_reset && $admin_user_privilege) {
         $state[] = __('Password reset in progress');
     }

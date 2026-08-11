@@ -917,3 +917,69 @@ msgstr "Ungültiger Zeitpunkt."
 
 msgid "shift_release.no_shifts"
 msgstr "Es gibt noch keine Schichten."
+
+msgid "Pretix vouchers"
+msgstr "Pretix-Voucher"
+
+msgid "Pretix voucher settings saved."
+msgstr "Pretix-Voucher-Einstellungen gespeichert."
+
+msgid "No voucher codes entered."
+msgstr "Keine Voucher-Codes eingegeben."
+
+msgid "%d new voucher codes added, %d duplicates skipped."
+msgstr "%d neue Voucher-Codes hinzugefügt, %d Duplikate übersprungen."
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Automatically issue Pretix vouchers"
+msgstr "Pretix-Voucher automatisch vergeben"
+
+msgid "Pretix redeem link"
+msgstr "Pretix-Einlöse-Link"
+
+msgid "Use {code} as placeholder, it will be replaced with the actual voucher code."
+msgstr "{code} als Platzhalter verwenden, wird durch den tatsächlichen Voucher-Code ersetzt."
+
+msgid "Preview with an example code:"
+msgstr "Vorschau mit Beispiel-Code:"
+
+msgid "Minimum rostered hours for a voucher"
+msgstr "Mindeststunden (eingeplant) für einen Voucher"
+
+msgid "As soon as a helper is signed up for at least this many hours (across all their shifts), they automatically get a voucher code and an email."
+msgstr "Sobald ein Helfer für mindestens so viele Stunden eingetragen ist (über alle Schichten), bekommt er automatisch einen Voucher-Code und eine E-Mail."
+
+msgid "Voucher code pool"
+msgstr "Voucher-Code-Vorrat"
+
+msgid "%d unused codes, %d already assigned."
+msgstr "%d unbenutzte Codes, %d bereits vergeben."
+
+msgid "Add voucher codes (one per line)"
+msgstr "Voucher-Codes hinzufügen (einer pro Zeile)"
+
+msgid "Codes already in the pool are skipped automatically."
+msgstr "Bereits vorhandene Codes werden automatisch übersprungen."
+
+msgid "Add codes"
+msgstr "Codes hinzufügen"
+
+msgid "Recently assigned"
+msgstr "Zuletzt vergeben"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Please wait for your voucher code to become available."
+msgstr "Bitte warte, bis dein Voucher-Code verfügbar wird."
+
+msgid "You have earned a Pretix voucher!"
+msgstr "Du hast dir einen Pretix-Voucher verdient!"
+
+msgid "You have signed up for enough hours, thank you for helping out! Here is your Pretix voucher code:"
+msgstr "Du hast dich für genügend Stunden eingetragen, danke fürs Helfen! Hier ist dein Pretix-Voucher-Code:"
+
+msgid "Redeem it here:"
+msgstr "Hier einlösen:"

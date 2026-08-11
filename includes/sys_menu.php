@@ -80,6 +80,7 @@ function make_navigation(): array
         'admin/tags'         => ['tag.tags', 'tag.edit'],
         'admin/logs'         => ['log.log', 'admin_log'],
         'admin/config'       => ['config.config', 'config.edit'],
+        'admin/pretix'       => ['Pretix vouchers', 'pretix.edit'],
     ];
 
     if (config('autoarrive')) {

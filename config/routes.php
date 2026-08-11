@@ -194,6 +194,16 @@ $route->addGroup(
             }
         );
 
+        // Pretix vouchers
+        $route->addGroup(
+            '/pretix',
+            function (RouteCollector $route): void {
+                $route->get('', 'Admin\\PretixVoucherController@index');
+                $route->post('/settings', 'Admin\\PretixVoucherController@saveSettings');
+                $route->post('/codes', 'Admin\\PretixVoucherController@addCodes');
+            }
+        );
+
         // FAQ
         $route->addGroup(
             '/faq',
