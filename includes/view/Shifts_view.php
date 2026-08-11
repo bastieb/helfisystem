@@ -47,10 +47,6 @@ function Shift_view_header(Shift $shift, Location $location)
             icon('clock') . $shift->end->format('H:i'),
             '</p>',
         ]),
-        div('col-sm-3 col-xs-6', [
-            '<h4>' . __('Location') . '</h4>',
-            '<p class="lead">' . location_name_render($location) . '</p>',
-        ]),
     ]);
 }
 
@@ -227,12 +223,6 @@ function Shift_view(
             ], url('/user-shifts', ['delete_shift' => $shift->id])) : '',
             $shiftTypesEdit
                 ? button(url('/admin/shifttypes/' . $shifttype->id), htmlspecialchars($shifttype->name))
-                : '',
-            $locationsEdit
-                ? button(
-                    location_link($location),
-                    icon('pin-map-fill') . htmlspecialchars($location->name)
-                )
                 : '',
         ];
     }

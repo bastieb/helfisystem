@@ -283,7 +283,6 @@ function ShiftEntry_edit_view(
             form([
                 form_info(__('Angel:'), User_Nick_render($angel)),
                 form_info(__('Date, Duration:'), $date),
-                form_info(__('Location:'), htmlspecialchars($location)),
                 form_info(__('Title:'), htmlspecialchars($title)),
                 form_info(__('Type:'), htmlspecialchars($type)),
                 $comment,

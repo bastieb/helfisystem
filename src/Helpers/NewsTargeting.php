@@ -21,14 +21,13 @@ use Engelsystem\Models\User\User;
  *     'shift_types' => [int,...],       // User hat eine Schicht dieses Schichttyps
  *     'locations'   => [int,...],       // User hat eine Schicht an diesem Ort
  *     'days'        => ['Y-m-d',...],   // User hat an diesem Tag eine Schicht
- *     'status'      => [string,...],    // reimbursement_pending|paid|not_paid|arrived|active|shift_completed
+ *     'status'      => [string,...],    // paid|not_paid|arrived|active|shift_completed
  *   ]
  * Leerer/leer-dimensionierter Filter = an alle.
  */
 class NewsTargeting
 {
     public const STATUS_KEYS = [
-        'reimbursement_pending',
         'paid',
         'not_paid',
         'arrived',
@@ -200,19 +199,8 @@ class NewsTargeting
                 return (bool) $user->state->active;
             case 'all_shifts_completed':
                 return self::allShiftsCompleted($user);
-            case 'reimbursement_pending':
-                $threshold = (float) (config('helfi_reimbursement_min_hours') ?? 8);
-                return self::completedHours($user) >= $threshold && !$user->personalData->has_payday;
         }
         return false;
-    }
-
-    private static function completedHours(User $user): float
-    {
-        return (float) self::userShiftQuery($user)
-            ->where('shift_entries.shift_completed', 1)
-            ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) AS h')
-            ->value('h');
     }
 
     private static function allShiftsCompleted(User $user): bool

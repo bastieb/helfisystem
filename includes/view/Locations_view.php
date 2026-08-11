@@ -107,11 +107,6 @@ function location_view(Location $location, ShiftsFilterRenderer $shiftsFilterRen
  */
 function location_name_render(Location $location)
 {
-    if (auth()->can('locations.view')) {
-        return '<a href="' . location_link($location) . '">'
-            . icon('pin-map-fill') . htmlspecialchars($location->name)
-            . '</a>';
-    }
-
-    return icon('pin-map-fill') . htmlspecialchars($location->name);
+    // helfisystem: Ort-Anzeige deaktiviert
+    return '';
 }

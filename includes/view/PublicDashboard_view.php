@@ -100,8 +100,6 @@ function public_dashboard_shift_render($shift)
         $panel_body .= ' (' . htmlspecialchars($shift['title']) . ')';
     }
 
-    $panel_body .= '<br>' . icon('pin-map-fill') . htmlspecialchars($shift['location_name']);
-
     foreach ($shift['needed_angels'] as $needed_angels) {
         $panel_body .= '<br>' . icon('person')
             . '<span class="text-' . $shift['style'] . '">'

@@ -212,7 +212,7 @@ return [
                 ],
                 'enable_planned_arrival' => [
                     'type' => 'boolean',
-                    'default' => true,
+                    'default' => false,
                 ],
                 'enable_force_active' => [
                     'type' => 'boolean',
@@ -332,7 +332,7 @@ return [
             'config' => [
                 'goodie_type' => [
                     'type' => 'select',
-                    'default' => 'goodie',
+                    'default' => 'none',
                     'data' => [
                         'none',
                         'goodie',

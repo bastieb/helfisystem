@@ -106,14 +106,6 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label" for="target_locations">{{ __('news.target.locations') }}</label>
-                                <select class="form-select" multiple size="5" id="target_locations" name="target_locations[]">
-                                    {% for loc in target_options.locations %}
-                                        <option value="{{ loc.id }}" {% if loc.id in (target.locations|default([])) %}selected{% endif %}>{{ loc.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
                                 <label class="form-label" for="target_days">{{ __('news.target.days') }}</label>
                                 <select class="form-select" multiple size="5" id="target_days" name="target_days[]">
                                     {% for d in target_options.days %}

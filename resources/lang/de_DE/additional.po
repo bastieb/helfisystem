@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Engelsystem 2.0\n"
+"Project-Id-Version: Helfisystem 2.0\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -137,7 +137,7 @@ msgid "oauth.provider-error"
 msgstr "Login-Provider-Fehler"
 
 msgid "oauth.already-connected"
-msgstr "Dieser Account wurde bereits mit einem anderen Engelsystem-User verbunden!"
+msgstr "Dieser Account wurde bereits mit einem anderen Helfisystem-User verbunden!"
 
 msgid "oauth.connected"
 msgstr "Login-Provider verbunden!"
@@ -253,7 +253,7 @@ msgid "notification.angeltype.added.text"
 msgstr "Eine Beschreibung findest du unter %2$s"
 
 msgid "angeltype.add.success"
-msgstr "Erfolgreich dem Engeltyp beigetreten"
+msgstr "Erfolgreich dem Helfityp beigetreten"
 
 msgid "notification.shift.deleted"
 msgstr "Deine Schicht wurde gelöscht"
@@ -386,7 +386,7 @@ msgid "config.features"
 msgstr "Features"
 
 msgid "config.enable_dect.info"
-msgstr "Aktiviert DECT-Nummern für Benutzer, Orte und Engeltypen"
+msgstr "Aktiviert DECT-Nummern für Benutzer, Orte und Helfitypen"
 
 msgid "config.enable_mobile_show"
 msgstr "Anzeigen der Handynummer"
@@ -461,13 +461,13 @@ msgid "config.supporters_can_promote"
 msgstr "Supporter können befördern"
 
 msgid "config.supporters_can_promote.info"
-msgstr "Supporter eines Engeltyps (Team) können andere Benutzer des Engeltyps zu Supportern befördern"
+msgstr "Supporter eines Helfityps (Team) können andere Benutzer des Helfityps zu Supportern befördern"
 
 msgid "config.join_qr_code"
 msgstr "Beitreten QR Code"
 
 msgid "config.join_qr_code.info"
-msgstr "Erlaubt das beitreten zu einem Engeltypen mit einem QR Code, benötigt app_key"
+msgstr "Erlaubt das beitreten zu einem Helfitypen mit einem QR Code, benötigt app_key"
 
 msgid "config.certificates"
 msgstr "Zertifikate"
@@ -581,7 +581,7 @@ msgid "config.app_name"
 msgstr "Anwendungsname (Nicht Eventname)"
 
 msgid "config.app_name.info"
-msgstr "Passt den Applikationsnamen des Engelsystems an"
+msgstr "Passt den Applikationsnamen des Helfisystems an"
 
 msgid "config.locales"
 msgstr "Sprachen"
@@ -745,7 +745,7 @@ msgid "config.jwt_expiration_time"
 msgstr "JWT Gültigkeit"
 
 msgid "config.jwt_expiration_time.info"
-msgstr "Anzahl an Minuten nach denen ein JWT abläuft, bspw für max. Zeit zum Engeltyp beitreten"
+msgstr "Anzahl an Minuten nach denen ein JWT abläuft, bspw für max. Zeit zum Helfityp beitreten"
 
 msgid "config.guzzle_timeout"
 msgstr "HTTP Anfrage timeout"
@@ -819,9 +819,6 @@ msgstr "Keine offenen Anträge."
 msgid "Sum hours completed"
 msgstr "Summe geleisteter Stunden"
 
-msgid "Reimbursement pending"
-msgstr "Erstattung ausstehend"
-
 msgid "news.target.title"
 msgstr "Zielgruppe (wer sieht/erhält diese News?)"
 
@@ -838,7 +835,7 @@ msgid "news.target.mode.any"
 msgstr "Mindestens ein Kriterium muss zutreffen (ODER)"
 
 msgid "news.target.angel_types"
-msgstr "Engeltypen"
+msgstr "Helfitypen"
 
 msgid "news.target.shift_types"
 msgstr "Schichttypen"
@@ -853,10 +850,7 @@ msgid "news.target.status"
 msgstr "Status"
 
 msgid "news.target.empty_hint"
-msgstr "Mehrfachauswahl innerhalb eines Feldes = ODER (z. B. mehrere Engeltypen). Nichts ausgewählt = an alle."
-
-msgid "news.target.status.reimbursement_pending"
-msgstr "Erstattung ausstehend"
+msgstr "Mehrfachauswahl innerhalb eines Feldes = ODER (z. B. mehrere Helfitypen). Nichts ausgewählt = an alle."
 
 msgid "news.target.status.paid"
 msgstr "Ist ausbezahlt"
