@@ -196,7 +196,7 @@ msgid "faq.edit.success"
 msgstr "FAQ Eintrag erfolgreich aktualisiert."
 
 msgid "question.menu"
-msgstr "Frag den Himmel"
+msgstr "Frag die Crew"
 
 msgid "question.delete.success"
 msgstr "Frage erfolgreich gelöscht."
