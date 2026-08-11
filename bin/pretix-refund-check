@@ -1,0 +1,222 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Carbon\Carbon;
+use Engelsystem\Config\Config;
+use Engelsystem\Helpers\PretixClient;
+use Engelsystem\Models\PretixRefund;
+use Engelsystem\Models\Shifts\ShiftEntry;
+use Engelsystem\Models\User\User;
+use Psr\Log\LoggerInterface;
+
+require_once __DIR__ . '/../includes/application.php';
+
+/** @var Config $config */
+$config = app(Config::class);
+
+if (!$config->get('enable_pretix_refund')) {
+    echo 'Pretix refund automation is disabled (enable_pretix_refund), nothing to do.' . PHP_EOL;
+    exit(0);
+}
+
+$minHours = (float) $config->get('pretix_refund_min_hours', 0);
+$testMode = (bool) $config->get('pretix_test_mode', true);
+
+/** @var LoggerInterface $log */
+$log = app(LoggerInterface::class);
+/** @var PretixClient $pretix */
+$pretix = app(PretixClient::class);
+
+if (!$pretix->isConfigured()) {
+    echo 'Pretix API is not fully configured yet (base URL/organizer/event/token), nothing to do.' . PHP_EOL;
+    exit(0);
+}
+
+echo $testMode ? '=== TEST MODE: no real Pretix writes will happen ===' . PHP_EOL : '';
+
+detectNewRefunds($minHours, $testMode, $pretix, $log);
+syncPendingRefunds($testMode, $pretix, $log);
+
+function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix, LoggerInterface $log): void
+{
+    if ($minHours <= 0) {
+        echo 'No minimum hours configured (pretix_refund_min_hours), skipping detection.' . PHP_EOL;
+
+        return;
+    }
+
+    // Gleiche Logik wie die "Summe geleisteter Stunden"-Spalte in der Benutzerliste:
+    // nur Schichten mit shift_completed=1 zaehlen.
+    $eligibleUserIds = ShiftEntry::query()
+        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+        ->where('shift_entries.shift_completed', 1)
+        ->selectRaw('shift_entries.user_id as user_id')
+        ->groupBy('shift_entries.user_id')
+        ->havingRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)), 0) / 3600 >= ?', [$minHours])
+        ->pluck('user_id');
+
+    if ($eligibleUserIds->isEmpty()) {
+        echo 'No helpers reached the minimum completed hours yet.' . PHP_EOL;
+
+        return;
+    }
+
+    $alreadyTrackedUserIds = PretixRefund::query()->pluck('user_id');
+
+    $candidates = User::query()
+        ->whereIn('id', $eligibleUserIds)
+        ->whereNotIn('id', $alreadyTrackedUserIds)
+        ->whereHas('personalData', fn ($query) => $query
+            ->where('has_payday', false)
+            ->where('voucher_code', '!=', ''))
+        ->with('personalData')
+        ->get();
+
+    if ($candidates->isEmpty()) {
+        echo 'No new refund candidates (either no voucher/order link, already paid, or already tracked).' . PHP_EOL;
+
+        return;
+    }
+
+    foreach ($candidates as $user) {
+        try {
+            processCandidate($user, $testMode, $pretix, $log);
+        } catch (\Throwable $e) {
+            $log->error(
+                'Pretix refund check failed for {name} ({id}): {message}',
+                ['name' => $user->name, 'id' => $user->id, 'message' => $e->getMessage()]
+            );
+            echo sprintf('ERROR %s: %s (skipped, continuing with next helper)', $user->name, $e->getMessage()) . PHP_EOL;
+        }
+    }
+}
+
+function processCandidate(User $user, bool $testMode, PretixClient $pretix, LoggerInterface $log): void
+{
+    $voucherCode = $user->personalData->voucher_code;
+
+    $orderCode = $pretix->findOrderCodeByVoucher($voucherCode);
+    if (!$orderCode) {
+        $log->warning(
+            'Pretix refund check: no order found for voucher {code} ({name}, {id})',
+            ['code' => $voucherCode, 'name' => $user->name, 'id' => $user->id]
+        );
+        echo sprintf('SKIP %s: no Pretix order found for voucher %s', $user->name, $voucherCode) . PHP_EOL;
+
+        return;
+    }
+
+    $order = $pretix->getOrder($orderCode);
+    if (!$order || ($order['status'] ?? null) !== 'p') {
+        echo sprintf(
+            'SKIP %s: order %s is not paid (status=%s)',
+            $user->name,
+            $orderCode,
+            $order['status'] ?? 'unknown'
+        ) . PHP_EOL;
+
+        return;
+    }
+
+    $outstanding = round((float) $order['total'] - $pretix->refundedAmount($order), 2);
+    if ($outstanding <= 0) {
+        echo sprintf('SKIP %s: order %s has nothing left to refund', $user->name, $orderCode) . PHP_EOL;
+
+        return;
+    }
+
+    if ($testMode) {
+        echo sprintf(
+            'WOULD REFUND %s: order %s, amount %.2f EUR (test mode, nothing created)',
+            $user->name,
+            $orderCode,
+            $outstanding
+        ) . PHP_EOL;
+
+        return;
+    }
+
+    $refund = $pretix->createManualRefund(
+        $orderCode,
+        $outstanding,
+        'helfisystem: Erstattung nach abgeleisteten Schichten'
+    );
+
+    PretixRefund::query()->create([
+        'user_id' => $user->id,
+        'order_code' => $orderCode,
+        'pretix_refund_local_id' => $refund['local_id'],
+        'amount' => $outstanding,
+        'state' => $refund['state'] ?? 'created',
+        'synced_at' => new Carbon(),
+    ]);
+
+    $log->info(
+        'Created Pretix refund for {name} ({id}): order {order}, {amount} EUR',
+        ['name' => $user->name, 'id' => $user->id, 'order' => $orderCode, 'amount' => $outstanding]
+    );
+    echo sprintf('CREATED refund for %s: order %s, %.2f EUR (pending, needs manual bank transfer)', $user->name, $orderCode, $outstanding) . PHP_EOL;
+}
+
+function syncPendingRefunds(bool $testMode, PretixClient $pretix, LoggerInterface $log): void
+{
+    $pending = PretixRefund::query()
+        ->whereNotIn('state', ['done', 'canceled'])
+        ->whereNotNull('pretix_refund_local_id')
+        ->with('user.personalData')
+        ->get();
+
+    if ($pending->isEmpty()) {
+        echo 'No pending refunds to sync.' . PHP_EOL;
+
+        return;
+    }
+
+    if ($testMode) {
+        echo sprintf('TEST MODE: would sync %d pending refund(s) against Pretix.', $pending->count()) . PHP_EOL;
+
+        return;
+    }
+
+    foreach ($pending as $tracked) {
+        try {
+            $refund = $pretix->getRefund($tracked->order_code, $tracked->pretix_refund_local_id);
+        } catch (\Throwable $e) {
+            $log->error(
+                'Pretix refund sync failed for order {order}: {message}',
+                ['order' => $tracked->order_code, 'message' => $e->getMessage()]
+            );
+            echo sprintf('ERROR syncing order %s: %s (skipped)', $tracked->order_code, $e->getMessage()) . PHP_EOL;
+
+            continue;
+        }
+
+        if (!$refund) {
+            continue;
+        }
+
+        $newState = $refund['state'] ?? $tracked->state;
+        if ($newState === $tracked->state) {
+            continue;
+        }
+
+        $tracked->state = $newState;
+        $tracked->synced_at = new Carbon();
+        $tracked->save();
+
+        echo sprintf('SYNCED refund for order %s: state -> %s', $tracked->order_code, $newState) . PHP_EOL;
+
+        if ($newState === 'done' && $tracked->user && $tracked->user->personalData) {
+            $tracked->user->personalData->has_payday = true;
+            $tracked->user->personalData->save();
+
+            $log->info(
+                'Pretix refund for {name} ({id}) is done, marked as paid',
+                ['name' => $tracked->user->name, 'id' => $tracked->user->id]
+            );
+            echo sprintf('MARKED %s as paid (has_payday)', $tracked->user->name) . PHP_EOL;
+        }
+    }
+}

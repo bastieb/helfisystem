@@ -10,11 +10,12 @@
 
         {% include 'layouts/parts/messages.twig' %}
 
-        <div class="row">
-            <div class="col-md-6">
-                <h2>{{ __('Settings') }}</h2>
-                <form method="post" action="{{ url('/admin/pretix/settings') }}">
-                    {{ csrf() }}
+        <form method="post" action="{{ url('/admin/pretix/settings') }}">
+            {{ csrf() }}
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>{{ __('Vouchers') }}</h2>
 
                     {{ f.switch('enable_pretix_voucher', __('Automatically issue Pretix vouchers'), {
                         'checked': enablePretixVoucher,
@@ -39,11 +40,71 @@
                         'step': 0.5,
                         'info': __('As soon as a helper is signed up for at least this many hours (across all their shifts), they automatically get a voucher code and an email.'),
                     }) }}
+                </div>
 
-                    {{ f.save(__('form.save')) }}
-                </form>
+                <div class="col-md-6">
+                    <h2>{{ __('Ticket refunds') }}</h2>
+
+                    {{ f.switch('enable_pretix_refund', __('Automatically create Pretix refunds'), {
+                        'checked': enablePretixRefund,
+                    }) }}
+
+                    {{ f.switch('pretix_test_mode', __('Test mode (log only, no real Pretix refunds are created)'), {
+                        'checked': pretixTestMode,
+                        'warning': __('Keep this on until you have verified order lookups against real test data.'),
+                    }) }}
+
+                    {{ f.number('pretix_refund_min_hours', __('Minimum completed hours for a refund'), {
+                        'value': pretixRefundMinHours,
+                        'min': 0,
+                        'step': 0.5,
+                        'info': __('As soon as a helper has completed ("Schicht geleistet") at least this many hours, a manual refund is created in Pretix for their order.'),
+                    }) }}
+
+                    <p class="form-text">
+                        {{ __('Only payment method "bank transfer" is supported: refunds are created in Pretix as pending (provider "manual") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid.') }}
+                    </p>
+                </div>
             </div>
 
+            <div class="row mt-2">
+                <div class="col-md-12">
+                    <h2>{{ __('Pretix API connection') }}</h2>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ f.input('pretix_base_url', __('Pretix base URL'), {
+                                'value': pretixBaseUrl,
+                                'placeholder': 'https://tickets.saunasplash.de',
+                            }) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ f.input('pretix_organizer_slug', __('Organizer slug'), {
+                                'value': pretixOrganizerSlug,
+                            }) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ f.input('pretix_event_slug', __('Event slug'), {
+                                'value': pretixEventSlug,
+                            }) }}
+                        </div>
+                    </div>
+
+                    {{ f.input('pretix_api_token', __('API token'), {
+                        'type': 'password',
+                        'value': pretixApiTokenSet ? passwordPlaceholder : '',
+                        'placeholder': pretixApiTokenSet ? '' : __('Not set'),
+                        'info': __('Create a team API token in Pretix with "can change orders" permission. Leave unchanged to keep the current token.'),
+                    }) }}
+                </div>
+            </div>
+
+            {{ f.save(__('form.save')) }}
+        </form>
+
+        <hr class="my-4">
+
+        <div class="row">
             <div class="col-md-6">
                 <h2>{{ __('Voucher code pool') }}</h2>
                 <p>
@@ -82,6 +143,36 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h2>{{ __('Tracked refunds') }}</h2>
+                {% if refunds|length %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{{ __('general.name') }}</th>
+                                <th>{{ __('Order') }}</th>
+                                <th>{{ __('Amount') }}</th>
+                                <th>{{ __('Status') }}</th>
+                                <th>{{ __('general.date') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for refund in refunds %}
+                                <tr>
+                                    <td>{{ refund.user ? m.user(refund.user) : '-' }}</td>
+                                    <td>{{ refund.order_code }}</td>
+                                    <td>{{ refund.amount }}&nbsp;€</td>
+                                    <td>{{ refund.state }}</td>
+                                    <td>{{ refund.created_at ? refund.created_at.format(__('general.date')) : '-' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">{{ __('No refunds tracked yet.') }}</p>
                 {% endif %}
             </div>
         </div>

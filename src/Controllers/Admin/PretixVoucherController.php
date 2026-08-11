@@ -13,12 +13,15 @@ use Engelsystem\Http\Redirector;
 use Engelsystem\Http\Request;
 use Engelsystem\Http\Response;
 use Engelsystem\Models\EventConfig;
+use Engelsystem\Models\PretixRefund;
 use Engelsystem\Models\PretixVoucher;
 use Psr\Log\LoggerInterface;
 
 class PretixVoucherController extends BaseController
 {
     use HasUserNotifications;
+
+    protected string $passwordPlaceholder = '**********';
 
     /** @var array<string> */
     protected array $permissions = [
@@ -31,7 +34,8 @@ class PretixVoucherController extends BaseController
         protected LoggerInterface $log,
         protected Redirector $redirect,
         protected Response $response,
-        protected PretixVoucher $pretixVoucher
+        protected PretixVoucher $pretixVoucher,
+        protected PretixRefund $pretixRefund
     ) {
     }
 
@@ -39,6 +43,7 @@ class PretixVoucherController extends BaseController
     {
         $exampleCode = 'BEISPIEL-CODE';
         $redeemLink = (string) $this->config->get('pretix_redeem_link', '');
+        $apiToken = (string) $this->config->get('pretix_api_token', '');
 
         return $this->response->withView(
             'admin/pretix/index',
@@ -55,6 +60,20 @@ class PretixVoucherController extends BaseController
                     ->orderByDesc('used_at')
                     ->limit(20)
                     ->get(),
+
+                'enablePretixRefund' => (bool) $this->config->get('enable_pretix_refund', false),
+                'pretixTestMode' => (bool) $this->config->get('pretix_test_mode', true),
+                'pretixRefundMinHours' => (float) $this->config->get('pretix_refund_min_hours', 0),
+                'pretixBaseUrl' => (string) $this->config->get('pretix_base_url', ''),
+                'pretixOrganizerSlug' => (string) $this->config->get('pretix_organizer_slug', ''),
+                'pretixEventSlug' => (string) $this->config->get('pretix_event_slug', ''),
+                'pretixApiTokenSet' => $apiToken !== '',
+                'passwordPlaceholder' => $this->passwordPlaceholder,
+                'refunds' => $this->pretixRefund->newQuery()
+                    ->with('user')
+                    ->orderByDesc('created_at')
+                    ->limit(50)
+                    ->get(),
             ]
         );
     }
@@ -65,13 +84,32 @@ class PretixVoucherController extends BaseController
             'enable_pretix_voucher' => 'optional|checked',
             'pretix_redeem_link' => 'optional',
             'pretix_min_hours' => 'optional|number|min:0',
+            'enable_pretix_refund' => 'optional|checked',
+            'pretix_test_mode' => 'optional|checked',
+            'pretix_refund_min_hours' => 'optional|number|min:0',
+            'pretix_base_url' => 'optional',
+            'pretix_organizer_slug' => 'optional',
+            'pretix_event_slug' => 'optional',
+            'pretix_api_token' => 'optional',
         ]);
 
         $this->setConfig('enable_pretix_voucher', !empty($data['enable_pretix_voucher']));
         $this->setConfig('pretix_redeem_link', trim((string) ($data['pretix_redeem_link'] ?? '')));
         $this->setConfig('pretix_min_hours', (float) ($data['pretix_min_hours'] ?? 0));
 
-        $this->log->info('Updated Pretix voucher settings');
+        $this->setConfig('enable_pretix_refund', !empty($data['enable_pretix_refund']));
+        $this->setConfig('pretix_test_mode', !empty($data['pretix_test_mode']));
+        $this->setConfig('pretix_refund_min_hours', (float) ($data['pretix_refund_min_hours'] ?? 0));
+        $this->setConfig('pretix_base_url', rtrim(trim((string) ($data['pretix_base_url'] ?? '')), '/'));
+        $this->setConfig('pretix_organizer_slug', trim((string) ($data['pretix_organizer_slug'] ?? '')));
+        $this->setConfig('pretix_event_slug', trim((string) ($data['pretix_event_slug'] ?? '')));
+
+        $submittedToken = (string) ($data['pretix_api_token'] ?? '');
+        if ($submittedToken !== '' && $submittedToken !== $this->passwordPlaceholder) {
+            $this->setConfig('pretix_api_token', $submittedToken);
+        }
+
+        $this->log->info('Updated Pretix voucher/refund settings');
         $this->addNotification('Pretix voucher settings saved.');
 
         return $this->redirect->to('/admin/pretix');

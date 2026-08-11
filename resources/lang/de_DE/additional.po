@@ -977,3 +977,63 @@ msgstr "Du hast dich für genügend Stunden eingetragen, danke fürs Helfen! Hie
 
 msgid "Redeem it here:"
 msgstr "Hier einlösen:"
+
+msgid "Vouchers"
+msgstr "Voucher"
+
+msgid "Ticket refunds"
+msgstr "Ticket-Erstattung"
+
+msgid "Automatically create Pretix refunds"
+msgstr "Pretix-Erstattungen automatisch anlegen"
+
+msgid "Test mode (log only, no real Pretix refunds are created)"
+msgstr "Testmodus (nur Log, es werden keine echten Pretix-Erstattungen angelegt)"
+
+msgid "Keep this on until you have verified order lookups against real test data."
+msgstr "Lass das an, bis du die Bestellungssuche mit echten Testdaten geprüft hast."
+
+msgid "Minimum completed hours for a refund"
+msgstr "Mindeststunden (geleistet) für eine Erstattung"
+
+msgid "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
+msgstr "Sobald ein Helfi mindestens so viele Stunden als \"Schicht geleistet\" markiert hat, wird für seine Bestellung eine manuelle Erstattung in Pretix angelegt."
+
+msgid "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
+msgstr "Es wird nur die Zahlungsart \"Überweisung\" unterstützt: Erstattungen werden in Pretix als ausstehend angelegt (Provider \"manual\") und müssen weiterhin von Hand überwiesen und danach in Pretix als erledigt markiert werden — helfisystem setzt \"ist ausbezahlt\" danach automatisch."
+
+msgid "Pretix API connection"
+msgstr "Pretix-API-Verbindung"
+
+msgid "Pretix base URL"
+msgstr "Pretix-Basis-URL"
+
+msgid "Organizer slug"
+msgstr "Organizer-Kurzname"
+
+msgid "Event slug"
+msgstr "Event-Kurzname"
+
+msgid "API token"
+msgstr "API-Token"
+
+msgid "Create a team API token in Pretix with \"can change orders\" permission. Leave unchanged to keep the current token."
+msgstr "Lege in Pretix ein Team-API-Token mit dem Recht \"Bestellungen bearbeiten\" an. Unverändert lassen, um das aktuelle Token zu behalten."
+
+msgid "Not set"
+msgstr "Nicht gesetzt"
+
+msgid "Order"
+msgstr "Bestellung"
+
+msgid "Amount"
+msgstr "Betrag"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Tracked refunds"
+msgstr "Erfasste Erstattungen"
+
+msgid "No refunds tracked yet."
+msgstr "Noch keine Erstattungen erfasst."
