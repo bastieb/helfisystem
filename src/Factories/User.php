@@ -82,11 +82,6 @@ class User
         $validationRules = [
             'username' => 'required|username',
             'email' => 'required|email',
-            'email_system'  => 'optional|checked',
-            'email_shiftinfo' => 'optional|checked',
-            'email_by_human_allowed' => 'optional|checked',
-            'email_messages' => 'optional|checked',
-            'email_news' => 'optional|checked',
             'email_goodie' => 'optional|checked',
             // Using length here, because min/max would validate dect/mobile as numbers.
             'mobile' => $this->isRequired('mobile') . '|length:0:40',
@@ -159,13 +154,6 @@ class User
         // additional validations
         $this->validateUniqueUsername($data['username']);
         $this->validateUniqueEmail($data['email']);
-
-        // simplified e-mail preferences
-        if ($data['email_system']) {
-            $data['email_shiftinfo'] = true;
-            $data['email_messages'] = true;
-            $data['email_news'] = true;
-        }
 
         if ($isPasswordEnabled) {
             // Finally, validate that password matches password_confirmation.
@@ -261,11 +249,13 @@ class User
         $settings = new Settings([
             'language'        => $this->session->get('locale') ?? 'en_US',
             'theme'           => $this->config->get('theme'),
-            'email_human'     => $data['email_by_human_allowed'] ?? false,
-            'email_messages'  => $data['email_messages'] ?? false,
+            // helfisystem: "email_by_human_allowed" + "email_system" (-> shiftinfo/messages/news)
+            // sind aus der Anmeldemaske entfernt und für jeden Account fest aktiv
+            'email_human'     => true,
+            'email_messages'  => true,
             'email_goodie'     => $data['email_goodie'] ?? false,
-            'email_shiftinfo' => $data['email_shiftinfo'] ?? false,
-            'email_news'      => $data['email_news'] ?? false,
+            'email_shiftinfo' => true,
+            'email_news'      => true,
             'mobile_show'     => $isShowMobileEnabled && $data['mobile_show'],
         ]);
         $settings->user()

@@ -85,7 +85,7 @@
                     </div>
                 {% endif %}
 
-                <div class="col-md-6">
+                <div class="col-md-12">
                     {{ f.input(
                         'email',
                         __('general.email'),
@@ -97,57 +97,6 @@
                             'value': f.formData('email', ''),
                         }
                     ) }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">{{ __('settings.profile.email-preferences') }}</label>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            {# Empty class to prevent the default bottom margin #}
-                            {{ f.checkbox(
-                                'email_system',
-                                __(
-                                    'registration.email_system',
-                                    [config('app_name')]
-                                ),
-                                {
-                                    'class': '',
-                                    'checked': f.formData('email_system', false),
-                                    'info': __('registration.email_system.info'),
-                                },
-                            ) }}
-                        </li>
-                        <li class="list-group-item">
-                            {# Empty class to prevent the default bottom margin #}
-                            {{ f.checkbox(
-                                'email_by_human_allowed',
-                                __('settings.profile.email_by_human_allowed'),
-                                {
-                                    'class': '',
-                                    'checked': f.formData('email_by_human_allowed', false),
-                                },
-                            ) }}
-                        </li>
-                    </ul>
-                    {% if isGoodieEnabled %}
-                        <ul class="list-group pt-1">
-                            <li class="list-group-item">
-                                {% set privacy_email = config('privacy_email') %}
-                                {% set email_goodie_label =
-                                    (isGoodieTShirt ? __('settings.profile.email_tshirt') : __('settings.profile.email_goodie')) ~
-                                    (privacy_email ? ' ' ~ __('settings.profile.privacy', [privacy_email]) : '')
-                                %}
-                                {{ f.checkbox(
-                                    'email_goodie',
-                                    email_goodie_label,
-                                    {
-                                        'class': '',
-                                        'raw_label': true,
-                                        'checked': f.formData('email_goodie', false),
-                                    },
-                                ) }}
-                            </li>
-                        </ul>
-                    {% endif %}
                 </div>
             </div>
         </div>
