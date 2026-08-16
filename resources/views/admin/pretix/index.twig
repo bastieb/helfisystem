@@ -173,7 +173,7 @@
                 {% if refunds|length %}
                     <p>
                         <a class="btn btn-secondary btn-sm" href="{{ url('/admin/pretix/refunds.csv') }}">
-                            {{ icon('download') }} {{ __('Download CSV for bulk bank transfer') }}
+                            {{ m.icon('download') }} {{ __('Download CSV for bulk bank transfer') }}
                         </a>
                     </p>
                     <table class="table table-sm">
