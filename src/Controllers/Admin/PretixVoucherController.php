@@ -69,6 +69,9 @@ class PretixVoucherController extends BaseController
                 'pretixEventSlug' => (string) $this->config->get('pretix_event_slug', ''),
                 'pretixApiTokenSet' => $apiToken !== '',
                 'passwordPlaceholder' => $this->passwordPlaceholder,
+                'pretixAccountHolderQuestionId' => (string) $this->config->get('pretix_account_holder_question_id', ''),
+                'pretixIbanQuestionId' => (string) $this->config->get('pretix_iban_question_id', ''),
+                'pretixBicQuestionId' => (string) $this->config->get('pretix_bic_question_id', ''),
                 'refunds' => $this->pretixRefund->newQuery()
                     ->with('user')
                     ->orderByDesc('created_at')
@@ -76,6 +79,37 @@ class PretixVoucherController extends BaseController
                     ->get(),
             ]
         );
+    }
+
+    public function refundsCsv(): Response
+    {
+        $refunds = $this->pretixRefund->newQuery()
+            ->where('state', 'created')
+            ->with('user')
+            ->orderBy('created_at')
+            ->get();
+
+        $lines = ['Name;IBAN;BIC;Betrag;Verwendungszweck'];
+        foreach ($refunds as $refund) {
+            $reference = sprintf('Helfisystem Erstattung %s', $refund->order_code);
+            $lines[] = implode(';', [
+                $this->csvField($refund->account_holder ?: ($refund->user->name ?? '')),
+                $this->csvField($refund->iban ?: ''),
+                $this->csvField($refund->bic ?: ''),
+                number_format($refund->amount, 2, ',', ''),
+                $this->csvField($reference),
+            ]);
+        }
+
+        return $this->response
+            ->withHeader('Content-Type', 'text/csv; charset=utf-8')
+            ->withHeader('Content-Disposition', 'attachment; filename="pretix-erstattungen.csv"')
+            ->withContent("\xEF\xBB\xBF" . implode("\r\n", $lines) . "\r\n");
+    }
+
+    private function csvField(string $value): string
+    {
+        return '"' . str_replace('"', '""', $value) . '"';
     }
 
     public function saveSettings(Request $request): Response
@@ -91,6 +125,9 @@ class PretixVoucherController extends BaseController
             'pretix_organizer_slug' => 'optional',
             'pretix_event_slug' => 'optional',
             'pretix_api_token' => 'optional',
+            'pretix_account_holder_question_id' => 'optional',
+            'pretix_iban_question_id' => 'optional',
+            'pretix_bic_question_id' => 'optional',
         ]);
 
         $this->setConfig('enable_pretix_voucher', !empty($data['enable_pretix_voucher']));
@@ -103,6 +140,12 @@ class PretixVoucherController extends BaseController
         $this->setConfig('pretix_base_url', rtrim(trim((string) ($data['pretix_base_url'] ?? '')), '/'));
         $this->setConfig('pretix_organizer_slug', trim((string) ($data['pretix_organizer_slug'] ?? '')));
         $this->setConfig('pretix_event_slug', trim((string) ($data['pretix_event_slug'] ?? '')));
+        $this->setConfig(
+            'pretix_account_holder_question_id',
+            trim((string) ($data['pretix_account_holder_question_id'] ?? ''))
+        );
+        $this->setConfig('pretix_iban_question_id', trim((string) ($data['pretix_iban_question_id'] ?? '')));
+        $this->setConfig('pretix_bic_question_id', trim((string) ($data['pretix_bic_question_id'] ?? '')));
 
         $submittedToken = (string) ($data['pretix_api_token'] ?? '');
         if ($submittedToken !== '' && $submittedToken !== $this->passwordPlaceholder) {

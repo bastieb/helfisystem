@@ -201,6 +201,7 @@ $route->addGroup(
                 $route->get('', 'Admin\\PretixVoucherController@index');
                 $route->post('/settings', 'Admin\\PretixVoucherController@saveSettings');
                 $route->post('/codes', 'Admin\\PretixVoucherController@addCodes');
+                $route->get('/refunds.csv', 'Admin\\PretixVoucherController@refundsCsv');
             }
         );
 

@@ -15,6 +15,9 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string      $order_code
  * @property int|null    $pretix_refund_local_id
  * @property float       $amount
+ * @property string|null $account_holder
+ * @property string|null $iban
+ * @property string|null $bic
  * @property string      $state
  * @property Carbon|null $synced_at
  * @property Carbon|null $created_at
@@ -44,6 +47,9 @@ class PretixRefund extends BaseModel
         'order_code',
         'pretix_refund_local_id',
         'amount',
+        'account_holder',
+        'iban',
+        'bic',
         'state',
         'synced_at',
     ];

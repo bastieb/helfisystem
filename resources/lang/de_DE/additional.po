@@ -1049,3 +1049,24 @@ msgstr "Erfasste Erstattungen"
 
 msgid "No refunds tracked yet."
 msgstr "Noch keine Erstattungen erfasst."
+
+msgid "Checkout question IDs for bank details"
+msgstr "Frage-IDs für Bankdaten im Checkout"
+
+msgid "The \"identifier\" field of the Pretix checkout questions that hold account holder name, IBAN and BIC (Pretix admin → Questions)."
+msgstr "Das „identifier“-Feld der Pretix-Checkout-Fragen, die Kontoinhaber, IBAN und BIC enthalten (Pretix-Admin → Questions)."
+
+msgid "Account holder question ID"
+msgstr "Frage-ID Kontoinhaber"
+
+msgid "IBAN question ID"
+msgstr "Frage-ID IBAN"
+
+msgid "BIC question ID"
+msgstr "Frage-ID BIC"
+
+msgid "Download CSV for bulk bank transfer"
+msgstr "CSV für Sammelüberweisung herunterladen"
+
+msgid "IBAN"
+msgstr "IBAN"

@@ -127,12 +127,28 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
         return;
     }
 
+    $bankDetails = $pretix->extractBankDetails($order);
+    if (!$bankDetails['iban']) {
+        $log->warning(
+            'Pretix refund check: no IBAN found in order {order} for {name} ({id})',
+            ['order' => $orderCode, 'name' => $user->name, 'id' => $user->id]
+        );
+        echo sprintf(
+            'WARNING %s: order %s has no IBAN answer - refund will be created without bank details',
+            $user->name,
+            $orderCode
+        ) . PHP_EOL;
+    }
+
     if ($testMode) {
         echo sprintf(
-            'WOULD REFUND %s: order %s, amount %.2f EUR (test mode, nothing created)',
+            'WOULD REFUND %s: order %s, amount %.2f EUR, account holder=%s, IBAN=%s, BIC=%s (test mode, nothing created)',
             $user->name,
             $orderCode,
-            $outstanding
+            $outstanding,
+            $bankDetails['account_holder'] ?? '-',
+            $bankDetails['iban'] ?? '-',
+            $bankDetails['bic'] ?? '-'
         ) . PHP_EOL;
 
         return;
@@ -149,6 +165,9 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
         'order_code' => $orderCode,
         'pretix_refund_local_id' => $refund['local_id'],
         'amount' => $outstanding,
+        'account_holder' => $bankDetails['account_holder'],
+        'iban' => $bankDetails['iban'],
+        'bic' => $bankDetails['bic'],
         'state' => $refund['state'] ?? 'created',
         'synced_at' => new Carbon(),
     ]);

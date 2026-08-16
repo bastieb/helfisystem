@@ -54,6 +54,42 @@ class PretixClient
     }
 
     /**
+     * helfisystem: Liest Kontoinhaber/IBAN/BIC aus den Antworten auf die entsprechenden
+     * Pretix-Checkout-Fragen (Frage-Identifier aus den pretix_*_question_id-Settings).
+     * Durchsucht alle Positionen der Order, nimmt die erste Position mit vollständiger Antwort.
+     *
+     * @return array{account_holder: string|null, iban: string|null, bic: string|null}
+     */
+    public function extractBankDetails(array $order): array
+    {
+        $holderId = (string) $this->config->get('pretix_account_holder_question_id', '');
+        $ibanId = (string) $this->config->get('pretix_iban_question_id', '');
+        $bicId = (string) $this->config->get('pretix_bic_question_id', '');
+
+        $result = ['account_holder' => null, 'iban' => null, 'bic' => null];
+
+        foreach ($order['positions'] ?? [] as $position) {
+            foreach ($position['answers'] ?? [] as $answer) {
+                $identifier = $answer['question_identifier'] ?? null;
+                $value = trim((string) ($answer['answer'] ?? ''));
+                if ($value === '') {
+                    continue;
+                }
+
+                if ($identifier === $holderId && !$result['account_holder']) {
+                    $result['account_holder'] = $value;
+                } elseif ($identifier === $ibanId && !$result['iban']) {
+                    $result['iban'] = str_replace(' ', '', $value);
+                } elseif ($identifier === $bicId && !$result['bic']) {
+                    $result['bic'] = $value;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Bereits erstattete/in Erstattung befindliche Summe einer Order (alles außer canceled).
      */
     public function refundedAmount(array $order): float
