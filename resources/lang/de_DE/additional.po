@@ -787,7 +787,19 @@ msgid "shift_change.already_requested"
 msgstr "Für diese Schicht liegt bereits ein Antrag vor."
 
 msgid "shift_change.threshold_block"
-msgstr "Austragen nicht möglich: Du würdest dann unter %s Stunden fallen. Bitte wende dich an die Schicht-Koordination."
+msgstr "Austragen nicht möglich: Du würdest dann unter %1$s Stunden fallen. Melde dich am besten zuerst für eine weitere Schicht an, damit du danach weiterhin mindestens %1$s Stunden hast. Falls du komplett nicht zum Festival kommst, hake unten „Ich komme komplett nicht zum Festival“ an."
+
+msgid "shift_change.threshold_hint"
+msgstr "Wenn du dich jetzt austrägst, fällst du unter %1$s Stunden. Melde dich am besten zuerst für eine weitere Schicht an, damit du danach weiterhin mindestens %1$s Stunden hast. Kommst du komplett nicht zum Festival, hake unten „Ich komme komplett nicht zum Festival“ an – dann entfällt diese Prüfung."
+
+msgid "shift_change.full_withdrawal_label"
+msgstr "Ich komme komplett nicht zum Festival"
+
+msgid "shift_change.full_withdrawal_hint"
+msgstr "Wenn du das ankreuzt, werden alle deine eingetragenen Schichten zur Austragung beantragt (nicht nur diese eine), die Mindeststunden-Prüfung entfällt."
+
+msgid "shift_change.full_withdrawal_sent"
+msgstr "Dein kompletter Rücktritt wurde beantragt: %s Schicht(en) warten auf Freigabe durch die Schicht-Koordination."
 
 msgid "shift_change.reason_required"
 msgstr "Bitte gib eine Begründung an."

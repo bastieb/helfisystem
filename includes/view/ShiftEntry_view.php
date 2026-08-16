@@ -200,7 +200,7 @@ function ShiftEntry_create_title()
 /**
  * helfisystem: Formular, mit dem ein Helfi das Austragen aus einer Schicht beantragt (mit Begruendung).
  */
-function ShiftEntry_request_view(Shift $shift, AngelType $angeltype, User $signoff_user)
+function ShiftEntry_request_view(Shift $shift, AngelType $angeltype, User $signoff_user, bool $belowThreshold = false)
 {
     return page_with_title(__('shift_change.request_title'), [
         info(sprintf(
@@ -210,8 +210,18 @@ function ShiftEntry_request_view(Shift $shift, AngelType $angeltype, User $signo
             $shift->end->format(__('general.datetime')),
             $angeltype->name
         ), true),
+        $belowThreshold ? info(sprintf(
+            __('shift_change.threshold_hint'),
+            number_format(Signout_threshold_hours(), 0)
+        ), true) : '',
         form([
             form_textarea('reason', __('shift_change.reason'), ''),
+            form_checkbox(
+                'full_withdrawal',
+                __('shift_change.full_withdrawal_label'),
+                false
+            ),
+            '<p class="text-muted">' . __('shift_change.full_withdrawal_hint') . '</p>',
             buttons([
                 button(user_link($signoff_user->id), icon('x-lg') . __('form.cancel')),
                 form_submit('request_signout', __('shift_change.request_submit'), 'btn-warning'),

@@ -878,7 +878,19 @@ msgid "shift_change.already_requested"
 msgstr "There is already a pending request for this shift."
 
 msgid "shift_change.threshold_block"
-msgstr "Signing out is not possible: you would drop below %s hours. Please contact the shift coordination team."
+msgstr "Signing out is not possible: you would drop below %1$s hours. Try signing up for another shift first, so you still have at least %1$s hours afterwards. If you're not coming to the festival at all, check \"I'm not coming to the festival at all\" below."
+
+msgid "shift_change.threshold_hint"
+msgstr "If you sign out now, you'll drop below %1$s hours. Try signing up for another shift first, so you still have at least %1$s hours afterwards. If you're not coming to the festival at all, check \"I'm not coming to the festival at all\" below — that skips this check."
+
+msgid "shift_change.full_withdrawal_label"
+msgstr "I'm not coming to the festival at all"
+
+msgid "shift_change.full_withdrawal_hint"
+msgstr "If you check this, a sign-out will be requested for all of your shifts (not just this one), and the minimum-hours check is skipped."
+
+msgid "shift_change.full_withdrawal_sent"
+msgstr "Your complete withdrawal has been requested: %s shift(s) are waiting for approval by the shift coordination team."
 
 msgid "shift_change.reason_required"
 msgstr "Please give a reason."

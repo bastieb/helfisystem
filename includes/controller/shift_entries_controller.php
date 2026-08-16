@@ -367,16 +367,26 @@ function shift_entry_delete_controller()
         throw_redirect(user_link($signout_user->id));
     }
 
-    // 8h-Regel: wer die Schwelle erreicht hat, muss danach noch >= Schwelle behalten
-    if (!Signout_keeps_threshold($user, $shift)) {
-        error(__('shift_change.threshold_block', [number_format(Signout_threshold_hours(), 0)]));
-        throw_redirect(user_link($signout_user->id));
-    }
+    // 8h/10h-Regel: wer die Schwelle erreicht hat, muss danach noch >= Schwelle behalten,
+    // ausser bei komplettem Ruecktritt (full_withdrawal)
+    $keepsThreshold = Signout_keeps_threshold($user, $shift);
 
     if ($request->hasPostData('request_signout')) {
         $reason = strip_request_item_nl('reason');
+        $fullWithdrawal = $request->hasPostData('full_withdrawal');
+
         if ($reason == '') {
             error(__('shift_change.reason_required'));
+        } elseif (!$keepsThreshold && !$fullWithdrawal) {
+            error(__('shift_change.threshold_block', [number_format(Signout_threshold_hours(), 0)]));
+        } elseif ($fullWithdrawal) {
+            $created = ShiftEntry_request_full_withdrawal($user, $reason);
+            engelsystem_log(
+                'Complete withdrawal requested by ' . User_Nick_render($user, true)
+                . ' (' . $created . ' shift(s))'
+            );
+            success(sprintf(__('shift_change.full_withdrawal_sent'), $created));
+            throw_redirect(user_link($signout_user->id));
         } else {
             ShiftChangeRequest::create([
                 'user_id'        => $user->id,
@@ -395,8 +405,37 @@ function shift_entry_delete_controller()
 
     return [
         ShiftEntry_delete_title(),
-        ShiftEntry_request_view($shift, $angeltype, $signout_user),
+        ShiftEntry_request_view($shift, $angeltype, $signout_user, !$keepsThreshold),
     ];
+}
+
+/**
+ * helfisystem: Beantragt das Austragen aus ALLEN Schichten eines Helfis (z.B. weil er/sie
+ * gar nicht zum Festival kommt), ohne die Mindeststunden-Schwelle zu pruefen.
+ * Bereits offene Antraege fuer einzelne Schichten werden uebersprungen (nicht doppelt angelegt).
+ *
+ * @return int Anzahl neu angelegter Antraege
+ */
+function ShiftEntry_request_full_withdrawal(User $user, string $reason): int
+{
+    $alreadyRequested = ShiftChangeRequest::where('user_id', $user->id)
+        ->where('status', ShiftChangeRequest::PENDING)
+        ->pluck('shift_entry_id');
+
+    $entries = ShiftEntry::where('user_id', $user->id)
+        ->whereNotIn('id', $alreadyRequested)
+        ->get();
+
+    foreach ($entries as $entry) {
+        ShiftChangeRequest::create([
+            'user_id'        => $user->id,
+            'shift_entry_id' => $entry->id,
+            'shift_id'       => $entry->shift_id,
+            'reason'         => $reason,
+        ]);
+    }
+
+    return $entries->count();
 }
 
 /**
