@@ -105,20 +105,29 @@ class PretixClient
     }
 
     /**
-     * Legt eine Rückerstattung an (provider=manual, wird NICHT automatisch ausgeführt/ausgezahlt).
+     * Legt eine Rückerstattung als provider=banktransfer an, mit Kontodaten (info-Feld), damit sie
+     * in Pretix genauso aussieht/behandelt wird wie eine manuell über "Erstattung auf anderes
+     * Zahlungsmittel -> Banküberweisung" angelegte. Wird NICHT automatisch ausgeführt/ausgezahlt -
+     * Pretix hat dafür bei Banküberweisung keine Automatik, das muss von Hand überwiesen und dann
+     * in Pretix als erledigt markiert werden.
      *
+     * @param array{account_holder: string|null, iban: string|null, bic: string|null} $bankDetails
      * @return array<string, mixed> Der angelegte Refund-Datensatz (inkl. local_id)
      */
-    public function createManualRefund(string $orderCode, float $amount, string $comment): array
+    public function createManualRefund(string $orderCode, float $amount, string $comment, array $bankDetails): array
     {
+        $info = ['payer' => $bankDetails['account_holder'], 'iban' => $bankDetails['iban']];
+        if ($bankDetails['bic']) {
+            $info['bic'] = $bankDetails['bic'];
+        }
+
         $response = $this->request('POST', 'orders/' . rawurlencode($orderCode) . '/refunds/', null, [
             'state' => 'created',
             'source' => 'admin',
             'amount' => number_format($amount, 2, '.', ''),
-            'provider' => 'manual',
+            'provider' => 'banktransfer',
+            'info' => $info,
             'comment' => $comment,
-            'mark_canceled' => false,
-            'mark_pending' => false,
         ]);
 
         if (!isset($response['local_id'])) {

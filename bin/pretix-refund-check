@@ -128,16 +128,18 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
     }
 
     $bankDetails = $pretix->extractBankDetails($order);
-    if (!$bankDetails['iban']) {
+    if (!$bankDetails['iban'] || !$bankDetails['account_holder']) {
         $log->warning(
-            'Pretix refund check: no IBAN found in order {order} for {name} ({id})',
+            'Pretix refund check: no IBAN/account holder found in order {order} for {name} ({id})',
             ['order' => $orderCode, 'name' => $user->name, 'id' => $user->id]
         );
         echo sprintf(
-            'WARNING %s: order %s has no IBAN answer - refund will be created without bank details',
+            'SKIP %s: order %s has no IBAN/account holder answer, refund not created',
             $user->name,
             $orderCode
         ) . PHP_EOL;
+
+        return;
     }
 
     if ($testMode) {
@@ -157,7 +159,8 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
     $refund = $pretix->createManualRefund(
         $orderCode,
         $outstanding,
-        'helfisystem: Erstattung nach abgeleisteten Schichten'
+        'helfisystem: Erstattung nach abgeleisteten Schichten',
+        $bankDetails
     );
 
     PretixRefund::query()->create([
