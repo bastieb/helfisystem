@@ -80,11 +80,13 @@ function update_ShiftsFilter_timerange(ShiftsFilter $shiftsFilter, $days)
 
     $end_time = $shiftsFilter->getEndTime();
     if (is_null($end_time)) {
-        $end_time = $start_time + 24 * 60 * 60;
-        $end = Carbon::createFromTimestamp($end_time, Carbon::now()->timezone);
-        if (!in_array($end->format('Y-m-d'), $days)) {
-            $end->startOfDay()->subSecond(); // the day before
-            $end_time = $end->timestamp;
+        // helfisystem: Default zeigt den gesamten Zeitraum aller vorhandenen Schichten
+        // (bis zum letzten Schichttag), nicht nur die ersten 24h ab Start.
+        if (!empty($days)) {
+            $lastDay = end($days);
+            $end_time = DateTime::createFromFormat('Y-m-d H:i:s', $lastDay . ' 23:59:59')->getTimestamp();
+        } else {
+            $end_time = $start_time + 24 * 60 * 60;
         }
     }
 
