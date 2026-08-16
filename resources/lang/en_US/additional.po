@@ -858,3 +858,144 @@ msgstr "/metrics buckets"
 
 msgid "config.var_dump_server"
 msgstr "var_dump server"
+
+msgid "shift_change.request_title"
+msgstr "Request sign-out"
+
+msgid "shift_change.request_intro"
+msgstr "Do you want to sign out of your shift %s (%s to %s) as %s? Please give a short reason – the shift coordination team will approve the request."
+
+msgid "shift_change.reason"
+msgstr "Reason"
+
+msgid "shift_change.request_submit"
+msgstr "Request sign-out"
+
+msgid "shift_change.request_sent"
+msgstr "Your sign-out request has been sent to the shift coordination team."
+
+msgid "shift_change.already_requested"
+msgstr "There is already a pending request for this shift."
+
+msgid "shift_change.threshold_block"
+msgstr "Signing out is not possible: you would drop below %s hours. Please contact the shift coordination team."
+
+msgid "shift_change.reason_required"
+msgstr "Please give a reason."
+
+msgid "shift_change.admin_title"
+msgstr "Sign-out requests"
+
+msgid "shift_change.shift"
+msgstr "Shift"
+
+msgid "shift_change.requested_at"
+msgstr "Requested at"
+
+msgid "shift_change.approve"
+msgstr "Approve"
+
+msgid "shift_change.reject"
+msgstr "Reject"
+
+msgid "shift_change.approved"
+msgstr "Request approved – helper has been signed out."
+
+msgid "shift_change.rejected"
+msgstr "Request rejected."
+
+msgid "shift_change.none_pending"
+msgstr "No open requests."
+
+msgid "news.target.title"
+msgstr "Target audience (who sees/receives this news?)"
+
+msgid "news.target.hint"
+msgstr "Without a selection, the news goes to everyone. With a selection, only to matching helpers (shown in the dashboard and by email)."
+
+msgid "news.target.mode"
+msgstr "Combining criteria"
+
+msgid "news.target.mode.all"
+msgstr "All selected criteria must match (AND)"
+
+msgid "news.target.mode.any"
+msgstr "At least one criterion must match (OR)"
+
+msgid "news.target.angel_types"
+msgstr "Angel types"
+
+msgid "news.target.shift_types"
+msgstr "Shift types"
+
+msgid "news.target.locations"
+msgstr "Locations"
+
+msgid "news.target.days"
+msgstr "Days (with a shift)"
+
+msgid "news.target.status"
+msgstr "Status"
+
+msgid "news.target.empty_hint"
+msgstr "Multiple selections within one field = OR (e.g. several angel types). Nothing selected = everyone."
+
+msgid "news.target.status.paid"
+msgstr "Paid"
+
+msgid "news.target.status.not_paid"
+msgstr "Not paid yet"
+
+msgid "news.target.status.arrived"
+msgstr "Arrived"
+
+msgid "news.target.status.active"
+msgstr "Active"
+
+msgid "news.target.status.all_shifts_completed"
+msgstr "All shifts completed"
+
+msgid "shift_release.title"
+msgstr "Shift release schedule"
+
+msgid "shift_release.hint"
+msgstr "Here you can release self sign-up for shifts day by day. Locked days are visible to helpers, but can only be signed up for once released. Admins/shift coordination can always sign up."
+
+msgid "shift_release.day"
+msgstr "Day"
+
+msgid "shift_release.shifts"
+msgstr "Shifts"
+
+msgid "shift_release.status"
+msgstr "Status"
+
+msgid "shift_release.action"
+msgstr "Release"
+
+msgid "shift_release.status_free"
+msgstr "Open immediately"
+
+msgid "shift_release.status_at"
+msgstr "Open from %s"
+
+msgid "shift_release.status_mixed"
+msgstr "Mixed"
+
+msgid "shift_release.btn_set"
+msgstr "Release from"
+
+msgid "shift_release.btn_now"
+msgstr "Release immediately"
+
+msgid "shift_release.released_now"
+msgstr "Day %s has been released immediately."
+
+msgid "shift_release.set_done"
+msgstr "Day %s will be released from %s."
+
+msgid "shift_release.invalid_datetime"
+msgstr "Invalid date/time."
+
+msgid "shift_release.no_shifts"
+msgstr "There are no shifts yet."
