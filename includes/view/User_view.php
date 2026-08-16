@@ -852,41 +852,19 @@ function User_view_state($admin_user_privilege, $freeloader, $user_source)
 
     $state[] = User_shift_state_render($user_source);
 
-    if ($user_source->state->arrived) {
-        if ($admin_user_privilege) {
-            $state[] = '<span class="text-success">' . icon('house')
-                . sprintf(
-                    __('Arrived at %s'),
-                    $user_source->state->arrival_date
-                        ? $user_source->state->arrival_date->format(__('general.date')) : ''
-                )
-                . '</span>';
-
-            if ($user_source->state->force_active && config('enable_force_active')) {
-                $state[] = '<span class="text-success">' . __('user.force_active') . '</span>';
-            } elseif ($user_source->state->active) {
-                $state[] = '<span class="text-success">' . __('user.active') . '</span>';
-            }
-            if ($user_source->state->force_food && config('enable_force_food')) {
-                $state[] = '<span class="text-success">' . __('user.force_food') . '</span>';
-            }
-            if ($user_source->state->got_goodie && $goodie_enabled) {
-                $state[] = '<span class="text-success">' . __('Goodie') . '</span>';
-            }
-        } else {
-            $state[] = '<span class="text-success">' . icon('house') . __('user.arrived') . '</span>';
+    // helfisystem: Ankunfts-Anzeige deaktiviert (autoarrive setzt sie fuer jeden Helfi
+    // permanent bei der Registrierung, kein aussagekraeftiger Status mehr)
+    if ($admin_user_privilege) {
+        if ($user_source->state->force_active && config('enable_force_active')) {
+            $state[] = '<span class="text-success">' . __('user.force_active') . '</span>';
+        } elseif ($user_source->state->active) {
+            $state[] = '<span class="text-success">' . __('user.active') . '</span>';
         }
-    } else {
-        if ($admin_user_privilege) {
-            $arrivalDate = $user_source->personalData->planned_arrival_date;
-            $state[] = '<span class="text-danger">'
-                . ($arrivalDate ? sprintf(
-                    __('Not arrived (Planned: %s)'),
-                    $arrivalDate->format(__('general.date'))
-                ) : __('Not arrived'))
-                . '</span>';
-        } else {
-            $state[] = '<span class="text-danger">' . __('Not arrived') . '</span>';
+        if ($user_source->state->force_food && config('enable_force_food')) {
+            $state[] = '<span class="text-success">' . __('user.force_food') . '</span>';
+        }
+        if ($user_source->state->got_goodie && $goodie_enabled) {
+            $state[] = '<span class="text-success">' . __('Goodie') . '</span>';
         }
     }
 
