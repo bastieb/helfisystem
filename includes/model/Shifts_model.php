@@ -658,10 +658,14 @@ function Shift_hours(Shift $shift): float
 
 /**
  * helfisystem: Schwelle (Stunden), ab der Selbst-Austragen die Mindeststunden wahren muss.
+ * Folgt der Pretix-Voucher-Schwelle (gleiche Grundlage: eingeplante Stunden), damit es nur
+ * eine "genug Stunden"-Zahl im System gibt. Fallback 8h, falls die Pretix-Schwelle nicht gesetzt ist.
  */
 function Signout_threshold_hours(): float
 {
-    return (float) (config('helfi_signout_threshold_hours') ?? 8);
+    $pretixThreshold = (float) config('pretix_min_hours');
+
+    return $pretixThreshold > 0 ? $pretixThreshold : (float) (config('helfi_signout_threshold_hours') ?? 8);
 }
 
 /**
