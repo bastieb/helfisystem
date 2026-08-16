@@ -1070,3 +1070,21 @@ msgstr "CSV für Sammelüberweisung herunterladen"
 
 msgid "IBAN"
 msgstr "IBAN"
+
+msgid "Admin notification email"
+msgstr "Admin-E-Mail für Warnungen"
+
+msgid "Gets an email once the voucher pool actually runs out. Leave empty to disable."
+msgstr "Bekommt eine E-Mail, sobald der Voucher-Pool wirklich leer läuft. Leer lassen zum Deaktivieren."
+
+msgid "Low stock warning threshold"
+msgstr "Schwellenwert für Warnhinweis (wenig Codes übrig)"
+
+msgid "Show a warning banner on this page once the unused code count drops to or below this number."
+msgstr "Zeigt hier oben einen Warnhinweis, sobald die Anzahl unbenutzter Codes auf diesen Wert oder darunter fällt."
+
+msgid "Voucher pool is empty! Helpers who reach the threshold will not get a code until you add more below."
+msgstr "Voucher-Pool ist leer! Helfis, die die Schwelle erreichen, bekommen erst wieder einen Code, wenn du unten neue hinzufügst."
+
+msgid "Only %d unused codes left, add more soon."
+msgstr "Nur noch %d unbenutzte Codes übrig, bald neue hinzufügen."

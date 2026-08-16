@@ -54,6 +54,8 @@ class PretixVoucherController extends BaseController
                 'examplePreview' => $this->buildRedeemLink($redeemLink, $exampleCode),
                 'unusedCount' => $this->pretixVoucher->newQuery()->whereNull('used_by_user_id')->count(),
                 'usedCount' => $this->pretixVoucher->newQuery()->whereNotNull('used_by_user_id')->count(),
+                'pretixVoucherLowStockThreshold' => (int) $this->config->get('pretix_voucher_low_stock_threshold', 10),
+                'pretixAdminNotifyEmail' => (string) $this->config->get('pretix_admin_notify_email', ''),
                 'recentlyUsed' => $this->pretixVoucher->newQuery()
                     ->whereNotNull('used_by_user_id')
                     ->with('usedBy')
@@ -128,6 +130,8 @@ class PretixVoucherController extends BaseController
             'pretix_account_holder_question_id' => 'optional',
             'pretix_iban_question_id' => 'optional',
             'pretix_bic_question_id' => 'optional',
+            'pretix_admin_notify_email' => 'optional|email',
+            'pretix_voucher_low_stock_threshold' => 'optional|number|min:0',
         ]);
 
         $this->setConfig('enable_pretix_voucher', !empty($data['enable_pretix_voucher']));
@@ -146,6 +150,11 @@ class PretixVoucherController extends BaseController
         );
         $this->setConfig('pretix_iban_question_id', trim((string) ($data['pretix_iban_question_id'] ?? '')));
         $this->setConfig('pretix_bic_question_id', trim((string) ($data['pretix_bic_question_id'] ?? '')));
+        $this->setConfig('pretix_admin_notify_email', trim((string) ($data['pretix_admin_notify_email'] ?? '')));
+        $this->setConfig(
+            'pretix_voucher_low_stock_threshold',
+            (int) ($data['pretix_voucher_low_stock_threshold'] ?? 10)
+        );
 
         $submittedToken = (string) ($data['pretix_api_token'] ?? '');
         if ($submittedToken !== '' && $submittedToken !== $this->passwordPlaceholder) {
@@ -191,6 +200,11 @@ class PretixVoucherController extends BaseController
             count($newCodes),
             count($existing)
         ));
+
+        // helfisystem: neue Codes da -> naechstes Leerlaufen soll wieder eine Mail ausloesen
+        if ($newCodes) {
+            $this->setConfig('pretix_voucher_pool_empty_notified', false);
+        }
 
         return $this->redirect->to('/admin/pretix');
     }

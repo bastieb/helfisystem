@@ -6,6 +6,7 @@ declare(strict_types=1);
 use Carbon\Carbon;
 use Engelsystem\Config\Config;
 use Engelsystem\Mail\EngelsystemMailer;
+use Engelsystem\Models\EventConfig;
 use Engelsystem\Models\PretixVoucher;
 use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\User\User;
@@ -118,4 +119,27 @@ if ($poolEmpty) {
         $remaining
     ) . PHP_EOL;
     $log->warning('Pretix voucher pool is empty, {count} helpers waiting', ['count' => $remaining]);
+
+    // helfisystem: nur einmal pro "leer"-Phase eine Mail schicken, nicht bei jedem Cron-Lauf.
+    // Flag wird beim Nachlegen neuer Codes (PretixVoucherController::addCodes) zurueckgesetzt.
+    $adminEmail = (string) $config->get('pretix_admin_notify_email', '');
+    $alreadyNotified = (bool) $config->get('pretix_voucher_pool_empty_notified', false);
+
+    if ($adminEmail && !$alreadyNotified) {
+        $mailer->send(
+            $adminEmail,
+            'Pretix voucher pool is empty',
+            sprintf(
+                "The Pretix voucher pool ran out. %d helper(s) currently waiting for a code.\n\n"
+                . "Add more codes on /admin/pretix to resolve this.",
+                $remaining
+            )
+        );
+        (new EventConfig())
+            ->findOrNew('pretix_voucher_pool_empty_notified')
+            ->setAttribute('name', 'pretix_voucher_pool_empty_notified')
+            ->setAttribute('value', true)
+            ->save();
+        $log->info('Sent voucher-pool-empty notification to {email}', ['email' => $adminEmail]);
+    }
 }
