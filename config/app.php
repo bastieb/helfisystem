@@ -220,7 +220,7 @@ return [
                 ],
                 'enable_voucher' => [
                     'type' => 'boolean',
-                    'default' => true,
+                    'default' => false,
                 ],
                 'voucher_settings.initial_vouchers' => [
                     'type' => 'number',

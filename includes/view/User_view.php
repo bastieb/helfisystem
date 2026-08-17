@@ -47,6 +47,10 @@ function User_delete_view($user)
  * @param int $freeloads_count
  * @param int $goodies_count
  * @param int $voucher_count
+ * @param float $sum_hours_rostered_total
+ * @param float $sum_hours_completed_total
+ * @param int $all_shifts_completed_count
+ * @param int $has_payday_count
  * @param bool $admin_user_privilege
  * @return string
  */
@@ -60,6 +64,10 @@ function Users_view(
     $freeloads_count,
     $goodies_count,
     $voucher_count,
+    $sum_hours_rostered_total,
+    $sum_hours_completed_total,
+    $all_shifts_completed_count,
+    $has_payday_count,
     $admin_user_privilege
 ) {
     $auth = auth();
@@ -165,6 +173,11 @@ EOT;
         'force_food' => $force_food_count,
         'freeloads' => $freeloads_count,
         'got_goodie' => $goodies_count,
+        // helfisystem: Summenzeile fuer die eigenen Spalten
+        'sum_hours_rostered' => '<strong>' . number_format($sum_hours_rostered_total, 1) . '</strong>',
+        'sum_hours_completed' => '<strong>' . number_format($sum_hours_completed_total, 1) . '</strong>',
+        'all_shifts_completed' => '<strong>' . $all_shifts_completed_count . '</strong>',
+        'has_payday' => '<strong>' . $has_payday_count . '</strong>',
         'actions' => '<strong>' . count($usersList) . '</strong>',
     ];
 

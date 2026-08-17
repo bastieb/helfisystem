@@ -6,6 +6,7 @@ use Engelsystem\Helpers\Carbon;
 use Engelsystem\Helpers\Goodie;
 use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Shifts\ShiftEntry;
+use Engelsystem\Models\User\PersonalData;
 use Engelsystem\Models\User\State;
 use Engelsystem\Models\User\User;
 use Engelsystem\ShiftCalendarRenderer;
@@ -324,6 +325,24 @@ function users_list_controller()
         ->orderBy('users.name')
         ->paginate($perPage);
 
+    // helfisystem: Summenzeile fuer die eigenen Spalten
+    $sumHoursRosteredTotal = (float) ShiftEntry::query()
+        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+        ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) as total')
+        ->value('total');
+    $sumHoursCompletedTotal = (float) ShiftEntry::query()
+        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+        ->where('shift_entries.shift_completed', 1)
+        ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) as total')
+        ->value('total');
+    $allShiftsCompletedCount = ShiftEntry::query()
+        ->select('user_id')
+        ->groupBy('user_id')
+        ->havingRaw('COUNT(*) > 0 AND COUNT(*) = COALESCE(SUM(shift_completed), 0)')
+        ->get()
+        ->count();
+    $hasPaydayCount = PersonalData::whereHasPayday(true)->count();
+
     return [
         __('All users'),
         Users_view(
@@ -336,6 +355,10 @@ function users_list_controller()
             ShiftEntry::whereNotNull('freeloaded_by')->count(),
             State::whereGotGoodie(true)->count(),
             State::query()->sum('got_voucher'),
+            $sumHoursRosteredTotal,
+            $sumHoursCompletedTotal,
+            $allShiftsCompletedCount,
+            $hasPaydayCount,
             auth()->can('admin_user'),
         ),
     ];
