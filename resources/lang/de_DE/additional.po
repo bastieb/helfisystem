@@ -1091,3 +1091,15 @@ msgstr "Nur noch %d unbenutzte Codes übrig, bald neue hinzufügen."
 
 msgid "Deposit paid"
 msgstr "Pfand bezahlt"
+
+msgid "Marked as freeloaded via quick action."
+msgstr "Per Schnellaktion als geschwänzt markiert."
+
+msgid "shift_status.open"
+msgstr "Unerledigt"
+
+msgid "shift_status.completed"
+msgstr "Geleistet"
+
+msgid "shift_status.freeloaded"
+msgstr "Geschwänzt"

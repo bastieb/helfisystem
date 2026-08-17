@@ -753,6 +753,7 @@ function Shifts_by_user($userId, $include_freeloaded_comments = false)
             `shift_entries`.`angel_type_id`,
             `shift_entries`.`user_id`,
             `shift_entries`.`freeloaded_by`,
+            `shift_entries`.`shift_completed`,
             `shift_entries`.`user_comment`,
             ' . ($include_freeloaded_comments ? '`shift_entries`.`freeloaded_comment`, ' : '') . '
             `shifts`.*

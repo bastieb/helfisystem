@@ -407,6 +407,7 @@ function User_view_myshift(Shift $shift, $user_source, $its_me, $supporter)
             . ' - '
             . $shift->end->format(__('H:i')),
         'duration' => Carbon::formatDuration(CarbonInterval::diff($shift->start, $shift->end), __('general.duration')),
+        'status' => badge(__('shift_status.open'), 'secondary'),
         'hints' => $night_shift,
         'location' => location_name_render($shift->location),
         'shift_info' => $shift_info,
@@ -421,6 +422,7 @@ function User_view_myshift(Shift $shift, $user_source, $its_me, $supporter)
     }
 
     if ($shift->freeloaded_by) {
+        $myshift['status'] = badge(__('shift_status.freeloaded'), 'danger');
         $myshift['duration'] = '<p class="text-danger"><s>'
             . Carbon::formatDuration(CarbonInterval::diff($shift->start, $shift->end), __('general.duration'))
             . '</s></p>';
@@ -445,9 +447,37 @@ function User_view_myshift(Shift $shift, $user_source, $its_me, $supporter)
             . '"></span>';
     }
 
-    $myshift['actions'] = [
-        button(shift_link($shift), icon('eye'), 'btn-sm btn-info', '', __('form.view')),
-    ];
+    if ($shift->shift_completed) {
+        $myshift['status'] = badge(__('shift_status.completed'), 'success');
+    }
+
+    $myshift['actions'] = [];
+
+    if (auth()->can('user_shifts_admin') || $supporter) {
+        $editUrl = url('/user-myshifts', ['edit' => $shift->shift_entry_id, 'id' => $user_source->id]);
+        $commentField = '<input type="hidden" name="comment" value="'
+            . htmlspecialchars($shift->user_comment) . '">';
+        $myshift['actions'][] = '<form method="post" action="' . $editUrl . '" class="d-inline">'
+            . form_csrf()
+            . '<input type="hidden" name="submit" value="1">'
+            . $commentField
+            . '<input type="hidden" name="freeloaded_comment" value="">'
+            . '<input type="hidden" name="shift_completed" value="1">'
+            . '<button type="submit" class="btn btn-sm btn-success" title="' . __('Shift completed') . '">'
+            . icon('check-lg') . '</button></form>';
+        $myshift['actions'][] = '<form method="post" action="' . $editUrl . '" class="d-inline">'
+            . form_csrf()
+            . '<input type="hidden" name="submit" value="1">'
+            . $commentField
+            . '<input type="hidden" name="freeloaded" value="1">'
+            . '<input type="hidden" name="freeloaded_comment" value="'
+            . htmlspecialchars(__('Marked as freeloaded via quick action.')) . '">'
+            . '<button type="submit" class="btn btn-sm btn-danger" title="' . __('Freeloaded') . '">'
+            . icon('x-lg') . '</button></form>';
+    }
+
+    $myshift['actions'][] = button(shift_link($shift), icon('eye'), 'btn-sm btn-info', '', __('form.view'));
+
     if ($its_me || auth()->can('user_shifts_admin') || $supporter) {
         $myshift['actions'][] = button(
             url('/user-myshifts', ['edit' => $shift->shift_entry_id, 'id' => $user_source->id]),
@@ -462,7 +492,7 @@ function User_view_myshift(Shift $shift, $user_source, $its_me, $supporter)
         $myshift['actions'][] = button(
             shift_entry_delete_link($shift),
             icon('trash'),
-            'btn-sm btn-danger',
+            'btn-sm',
             '',
             __('Sign off')
         );
@@ -691,6 +721,7 @@ function User_view(
             $myshifts_table = div('', table([
                 'date' => __('Day & Time'),
                 'duration' => __('Duration'),
+                'status' => __('Status'),
                 'hints' => '',
                 'shift_info' => __('Name & Workmates'),
                 'comment' => __('worklog.description'),
