@@ -1088,3 +1088,6 @@ msgstr "Voucher-Pool ist leer! Helfis, die die Schwelle erreichen, bekommen erst
 
 msgid "Only %d unused codes left, add more soon."
 msgstr "Nur noch %d unbenutzte Codes übrig, bald neue hinzufügen."
+
+msgid "Deposit paid"
+msgstr "Pfand bezahlt"

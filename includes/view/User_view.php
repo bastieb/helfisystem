@@ -51,6 +51,7 @@ function User_delete_view($user)
  * @param float $sum_hours_completed_total
  * @param int $all_shifts_completed_count
  * @param int $has_payday_count
+ * @param int $pretix_order_paid_count
  * @param bool $admin_user_privilege
  * @return string
  */
@@ -68,6 +69,7 @@ function Users_view(
     $sum_hours_completed_total,
     $all_shifts_completed_count,
     $has_payday_count,
+    $pretix_order_paid_count,
     $admin_user_privilege
 ) {
     $auth = auth();
@@ -132,6 +134,7 @@ EOT;
         $u['sum_hours_completed'] = number_format((float) $user->getAttribute('sum_hours_completed'), 1);
         $u['all_shifts_completed'] = icon_bool((bool) $user->getAttribute('all_shifts_completed'));
         $u['has_payday'] = icon_bool((bool) $user->personalData->has_payday);
+        $u['pretix_order_paid'] = icon_bool((bool) $user->personalData->pretix_order_paid);
         $u['active'] = icon_bool($user->state->active);
         if (config('enable_force_active')) {
             $u['force_active'] = icon_bool($user->state->force_active);
@@ -178,6 +181,7 @@ EOT;
         'sum_hours_completed' => '<strong>' . number_format($sum_hours_completed_total, 1) . '</strong>',
         'all_shifts_completed' => '<strong>' . $all_shifts_completed_count . '</strong>',
         'has_payday' => '<strong>' . $has_payday_count . '</strong>',
+        'pretix_order_paid' => '<strong>' . $pretix_order_paid_count . '</strong>',
         'actions' => '<strong>' . count($usersList) . '</strong>',
     ];
 
@@ -205,6 +209,11 @@ EOT;
     $user_table_headers['all_shifts_completed'] =
         Users_table_header_link('all_shifts_completed', __('All shifts completed'), $order_by);
     $user_table_headers['has_payday'] = Users_table_header_link('has_payday', __('Has been paid'), $order_by);
+    $user_table_headers['pretix_order_paid'] = Users_table_header_link(
+        'pretix_order_paid',
+        __('Deposit paid'),
+        $order_by
+    );
     $user_table_headers['active'] = Users_table_header_link('active', __('user.active'), $order_by);
     if (config('enable_force_active')) {
         $user_table_headers['force_active'] = Users_table_header_link('force_active', __('Forced'), $order_by);

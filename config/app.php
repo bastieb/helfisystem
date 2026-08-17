@@ -216,7 +216,7 @@ return [
                 ],
                 'enable_force_active' => [
                     'type' => 'boolean',
-                    'default' => true,
+                    'default' => false,
                 ],
                 'enable_voucher' => [
                     'type' => 'boolean',

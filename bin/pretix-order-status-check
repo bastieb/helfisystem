@@ -1,0 +1,68 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Engelsystem\Helpers\PretixClient;
+use Engelsystem\Models\User\User;
+use Psr\Log\LoggerInterface;
+
+require_once __DIR__ . '/../includes/application.php';
+
+/** @var PretixClient $pretix */
+$pretix = app(PretixClient::class);
+/** @var LoggerInterface $log */
+$log = app(LoggerInterface::class);
+
+if (!$pretix->isConfigured()) {
+    echo 'Pretix API is not fully configured yet, nothing to do.' . PHP_EOL;
+    exit(0);
+}
+
+$users = User::query()
+    ->whereHas('personalData', fn ($query) => $query->where('voucher_code', '!=', ''))
+    ->with('personalData')
+    ->get();
+
+if ($users->isEmpty()) {
+    echo 'No helpers with a voucher code yet.' . PHP_EOL;
+    exit(0);
+}
+
+$checked = 0;
+$changed = 0;
+
+foreach ($users as $user) {
+    $checked++;
+
+    try {
+        $voucherCode = $user->personalData->voucher_code;
+        $orderCode = $pretix->findOrderCodeByVoucher($voucherCode);
+
+        if (!$orderCode) {
+            continue;
+        }
+
+        $order = $pretix->getOrder($orderCode);
+        $isPaid = $order && ($order['status'] ?? null) === 'p';
+
+        if ((bool) $user->personalData->pretix_order_paid !== $isPaid) {
+            $user->personalData->pretix_order_paid = $isPaid;
+            $user->personalData->save();
+            $changed++;
+
+            $log->info(
+                'Pretix order paid status for {name} ({id}) changed to {paid}',
+                ['name' => $user->name, 'id' => $user->id, 'paid' => $isPaid ? 'paid' : 'not paid']
+            );
+        }
+    } catch (\Throwable $e) {
+        $log->error(
+            'Pretix order status check failed for {name} ({id}): {message}',
+            ['name' => $user->name, 'id' => $user->id, 'message' => $e->getMessage()]
+        );
+        echo sprintf('ERROR %s: %s (skipped)', $user->name, $e->getMessage()) . PHP_EOL;
+    }
+}
+
+echo sprintf('Checked %d helper(s), %d status change(s).', $checked, $changed) . PHP_EOL;

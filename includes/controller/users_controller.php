@@ -271,6 +271,7 @@ function users_list_controller()
         'sum_hours_completed' => 'sum_hours_completed',
         'all_shifts_completed' => 'all_shifts_completed',
         'has_payday' => 'users_personal_data.has_payday',
+        'pretix_order_paid' => 'users_personal_data.pretix_order_paid',
     ];
 
     $order_by = 'name';
@@ -342,6 +343,7 @@ function users_list_controller()
         ->get()
         ->count();
     $hasPaydayCount = PersonalData::whereHasPayday(true)->count();
+    $pretixOrderPaidCount = PersonalData::wherePretixOrderPaid(true)->count();
 
     return [
         __('All users'),
@@ -359,6 +361,7 @@ function users_list_controller()
             $sumHoursCompletedTotal,
             $allShiftsCompletedCount,
             $hasPaydayCount,
+            $pretixOrderPaidCount,
             auth()->can('admin_user'),
         ),
     ];
