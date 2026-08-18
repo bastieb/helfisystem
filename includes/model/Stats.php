@@ -31,6 +31,37 @@ function stats_currently_working(?ShiftsFilter $filter = null): int|string
 }
 
 /**
+ * helfisystem: Return the number of shift-hours already filled (occupied) by signed-up angels.
+ *
+ * @param ShiftsFilter|null $filter
+ *
+ * @return int|string
+ */
+function stats_hours_filled(?ShiftsFilter $filter = null): int|string
+{
+    $result = Db::selectOne(
+        '
+        SELECT ROUND(SUM(`count`)) AS `count` FROM (
+            SELECT
+                (
+                    SELECT COUNT(*)
+                    FROM `shift_entries`
+                    WHERE `shift_entries`.`shift_id`=`shifts`.`id`
+                    AND `freeloaded_by` IS NULL
+                    ' . ($filter ? 'AND shift_entries.angel_type_id IN (' . implode(',', $filter->getTypes()) . ')' : '') . '
+                )
+                * TIMESTAMPDIFF(MINUTE, `shifts`.`start`, `shifts`.`end`) / 60 AS `count`
+            FROM `shifts`
+            WHERE shifts.`end` >= NOW()
+            ' . ($filter ? 'AND shifts.location_id IN (' . implode(',', $filter->getLocations()) . ')' : '') . '
+        ) AS `tmp`
+        '
+    );
+
+    return $result['count'] ?: '-';
+}
+
+/**
  * Return the number of hours still to work.
  *
  * @param ShiftsFilter|null $filter

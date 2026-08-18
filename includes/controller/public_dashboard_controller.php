@@ -40,11 +40,19 @@ function public_dashboard_controller()
         $filter->sessionImport($filterValues);
     }
 
+    $hoursToWork = stats_hours_to_work($filter);
+    $hoursFilled = stats_hours_filled($filter);
+    $hoursOpen = is_numeric($hoursToWork) && is_numeric($hoursFilled)
+        ? max(0, $hoursToWork - $hoursFilled)
+        : '-';
+
     $stats = [
         'needed-3-hours' => stats_angels_needed_three_hours($filter),
         'needed-night'   => stats_angels_needed_for_nightshifts($filter),
         'angels-working' => stats_currently_working($filter),
-        'hours-to-work'  => stats_hours_to_work($filter),
+        'hours-to-work'  => $hoursToWork,
+        'hours-filled'   => $hoursFilled,
+        'hours-open'     => $hoursOpen,
     ];
 
     $free_shifts_source = Shifts_free(time(), time() + 12 * 60 * 60, $filter);

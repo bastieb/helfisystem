@@ -1103,3 +1103,9 @@ msgstr "Geleistet"
 
 msgid "shift_status.freeloaded"
 msgstr "Geschwänzt"
+
+msgid "dashboard.hours_filled"
+msgstr "Stunden schon belegt"
+
+msgid "dashboard.hours_open"
+msgstr "Stunden noch offen"

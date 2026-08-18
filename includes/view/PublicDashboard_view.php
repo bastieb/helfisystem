@@ -51,6 +51,8 @@ function public_dashboard_view($stats, $free_shifts, $highlighted_news)
         stats(__('Angels needed for nightshifts'), $stats['needed-night']),
         stats(__('Angels currently working'), $stats['angels-working'], 'default'),
         stats(__('Hours to be worked'), $stats['hours-to-work'], 'default'),
+        stats(__('dashboard.hours_filled'), $stats['hours-filled'], 'default'),
+        stats(__('dashboard.hours_open'), $stats['hours-open'], 'default'),
     ];
 
     $dayOfEvent = DayOfEvent::get();
