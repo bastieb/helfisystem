@@ -252,7 +252,7 @@ msgid "notification.angeltype.added.text"
 msgstr "You can find a description at %2$s"
 
 msgid "angeltype.add.success"
-msgstr "Successfully joined angel type"
+msgstr "Successfully joined Helfi type"
 
 msgid "notification.shift.deleted"
 msgstr "Your shift was deleted"
@@ -385,7 +385,7 @@ msgid "config.features"
 msgstr "Features"
 
 msgid "config.enable_dect.info"
-msgstr "Enables DECT numbers for users, locations and angel types"
+msgstr "Enables DECT numbers for users, locations and Helfi types"
 
 msgid "config.enable_mobile_show"
 msgstr "Display mobile number"
@@ -460,13 +460,13 @@ msgid "config.supporters_can_promote"
 msgstr "Supporters can promote"
 
 msgid "config.supporters_can_promote.info"
-msgstr "Supporters of an angel type (team) can promote other users of the angel type to supporter"
+msgstr "Supporters of a Helfi type (team) can promote other users of the Helfi type to supporter"
 
 msgid "config.join_qr_code"
 msgstr "Join QR code"
 
 msgid "config.join_qr_code.info"
-msgstr "Allow joining an angel type via generated QR code, requires app_key"
+msgstr "Allow joining a Helfi type via generated QR code, requires app_key"
 
 msgid "config.certificates"
 msgstr "Certificates"
@@ -714,10 +714,7 @@ msgid "config.api_key"
 msgstr "API key for /metrics"
 
 msgid "config.api_key.info"
-msgstr ""
-"The API key is used to protect access to the Engelsystem /metrics endpoint. "
-"It has no restrictions on length or character classes and must be included in the HTTP request "
-"as the request parameter api_key."
+msgstr "The API key is used to protect access to the Helfisystem /metrics endpoint. It has no restrictions on length or character classes and must be included in the HTTP request as the request parameter api_key."
 
 msgid "config.session.driver"
 msgstr "Session storage"
@@ -738,7 +735,7 @@ msgid "config.jwt_expiration_time"
 msgstr "JWT expiration time in minutes"
 
 msgid "config.jwt_expiration_time.info"
-msgstr "Number of minutes after a JWT must expire, for example max angel type join time"
+msgstr "Number of minutes after a JWT must expire, for example max Helfi type join time"
 
 msgid "config.guzzle_timeout"
 msgstr "HTTP request timeout"
@@ -753,7 +750,7 @@ msgid "config.maintenance"
 msgstr "Maintenance mode"
 
 msgid "config.maintenance.info"
-msgstr "If enabled it takes the Engelsystem offline for maintenance and shows a static page to all requests"
+msgstr "If enabled it takes Helfisystem offline for maintenance and shows a static page to all requests"
 
 msgid "config.environment"
 msgstr "Environment"
@@ -935,7 +932,7 @@ msgid "news.target.mode.any"
 msgstr "At least one criterion must match (OR)"
 
 msgid "news.target.angel_types"
-msgstr "Angel types"
+msgstr "Helfi types"
 
 msgid "news.target.shift_types"
 msgstr "Shift types"
@@ -950,7 +947,7 @@ msgid "news.target.status"
 msgstr "Status"
 
 msgid "news.target.empty_hint"
-msgstr "Multiple selections within one field = OR (e.g. several angel types). Nothing selected = everyone."
+msgstr "Multiple selections within one field = OR (e.g. several Helfi types). Nothing selected = everyone."
 
 msgid "news.target.status.paid"
 msgstr "Paid"
@@ -1011,3 +1008,207 @@ msgstr "Invalid date/time."
 
 msgid "shift_release.no_shifts"
 msgstr "There are no shifts yet."
+
+msgid "Has been paid"
+msgstr "Has been paid"
+
+msgid "Shift completed"
+msgstr "Shift completed"
+
+msgid "Sum hours rostered"
+msgstr "Sum hours rostered"
+
+msgid "All shifts completed"
+msgstr "All shifts completed"
+
+msgid "Sum hours completed"
+msgstr "Sum hours completed"
+
+msgid "Pretix vouchers"
+msgstr "Pretix vouchers"
+
+msgid "Pretix voucher settings saved."
+msgstr "Pretix voucher settings saved."
+
+msgid "No voucher codes entered."
+msgstr "No voucher codes entered."
+
+msgid "%d new voucher codes added, %d duplicates skipped."
+msgstr "%d new voucher codes added, %d duplicates skipped."
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Automatically issue Pretix vouchers"
+msgstr "Automatically issue Pretix vouchers"
+
+msgid "Pretix redeem link"
+msgstr "Pretix redeem link"
+
+msgid "Use {code} as placeholder, it will be replaced with the actual voucher code."
+msgstr "Use {code} as placeholder, it will be replaced with the actual voucher code."
+
+msgid "Preview with an example code:"
+msgstr "Preview with an example code:"
+
+msgid "Minimum rostered hours for a voucher"
+msgstr "Minimum rostered hours for a voucher"
+
+msgid "As soon as a helper is signed up for at least this many hours (across all their shifts), they automatically get a voucher code and an email."
+msgstr "As soon as a helper is signed up for at least this many hours (across all their shifts), they automatically get a voucher code and an email."
+
+msgid "Voucher code pool"
+msgstr "Voucher code pool"
+
+msgid "%d unused codes, %d already assigned."
+msgstr "%d unused codes, %d already assigned."
+
+msgid "Add voucher codes (one per line)"
+msgstr "Add voucher codes (one per line)"
+
+msgid "Codes already in the pool are skipped automatically."
+msgstr "Codes already in the pool are skipped automatically."
+
+msgid "Add codes"
+msgstr "Add codes"
+
+msgid "Recently assigned"
+msgstr "Recently assigned"
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Please wait for your voucher code to become available."
+msgstr "Please wait for your voucher code to become available."
+
+msgid "You have earned a Pretix voucher!"
+msgstr "You have earned a Pretix voucher!"
+
+msgid "You have signed up for enough hours, thank you for helping out! Here is your Pretix voucher code:"
+msgstr "You have signed up for enough hours, thank you for helping out! Here is your Pretix voucher code:"
+
+msgid "Redeem it here:"
+msgstr "Redeem it here:"
+
+msgid "Vouchers"
+msgstr "Vouchers"
+
+msgid "Ticket refunds"
+msgstr "Ticket refunds"
+
+msgid "Automatically create Pretix refunds"
+msgstr "Automatically create Pretix refunds"
+
+msgid "Test mode (log only, no real Pretix refunds are created)"
+msgstr "Test mode (log only, no real Pretix refunds are created)"
+
+msgid "Keep this on until you have verified order lookups against real test data."
+msgstr "Keep this on until you have verified order lookups against real test data."
+
+msgid "Minimum completed hours for a refund"
+msgstr "Minimum completed hours for a refund"
+
+msgid "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
+msgstr "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
+
+msgid "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
+msgstr "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
+
+msgid "Pretix API connection"
+msgstr "Pretix API connection"
+
+msgid "Pretix base URL"
+msgstr "Pretix base URL"
+
+msgid "Organizer slug"
+msgstr "Organizer slug"
+
+msgid "Event slug"
+msgstr "Event slug"
+
+msgid "API token"
+msgstr "API token"
+
+msgid "Create a team API token in Pretix with \"can change orders\" permission. Leave unchanged to keep the current token."
+msgstr "Create a team API token in Pretix with \"can change orders\" permission. Leave unchanged to keep the current token."
+
+msgid "Not set"
+msgstr "Not set"
+
+msgid "Order"
+msgstr "Order"
+
+msgid "Amount"
+msgstr "Amount"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Tracked refunds"
+msgstr "Tracked refunds"
+
+msgid "No refunds tracked yet."
+msgstr "No refunds tracked yet."
+
+msgid "Checkout question IDs for bank details"
+msgstr "Checkout question IDs for bank details"
+
+msgid "The \"identifier\" field of the Pretix checkout questions that hold account holder name, IBAN and BIC (Pretix admin → Questions)."
+msgstr "The \"identifier\" field of the Pretix checkout questions that hold account holder name, IBAN and BIC (Pretix admin → Questions)."
+
+msgid "Account holder question ID"
+msgstr "Account holder question ID"
+
+msgid "IBAN question ID"
+msgstr "IBAN question ID"
+
+msgid "BIC question ID"
+msgstr "BIC question ID"
+
+msgid "Download CSV for bulk bank transfer"
+msgstr "Download CSV for bulk bank transfer"
+
+msgid "IBAN"
+msgstr "IBAN"
+
+msgid "Admin notification email"
+msgstr "Admin notification email"
+
+msgid "Gets an email once the voucher pool actually runs out. Leave empty to disable."
+msgstr "Gets an email once the voucher pool actually runs out. Leave empty to disable."
+
+msgid "Low stock warning threshold"
+msgstr "Low stock warning threshold"
+
+msgid "Show a warning banner on this page once the unused code count drops to or below this number."
+msgstr "Show a warning banner on this page once the unused code count drops to or below this number."
+
+msgid "Voucher pool is empty! Helpers who reach the threshold will not get a code until you add more below."
+msgstr "Voucher pool is empty! Helpers who reach the threshold will not get a code until you add more below."
+
+msgid "Only %d unused codes left, add more soon."
+msgstr "Only %d unused codes left, add more soon."
+
+msgid "Deposit paid"
+msgstr "Deposit paid"
+
+msgid "Marked as freeloaded via quick action."
+msgstr "Marked as freeloaded via quick action."
+
+msgid "shift_status.open"
+msgstr "Open"
+
+msgid "shift_status.completed"
+msgstr "Completed"
+
+msgid "shift_status.freeloaded"
+msgstr "Freeloaded"
+
+msgid "dashboard.hours_filled"
+msgstr "Hours already filled"
+
+msgid "dashboard.hours_open"
+msgstr "Hours still open"
+
+msgid "shifttype.delete.blocked"
+msgstr "Shift type cannot be deleted: %d shift(s) with a total of %d signup(s) are still attached to it (already-full shifts are not shown in the overview either). Please remove the Helfis first or delete the shifts."
