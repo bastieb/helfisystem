@@ -6,6 +6,7 @@ namespace Engelsystem\Controllers\Admin;
 
 use Engelsystem\Controllers\BaseController;
 use Engelsystem\Controllers\HasUserNotifications;
+use Engelsystem\Controllers\NotificationType;
 use Engelsystem\Http\Exceptions\ValidationException;
 use Engelsystem\Http\Redirector;
 use Engelsystem\Http\Request;
@@ -194,6 +195,32 @@ class ShiftTypesController extends BaseController
         $shiftType = $this->shiftType->findOrFail($data['id']);
 
         $shifts = $shiftType->shifts;
+
+        // helfisystem: Schichten mit Anmeldungen koennen "unsichtbar" sein (die Uebersicht
+        // zeigt nur noch offene Schichten), also vor dem Loeschen unabhaengig davon zaehlen.
+        $affectedShiftCount = 0;
+        $affectedEntryCount = 0;
+        foreach ($shifts as $shift) {
+            $entryCount = $shift->shiftEntries()->count();
+            if ($entryCount > 0) {
+                $affectedShiftCount++;
+                $affectedEntryCount += $entryCount;
+            }
+        }
+
+        if ($affectedEntryCount > 0) {
+            $this->addNotification(
+                sprintf(
+                    __('shifttype.delete.blocked'),
+                    $affectedShiftCount,
+                    $affectedEntryCount
+                ),
+                NotificationType::ERROR
+            );
+
+            return $this->redirect->to('/admin/shifttypes/edit/' . $shiftType->id);
+        }
+
         foreach ($shifts as $shift) {
             event('shift.deleting', ['shift' => $shift]);
         }
