@@ -290,19 +290,13 @@ class SettingsController extends BaseController
         $data = $this->validate($request, [
             'has_car' => 'optional|checked',
             'drive_car' => 'optional|checked',
-            'drive_3_5t' => 'optional|checked',
             'drive_7_5t' => 'optional|checked',
-            'drive_12t' => 'optional|checked',
-            'drive_forklift' => 'optional|checked',
         ]);
 
         $user->license->has_car = (bool) $data['has_car'];
         if (!$user->license->drive_confirmed) {
             $user->license->drive_car = (bool) $data['drive_car'];
-            $user->license->drive_3_5t = (bool) $data['drive_3_5t'];
             $user->license->drive_7_5t = (bool) $data['drive_7_5t'];
-            $user->license->drive_12t = (bool) $data['drive_12t'];
-            $user->license->drive_forklift = (bool) $data['drive_forklift'];
         }
         $user->license->save();
 
