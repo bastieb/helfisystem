@@ -1112,3 +1112,6 @@ msgstr "Stunden noch offen"
 
 msgid "shifttype.delete.blocked"
 msgstr "Schichttyp kann nicht gelöscht werden: %d Schicht(en) mit insgesamt %d Anmeldung(en) hängen noch daran (auch bereits volle Schichten werden hier nicht in der Übersicht angezeigt). Bitte zuerst die Helfis austragen oder die Schichten löschen."
+
+msgid "general.phone"
+msgstr "Telefon"

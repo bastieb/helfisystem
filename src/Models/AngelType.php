@@ -20,6 +20,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string                            $description
  * @property string                            $contact_name
  * @property string                            $contact_dect
+ * @property string                            $contact_phone
  * @property string                            $contact_email
  * @property boolean                           $restricted # If users need an introduction
  * @property boolean                           $requires_driver_license # If users must have a driver license
@@ -39,6 +40,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @method static QueryBuilder|AngelType[] whereDescription($value)
  * @method static QueryBuilder|AngelType[] whereContactName($value)
  * @method static QueryBuilder|AngelType[] whereContactDect($value)
+ * @method static QueryBuilder|AngelType[] whereContactPhone($value)
  * @method static QueryBuilder|AngelType[] whereContactEmail($value)
  * @method static QueryBuilder|AngelType[] whereRestricted($value)
  * @method static QueryBuilder|AngelType[] whereRequiresDriverLicense($value)
@@ -56,6 +58,7 @@ class AngelType extends BaseModel
         'description'               => '',
         'contact_name'              => '',
         'contact_dect'              => '',
+        'contact_phone'             => '',
         'contact_email'             => '',
         'restricted'                => true,
         'requires_driver_license'   => false,
@@ -77,6 +80,7 @@ class AngelType extends BaseModel
 
         'contact_name',
         'contact_dect',
+        'contact_phone',
         'contact_email',
 
         'restricted',

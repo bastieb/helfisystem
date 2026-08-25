@@ -130,6 +130,7 @@ function angeltype_edit_controller()
 
         $angeltype->contact_name = strip_request_item('contact_name', $angeltype->contact_name);
         $angeltype->contact_dect = strip_request_item('contact_dect', $angeltype->contact_dect) ?: '';
+        $angeltype->contact_phone = strip_request_item('contact_phone', $angeltype->contact_phone) ?: '';
         $angeltype->contact_email = strip_request_item('contact_email', $angeltype->contact_email);
 
         if ($valid) {
@@ -147,6 +148,7 @@ function angeltype_edit_controller()
                     : '')
                 . $angeltype->contact_name . ', '
                 . $angeltype->contact_dect . ', '
+                . $angeltype->contact_phone . ', '
                 . $angeltype->contact_email . ', '
                 . $angeltype->show_on_dashboard . ', '
                 . $angeltype->hide_register . ', '

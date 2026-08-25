@@ -145,6 +145,7 @@ function AngelType_edit_view(AngelType $angeltype, bool $supporter_mode)
                         ),
                         form_text('contact_name', __('general.name'), $angeltype->contact_name),
                         config('enable_dect') ? form_text('contact_dect', __('general.dect'), $angeltype->contact_dect) : '',
+                        form_text('contact_phone', __('general.phone'), $angeltype->contact_phone),
                         form_text('contact_email', __('general.email'), $angeltype->contact_email),
                     ]),
 
@@ -764,6 +765,10 @@ function AngelTypes_render_contact_info(AngelType $angeltype)
                 htmlspecialchars($angeltype->contact_dect),
             ]
             : null,
+        __('general.phone') => [
+            sprintf('<a href="tel:%s">%1$s</a>', htmlspecialchars($angeltype->contact_phone)),
+            htmlspecialchars($angeltype->contact_phone),
+        ],
         __('general.email') => [
             sprintf('<a href="mailto:%s">%1$s</a>', htmlspecialchars($angeltype->contact_email)),
             htmlspecialchars($angeltype->contact_email),

@@ -1212,3 +1212,6 @@ msgstr "Hours still open"
 
 msgid "shifttype.delete.blocked"
 msgstr "Shift type cannot be deleted: %d shift(s) with a total of %d signup(s) are still attached to it (already-full shifts are not shown in the overview either). Please remove the Helfis first or delete the shifts."
+
+msgid "general.phone"
+msgstr "Phone"
