@@ -10,7 +10,7 @@ msgstr ""
 "Language: en_US\n"
 
 msgid "auth.not-found"
-msgstr "No user was found or password is wrong. Please try again. If you are still having problems, ask Heaven."
+msgstr "No user was found or password is wrong. Please try again. If you are still having problems, ask the Crew."
 
 msgid "validation.password.required"
 msgstr "The password is required."
@@ -195,7 +195,7 @@ msgid "faq.edit.success"
 msgstr "FAQ entry successfully updated."
 
 msgid "question.menu"
-msgstr "Ask Heaven"
+msgstr "Ask the Crew"
 
 msgid "question.delete.success"
 msgstr "Question deleted successfully."
@@ -774,7 +774,7 @@ msgid "config.contact_options"
 msgstr "Contact options"
 
 msgid "config.contact_options.info"
-msgstr "Other ways to ask heaven, see config/app.php for examples"
+msgstr "Other ways to ask the Crew, see config/app.php for examples"
 
 msgid "config.documentation_url"
 msgstr "Documentation URL"

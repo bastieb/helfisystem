@@ -613,7 +613,7 @@ msgid "faq.faq"
 msgstr "FAQ"
 
 msgid "faq.questions_link"
-msgstr "If you don't find an answer, you can <a href=\"%s\">ask Heaven</a>."
+msgstr "If you don't find an answer, you can <a href=\"%s\">ask the Crew</a>."
 
 msgid "faq.edit"
 msgstr "Edit FAQ entry"
@@ -950,7 +950,7 @@ msgid "user.info.hint"
 msgstr "Is displayed for shift coordinators and admins in the user view. If a Helfi is not marked as arrived, a user info removes the not-arrived notification in the Helfi's system menu."
 
 msgid "user_info.not_arrived_hint"
-msgstr "If you want to sign up for shifts, feel free to drop by Heaven."
+msgstr "If you want to sign up for shifts, feel free to drop by the Crew."
 
 msgid "email.greeting"
 msgstr "Hi %s,"
