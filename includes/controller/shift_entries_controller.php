@@ -1,5 +1,6 @@
 <?php
 
+use Engelsystem\Mail\EngelsystemMailer;
 use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Shifts\Shift;
 use Engelsystem\Models\Shifts\ShiftChangeRequest;
@@ -350,12 +351,28 @@ function shift_entry_delete_controller()
         return [ShiftEntry_delete_title(), ShiftEntry_delete_view_admin($shift, $angeltype, $signout_user)];
     }
 
-    // helfisystem: normale Helfis nur fuer sich selbst und nur per Antrag
+    // helfisystem: normale Helfis nur fuer sich selbst
     if ($user->id != $signout_user->id) {
         error(__(
             'You are not allowed to remove this shift entry. If necessary, ask your supporter or heaven to do so.'
         ));
         throw_redirect(user_link($signout_user->id));
+    }
+
+    // 8h/10h-Regel: wer nach dem Austragen noch >= Schwelle behaelt, darf sofort selbst
+    // austragen (nur der Ueberschuss ueber der Schwelle). Erst wenn die Schwelle selbst
+    // angetastet wuerde, braucht es den Freigabe-Workflow (inkl. Admin-Benachrichtigung).
+    $keepsThreshold = Signout_keeps_threshold($user, $shift);
+
+    if ($keepsThreshold) {
+        if ($request->hasPostData('delete')) {
+            $shiftEntry->delete();
+            ShiftEntry_onDelete($shiftEntry);
+            success(__('Shift entry removed.'));
+            throw_redirect(shift_link($shift));
+        }
+
+        return [ShiftEntry_delete_title(), ShiftEntry_delete_view($shift, $angeltype, $signout_user)];
     }
 
     // schon ein offener Antrag fuer diesen Eintrag?
@@ -367,24 +384,19 @@ function shift_entry_delete_controller()
         throw_redirect(user_link($signout_user->id));
     }
 
-    // 8h/10h-Regel: wer die Schwelle erreicht hat, muss danach noch >= Schwelle behalten,
-    // ausser bei komplettem Ruecktritt (full_withdrawal)
-    $keepsThreshold = Signout_keeps_threshold($user, $shift);
-
     if ($request->hasPostData('request_signout')) {
         $reason = strip_request_item_nl('reason');
         $fullWithdrawal = $request->hasPostData('full_withdrawal');
 
         if ($reason == '') {
             error(__('shift_change.reason_required'));
-        } elseif (!$keepsThreshold && !$fullWithdrawal) {
-            error(__('shift_change.threshold_block', [number_format(Signout_threshold_hours(), 0)]));
         } elseif ($fullWithdrawal) {
             $created = ShiftEntry_request_full_withdrawal($user, $reason);
             engelsystem_log(
                 'Complete withdrawal requested by ' . User_Nick_render($user, true)
                 . ' (' . $created . ' shift(s))'
             );
+            notify_admin_shift_change_request($user, $reason, $created);
             success(sprintf(__('shift_change.full_withdrawal_sent'), $created));
             throw_redirect(user_link($signout_user->id));
         } else {
@@ -398,6 +410,7 @@ function shift_entry_delete_controller()
                 'Shift signout requested by ' . User_Nick_render($user, true)
                 . ' for shift ' . $shift->title . ' (' . $shift->start->format('Y-m-d H:i') . ')'
             );
+            notify_admin_shift_change_request($user, $reason);
             success(__('shift_change.request_sent'));
             throw_redirect(user_link($signout_user->id));
         }
@@ -405,8 +418,34 @@ function shift_entry_delete_controller()
 
     return [
         ShiftEntry_delete_title(),
-        ShiftEntry_request_view($shift, $angeltype, $signout_user, !$keepsThreshold),
+        ShiftEntry_request_view($shift, $angeltype, $signout_user, true),
     ];
+}
+
+/**
+ * helfisystem: Benachrichtigt den Admin per Mail, dass ein Austrags-Antrag zur Freigabe wartet.
+ */
+function notify_admin_shift_change_request(User $user, string $reason, int $count = 1): void
+{
+    $adminEmail = (string) config('admin_notify_email', '');
+    if ($adminEmail === '') {
+        return;
+    }
+
+    /** @var EngelsystemMailer $mailer */
+    $mailer = app(EngelsystemMailer::class);
+    $mailer->send(
+        $adminEmail,
+        'Neue Schicht-Austrags-Anfrage wartet auf Freigabe',
+        sprintf(
+            "%s hat %d Austrags-Anfrage(n) gestellt und wartet auf Freigabe.\n\n"
+            . "Begruendung: %s\n\nBitte pruefen: %s",
+            $user->displayName,
+            $count,
+            $reason,
+            url('/shift-change-requests')
+        )
+    );
 }
 
 /**
