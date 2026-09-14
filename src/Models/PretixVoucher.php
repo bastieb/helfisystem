@@ -12,6 +12,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 /**
  * @property int         $id
  * @property string      $code
+ * @property string      $pool
  * @property int|null    $used_by_user_id
  * @property Carbon|null $used_at
  * @property Carbon|null $created_at
@@ -40,9 +41,17 @@ class PretixVoucher extends BaseModel
      */
     protected $fillable = [ // phpcs:ignore
         'code',
+        'pool',
         'used_by_user_id',
         'used_at',
     ];
+
+    /** helfisystem: voucher pool identifiers */
+    public const POOL_FULL = 'full';
+    public const POOL_DAY_ANY = 'day_any';
+    public const POOL_DAY_FRI = 'day_fri';
+    public const POOL_DAY_SAT = 'day_sat';
+    public const POOL_DAY_SUN = 'day_sun';
 
     public function usedBy(): BelongsTo
     {

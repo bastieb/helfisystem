@@ -86,7 +86,8 @@ class ShiftCalendarShiftRenderer
         return match ($shiftSignupState->getState()) {
             ShiftSignupStatus::ADMIN, ShiftSignupStatus::OCCUPIED => 'success',
             ShiftSignupStatus::SIGNED_UP => 'primary',
-            ShiftSignupStatus::NOT_ARRIVED, ShiftSignupStatus::NOT_YET, ShiftSignupStatus::SHIFT_ENDED => 'secondary',
+            ShiftSignupStatus::NOT_ARRIVED, ShiftSignupStatus::NOT_YET, ShiftSignupStatus::SHIFT_ENDED,
+            ShiftSignupStatus::DAY_TICKET_DEAL_LOCKED => 'secondary',
             ShiftSignupStatus::ANGELTYPE, ShiftSignupStatus::COLLIDES => 'warning',
             ShiftSignupStatus::FREE => 'danger',
             default => 'light',
@@ -214,6 +215,7 @@ class ShiftCalendarShiftRenderer
             // No link and add a text hint, when the shift ended
             ShiftSignupStatus::NOT_ARRIVED => $inner_text . ' (' . __('please arrive for signup') . ')',
             ShiftSignupStatus::NOT_YET => $inner_text . ' (' . __('not yet possible') . ')',
+            ShiftSignupStatus::DAY_TICKET_DEAL_LOCKED => $inner_text . ' (' . __('day_ticket_deal.signup_locked') . ')',
             ShiftSignupStatus::ANGELTYPE => $angeltype->restricted || !$angeltype->shift_self_signup
                 // User has to be confirmed on the angeltype first or can't sign up by themselves
                 ? $inner_text . icon('mortarboard-fill')

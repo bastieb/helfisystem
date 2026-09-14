@@ -272,6 +272,7 @@ function users_list_controller()
         'all_shifts_completed' => 'all_shifts_completed',
         'has_payday' => 'users_personal_data.has_payday',
         'pretix_order_paid' => 'users_personal_data.pretix_order_paid',
+        'day_ticket_deal' => 'users_personal_data.day_ticket_deal_confirmed',
     ];
 
     $order_by = 'name';
@@ -344,6 +345,7 @@ function users_list_controller()
         ->count();
     $hasPaydayCount = PersonalData::whereHasPayday(true)->count();
     $pretixOrderPaidCount = PersonalData::wherePretixOrderPaid(true)->count();
+    $dayTicketDealCount = PersonalData::where('day_ticket_deal_confirmed', true)->count();
 
     return [
         __('All users'),
@@ -362,6 +364,7 @@ function users_list_controller()
             $allShiftsCompletedCount,
             $hasPaydayCount,
             $pretixOrderPaidCount,
+            $dayTicketDealCount,
             auth()->can('admin_user'),
         ),
     ];

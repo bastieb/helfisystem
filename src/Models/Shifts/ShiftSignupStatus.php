@@ -50,4 +50,9 @@ enum ShiftSignupStatus: string
      * User has to be arrived
      */
     case NOT_ARRIVED = 'NOT_ARRIVED';
+
+    /**
+     * helfisystem: User confirmed the 5h day-ticket deal and can no longer sign up for shifts
+     */
+    case DAY_TICKET_DEAL_LOCKED = 'DAY_TICKET_DEAL_LOCKED';
 }

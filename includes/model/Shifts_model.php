@@ -498,6 +498,11 @@ function Shift_signup_allowed_angel(
 ) {
     $free_entries = Shift_free_entries($needed_angeltype, $shift_entries);
 
+    // helfisystem: 5h-Tagesticket-Deal bestaetigt -> keine weiteren Schicht-Anmeldungen mehr moeglich
+    if ($user->personalData && $user->personalData->day_ticket_deal_confirmed) {
+        return new ShiftSignupState(ShiftSignupStatus::DAY_TICKET_DEAL_LOCKED, $free_entries);
+    }
+
     if (is_null($user_shifts) || $user_shifts->isEmpty()) {
         $user_shifts = Shifts_by_user($user->id);
     }

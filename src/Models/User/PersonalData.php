@@ -18,6 +18,8 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property bool        $has_payday
  * @property string      $voucher_code
  * @property bool        $pretix_order_paid
+ * @property bool        $day_ticket_deal_confirmed
+ * @property string|null $day_ticket_deal_day
  *
  * @method static QueryBuilder|PersonalData[] whereFirstName($value)
  * @method static QueryBuilder|PersonalData[] whereLastName($value)
@@ -44,6 +46,8 @@ class PersonalData extends HasUserModel
         'has_payday'             => false,
         'voucher_code'           => '',
         'pretix_order_paid'      => false,
+        'day_ticket_deal_confirmed' => false,
+        'day_ticket_deal_day'    => null,
     ];
 
     /** @var array<string, string> */
@@ -53,6 +57,7 @@ class PersonalData extends HasUserModel
         'planned_departure_date' => 'datetime',
         'has_payday'             => 'boolean',
         'pretix_order_paid'      => 'boolean',
+        'day_ticket_deal_confirmed' => 'boolean',
     ];
 
     /**
@@ -71,5 +76,7 @@ class PersonalData extends HasUserModel
         'has_payday',
         'voucher_code',
         'pretix_order_paid',
+        'day_ticket_deal_confirmed',
+        'day_ticket_deal_day',
     ];
 }

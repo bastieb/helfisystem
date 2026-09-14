@@ -11,6 +11,7 @@ $includeFiles = [
     __DIR__ . '/../includes/sys_page.php',
     __DIR__ . '/../includes/sys_template.php',
 
+    __DIR__ . '/../includes/model/DayTicketDeal_model.php',
     __DIR__ . '/../includes/model/NeededAngelTypes_model.php',
     __DIR__ . '/../includes/model/ShiftEntry_model.php',
     __DIR__ . '/../includes/model/Shifts_model.php',
@@ -19,6 +20,7 @@ $includeFiles = [
     __DIR__ . '/../includes/model/Stats.php',
 
     __DIR__ . '/../includes/view/AngelTypes_view.php',
+    __DIR__ . '/../includes/view/DayTicketDeal_view.php',
     __DIR__ . '/../includes/view/PublicDashboard_view.php',
     __DIR__ . '/../includes/view/Locations_view.php',
     __DIR__ . '/../includes/view/ShiftCalendarLane.php',
@@ -54,6 +56,7 @@ $includeFiles = [
     __DIR__ . '/../includes/pages/admin_groups.php',
     __DIR__ . '/../includes/pages/admin_shifts.php',
     __DIR__ . '/../includes/pages/admin_user.php',
+    __DIR__ . '/../includes/pages/day_ticket_deal.php',
     __DIR__ . '/../includes/pages/user_myshifts.php',
     __DIR__ . '/../includes/pages/user_shifts.php',
 ];

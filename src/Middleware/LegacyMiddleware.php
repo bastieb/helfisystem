@@ -62,6 +62,10 @@ class LegacyMiddleware implements MiddlewareInterface
         if ($page === 'shift_release') {
             $allowPage = $this->auth->can('user_shifts_admin');
         }
+        // helfisystem: 5h-Tagesticket-Deal, fuer jeden eingeloggten Helfi
+        if ($page === 'day_ticket_deal') {
+            $allowPage = (bool) $this->auth->user();
+        }
 
         $title = $content = '';
         if (
@@ -106,6 +110,8 @@ class LegacyMiddleware implements MiddlewareInterface
                 return shift_change_requests_controller();
             case 'shift_release':
                 return shift_release_controller();
+            case 'day_ticket_deal':
+                return day_ticket_deal_controller();
             case 'shifts':
                 return shifts_controller();
             case 'users':

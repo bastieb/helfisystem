@@ -198,6 +198,7 @@ function shift_entry_error_message(ShiftSignupState $shift_signup_state)
         ShiftSignupStatus::NOT_ARRIVED => error(__('You are not marked as arrived.')),
         ShiftSignupStatus::NOT_YET     => error(__('You are not allowed to sign up yet.')),
         ShiftSignupStatus::SIGNED_UP   => error(__('You are signed up for this shift.')),
+        ShiftSignupStatus::DAY_TICKET_DEAL_LOCKED => error(__('day_ticket_deal.signup_locked')),
         default => null, // ShiftSignupStatus::FREE|ShiftSignupStatus::ADMIN
     };
 }

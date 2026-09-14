@@ -39,11 +39,36 @@ class PretixVoucherController extends BaseController
     ) {
     }
 
+    /** @var array<string, string> helfisystem: voucher pool ids -> admin-facing labels */
+    private const POOL_LABELS = [
+        PretixVoucher::POOL_FULL => 'Full festival ticket (10h)',
+        PretixVoucher::POOL_DAY_ANY => 'Day ticket, free choice (Auf-/Abbau 5h)',
+        PretixVoucher::POOL_DAY_FRI => 'Day ticket Friday (5h shift on Friday)',
+        PretixVoucher::POOL_DAY_SAT => 'Day ticket Saturday (5h shift on Saturday)',
+        PretixVoucher::POOL_DAY_SUN => 'Day ticket Sunday (5h shift on Sunday)',
+    ];
+
     public function index(): Response
     {
         $exampleCode = 'BEISPIEL-CODE';
         $redeemLink = (string) $this->config->get('pretix_redeem_link', '');
         $apiToken = (string) $this->config->get('pretix_api_token', '');
+
+        $pools = [];
+        foreach (self::POOL_LABELS as $pool => $label) {
+            $pools[$pool] = [
+                'label' => __($label),
+                'unused' => $this->pretixVoucher->newQuery()->where('pool', $pool)->whereNull('used_by_user_id')->count(),
+                'used' => $this->pretixVoucher->newQuery()->where('pool', $pool)->whereNotNull('used_by_user_id')->count(),
+                'recentlyUsed' => $this->pretixVoucher->newQuery()
+                    ->where('pool', $pool)
+                    ->whereNotNull('used_by_user_id')
+                    ->with('usedBy')
+                    ->orderByDesc('used_at')
+                    ->limit(10)
+                    ->get(),
+            ];
+        }
 
         return $this->response->withView(
             'admin/pretix/index',
@@ -52,16 +77,16 @@ class PretixVoucherController extends BaseController
                 'pretixRedeemLink' => $redeemLink,
                 'pretixMinHours' => (float) $this->config->get('pretix_min_hours', 0),
                 'examplePreview' => $this->buildRedeemLink($redeemLink, $exampleCode),
-                'unusedCount' => $this->pretixVoucher->newQuery()->whereNull('used_by_user_id')->count(),
-                'usedCount' => $this->pretixVoucher->newQuery()->whereNotNull('used_by_user_id')->count(),
+                'pools' => $pools,
                 'pretixVoucherLowStockThreshold' => (int) $this->config->get('pretix_voucher_low_stock_threshold', 10),
                 'pretixAdminNotifyEmail' => (string) $this->config->get('pretix_admin_notify_email', ''),
-                'recentlyUsed' => $this->pretixVoucher->newQuery()
-                    ->whereNotNull('used_by_user_id')
-                    ->with('usedBy')
-                    ->orderByDesc('used_at')
-                    ->limit(20)
-                    ->get(),
+
+                // helfisystem: 5h-Tagesticket-Deal
+                'enable5hDeal' => (bool) $this->config->get('enable_5h_deal', false),
+                'fiveHourDealShiftTypes' => (string) $this->config->get('pretix_5h_deal_shift_types', 'Aufbau,Abbau'),
+                'eventDayFri' => (string) $this->config->get('pretix_event_day_fri', ''),
+                'eventDaySat' => (string) $this->config->get('pretix_event_day_sat', ''),
+                'eventDaySun' => (string) $this->config->get('pretix_event_day_sun', ''),
 
                 'enablePretixRefund' => (bool) $this->config->get('enable_pretix_refund', false),
                 'pretixTestMode' => (bool) $this->config->get('pretix_test_mode', true),
@@ -132,6 +157,11 @@ class PretixVoucherController extends BaseController
             'pretix_bic_question_id' => 'optional',
             'pretix_admin_notify_email' => 'optional|email',
             'pretix_voucher_low_stock_threshold' => 'optional|number|min:0',
+            'enable_5h_deal' => 'optional|checked',
+            'pretix_5h_deal_shift_types' => 'optional',
+            'pretix_event_day_fri' => 'optional',
+            'pretix_event_day_sat' => 'optional',
+            'pretix_event_day_sun' => 'optional',
         ]);
 
         $this->setConfig('enable_pretix_voucher', !empty($data['enable_pretix_voucher']));
@@ -156,6 +186,15 @@ class PretixVoucherController extends BaseController
             (int) ($data['pretix_voucher_low_stock_threshold'] ?? 10)
         );
 
+        $this->setConfig('enable_5h_deal', !empty($data['enable_5h_deal']));
+        $this->setConfig(
+            'pretix_5h_deal_shift_types',
+            trim((string) ($data['pretix_5h_deal_shift_types'] ?? 'Aufbau,Abbau'))
+        );
+        $this->setConfig('pretix_event_day_fri', trim((string) ($data['pretix_event_day_fri'] ?? '')));
+        $this->setConfig('pretix_event_day_sat', trim((string) ($data['pretix_event_day_sat'] ?? '')));
+        $this->setConfig('pretix_event_day_sun', trim((string) ($data['pretix_event_day_sun'] ?? '')));
+
         $submittedToken = (string) ($data['pretix_api_token'] ?? '');
         if ($submittedToken !== '' && $submittedToken !== $this->passwordPlaceholder) {
             $this->setConfig('pretix_api_token', $submittedToken);
@@ -171,7 +210,13 @@ class PretixVoucherController extends BaseController
     {
         $data = $this->validate($request, [
             'codes' => 'optional',
+            'pool' => 'optional',
         ]);
+
+        $pool = (string) ($data['pool'] ?? PretixVoucher::POOL_FULL);
+        if (!array_key_exists($pool, self::POOL_LABELS)) {
+            $pool = PretixVoucher::POOL_FULL;
+        }
 
         $codes = array_values(array_unique(array_filter(array_map(
             'trim',
@@ -188,12 +233,12 @@ class PretixVoucherController extends BaseController
         $newCodes = array_diff($codes, $existing);
 
         foreach ($newCodes as $code) {
-            $this->pretixVoucher->newQuery()->create(['code' => $code]);
+            $this->pretixVoucher->newQuery()->create(['code' => $code, 'pool' => $pool]);
         }
 
         $this->log->info(
-            'Added {added} Pretix voucher codes ({skipped} duplicates skipped)',
-            ['added' => count($newCodes), 'skipped' => count($existing)]
+            'Added {added} Pretix voucher codes to pool {pool} ({skipped} duplicates skipped)',
+            ['added' => count($newCodes), 'pool' => $pool, 'skipped' => count($existing)]
         );
         $this->addNotification(sprintf(
             __('%d new voucher codes added, %d duplicates skipped.'),

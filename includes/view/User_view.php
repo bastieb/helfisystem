@@ -52,6 +52,7 @@ function User_delete_view($user)
  * @param int $all_shifts_completed_count
  * @param int $has_payday_count
  * @param int $pretix_order_paid_count
+ * @param int $day_ticket_deal_count
  * @param bool $admin_user_privilege
  * @return string
  */
@@ -70,6 +71,7 @@ function Users_view(
     $all_shifts_completed_count,
     $has_payday_count,
     $pretix_order_paid_count,
+    $day_ticket_deal_count,
     $admin_user_privilege
 ) {
     $auth = auth();
@@ -135,6 +137,7 @@ EOT;
         $u['all_shifts_completed'] = icon_bool((bool) $user->getAttribute('all_shifts_completed'));
         $u['has_payday'] = icon_bool((bool) $user->personalData->has_payday);
         $u['pretix_order_paid'] = icon_bool((bool) $user->personalData->pretix_order_paid);
+        $u['day_ticket_deal'] = icon_bool((bool) $user->personalData->day_ticket_deal_confirmed);
         $u['active'] = icon_bool($user->state->active);
         if (config('enable_force_active')) {
             $u['force_active'] = icon_bool($user->state->force_active);
@@ -182,6 +185,7 @@ EOT;
         'all_shifts_completed' => '<strong>' . $all_shifts_completed_count . '</strong>',
         'has_payday' => '<strong>' . $has_payday_count . '</strong>',
         'pretix_order_paid' => '<strong>' . $pretix_order_paid_count . '</strong>',
+        'day_ticket_deal' => '<strong>' . $day_ticket_deal_count . '</strong>',
         'actions' => '<strong>' . count($usersList) . '</strong>',
     ];
 
@@ -212,6 +216,11 @@ EOT;
     $user_table_headers['pretix_order_paid'] = Users_table_header_link(
         'pretix_order_paid',
         __('Deposit paid'),
+        $order_by
+    );
+    $user_table_headers['day_ticket_deal'] = Users_table_header_link(
+        'day_ticket_deal',
+        __('day_ticket_deal.column'),
         $order_by
     );
     $user_table_headers['active'] = Users_table_header_link('active', __('user.active'), $order_by);
@@ -739,6 +748,23 @@ function User_view(
         error(__('freeload.freeloader.info', [config('max_freeloadable_shifts')]));
     }
 
+    // helfisystem: Hinweis auf das 5h-Tagesticket-Angebot, falls qualifiziert
+    $dayTicketDealHint = '';
+    if ($its_me && !$user_source->personalData->day_ticket_deal_confirmed) {
+        $dealEligibility = DayTicketDeal_check_eligibility($user_source);
+        if ($dealEligibility['eligible']) {
+            $dayTicketDealHint = info(
+                __('day_ticket_deal.hint') . ' ' . button(
+                    url('/day-ticket-deal'),
+                    __('day_ticket_deal.hint_button'),
+                    'btn-sm btn-warning'
+                ),
+                true,
+                true
+            );
+        }
+    }
+
     $needs_drivers_license = false;
     foreach ($user_angeltypes as $angeltype) {
         $needs_drivers_license = $needs_drivers_license || $angeltype->requires_driver_license;
@@ -762,6 +788,7 @@ function User_view(
         . user_info_icon($user_source),
         [
             msg(),
+            $dayTicketDealHint,
             div('row', [
                 div('col-md-12', [
                     table_buttons([
