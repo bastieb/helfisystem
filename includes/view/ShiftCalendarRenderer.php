@@ -54,12 +54,19 @@ class ShiftCalendarRenderer
      * @param ShiftEntry[][]|Collection $shift_entries
      * @param ShiftsFilter            $shiftsFilter
      */
+    /** @var array<int, Shift> */
+    private $shifts_by_id = [];
+
     public function __construct($shifts, private $needed_angeltypes, private $shift_entries, ShiftsFilter $shiftsFilter)
     {
         $this->shiftsFilter = $shiftsFilter;
         $this->firstBlockStartTime = $this->calcFirstBlockStartTime($shifts);
         $this->lastBlockEndTime = $this->calcLastBlockEndTime($shifts);
         $this->lanes = $this->assignShiftsToLanes($shifts);
+
+        foreach ($shifts as $shift) {
+            $this->shifts_by_id[$shift->id] = $shift;
+        }
     }
 
     /**
@@ -144,7 +151,43 @@ class ShiftCalendarRenderer
         return div('shift-calendar table-responsive', [
                 $this->renderTimeLane(),
                 $this->renderShiftLanes(),
-            ]) . $this->renderLegend();
+            ]) . $this->renderLegend() . $this->renderSummary();
+    }
+
+    /**
+     * Renders the summary showing the number of helpers and total hours of the currently filtered shifts
+     *
+     * @return string
+     */
+    private function renderSummary()
+    {
+        $helpers = 0;
+        $seconds = 0;
+
+        foreach ($this->shift_entries as $shift_id => $entries) {
+            if (!isset($this->shifts_by_id[$shift_id])) {
+                continue;
+            }
+            $shift = $this->shifts_by_id[$shift_id];
+            $shift_duration = $shift->end->timestamp - $shift->start->timestamp;
+
+            foreach ($entries as $entry) {
+                if (!is_null($entry->freeloaded_by)) {
+                    continue;
+                }
+                $helpers++;
+                $seconds += $shift_duration;
+            }
+        }
+
+        $hours = round($seconds / 3600, 2);
+
+        return div('shift-summary mt-3', [
+            '<b>' . __('Sum:') . '</b> '
+            . sprintf(__('%d helpers'), $helpers)
+            . ', '
+            . sprintf(__('%s hours'), $hours),
+        ]);
     }
 
     /**

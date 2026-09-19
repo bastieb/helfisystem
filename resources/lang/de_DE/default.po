@@ -1127,6 +1127,14 @@ msgstr "Austragen"
 msgid "Sum:"
 msgstr "Summe:"
 
+#, php-format
+msgid "%d helpers"
+msgstr "%d Helfer"
+
+#, php-format
+msgid "%s hours"
+msgstr "%s Stunden"
+
 msgid "Work log entry"
 msgstr "Arbeitseinsatz"
 
