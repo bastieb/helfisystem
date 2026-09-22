@@ -1219,29 +1219,23 @@ msgstr "Phone"
 msgid "Full festival ticket (10h)"
 msgstr "Full festival ticket (10h)"
 
-msgid "Day ticket, free choice (Auf-/Abbau 5h)"
-msgstr "Day ticket, free choice (setup/teardown 5h)"
+msgid "Day ticket Friday"
+msgstr "Day ticket Friday"
 
-msgid "Day ticket Friday (5h shift on Friday)"
-msgstr "Day ticket Friday (5h shift on Friday)"
+msgid "Day ticket Saturday"
+msgstr "Day ticket Saturday"
 
-msgid "Day ticket Saturday (5h shift on Saturday)"
-msgstr "Day ticket Saturday (5h shift on Saturday)"
-
-msgid "Day ticket Sunday (5h shift on Sunday)"
-msgstr "Day ticket Sunday (5h shift on Sunday)"
+msgid "Day ticket Sunday"
+msgstr "Day ticket Sunday"
 
 msgid "day_ticket_deal.admin.title"
-msgstr "5h day-ticket deal"
+msgstr "Day-ticket deal (3-5h shifts)"
 
 msgid "day_ticket_deal.admin.enable"
-msgstr "Enable 5h day-ticket deal"
+msgstr "Enable day-ticket deal"
 
-msgid "day_ticket_deal.admin.shift_types"
-msgstr "Qualifying shift types"
-
-msgid "day_ticket_deal.admin.shift_types.info"
-msgstr "Comma-separated shift type names whose 5h shifts trigger the free-choice day ticket (e.g. Aufbau,Abbau). 5h shifts on the festival days themselves always qualify additionally, regardless of shift type."
+msgid "day_ticket_deal.admin.enable.info"
+msgstr "Anyone who takes on a single shift lasting 3 to 5 hours (any shift type) can opt for a day ticket instead of the 10h rule. If the shift falls on one of the three festival days, they automatically get the ticket for that exact day; otherwise they have to pick one of the three days. There is no free-choice option."
 
 msgid "day_ticket_deal.admin.day_fri"
 msgstr "Festival day Friday"
@@ -1253,10 +1247,10 @@ msgid "day_ticket_deal.admin.day_sun"
 msgstr "Festival day Sunday"
 
 msgid "day_ticket_deal.signup_locked"
-msgstr "you opted into the 5h day-ticket deal and can no longer sign up for further shifts"
+msgstr "you opted into the day-ticket deal and can no longer sign up for further shifts"
 
 msgid "day_ticket_deal.title"
-msgstr "5h day-ticket deal"
+msgstr "Day-ticket deal"
 
 msgid "day_ticket_deal.day.fri"
 msgstr "Friday"
@@ -1271,19 +1265,19 @@ msgid "day_ticket_deal.your_day"
 msgstr "Your day-ticket day:"
 
 msgid "day_ticket_deal.not_eligible"
-msgstr "You don't currently qualify for the 5h day-ticket deal. Requirement: you are signed up for exactly one single 5-hour shift that is either a setup/teardown (Aufbau/Abbau) shift or falls directly on one of the three festival days."
+msgstr "You don't currently qualify for the day-ticket deal. Requirement: you are signed up for exactly one single shift lasting 3 to 5 hours."
 
 msgid "day_ticket_deal.already_confirmed"
-msgstr "You already confirmed the 5h day-ticket deal and received your day ticket for %s. Please submit a shift change request if you need to change anything."
+msgstr "You already confirmed the day-ticket deal and received your day ticket for %s. Please submit a shift change request if you need to change anything."
 
 msgid "day_ticket_deal.warning_text"
-msgstr "Heads up, this is an absolute exception we're offering by popular demand: since this is a setup/teardown shift (or a 5-hour shift directly on a festival day), we can only offer you a day ticket instead of the full festival ticket. That means you'll only have a little time to actually enjoy the saunas. The alternative would be to take a regular 10-hour shift and get the full ticket for that instead. If you confirm the 5h deal here, it's final: you won't be able to sign up for any further shifts afterwards, and you can't later add hours to reach 10 for a bigger ticket. We're happiest when people join us for several days and connect with the community, rather than just dropping by for one day — that's why this exception is deliberately narrow."
+msgstr "Heads up, this is an absolute exception we're offering by popular demand: since your shift is only 3 to 5 hours long, we can only offer you a day ticket instead of the full festival ticket. That means you'll only have a little time to actually enjoy the saunas. The alternative would be to take a regular 10-hour shift and get the full ticket for that instead. If you confirm the deal here, it's final: you won't be able to sign up for any further shifts afterwards, and you can't later add hours to reach 10 for a bigger ticket. We're happiest when people join us for several days and connect with the community, rather than just dropping by for one day — that's why this exception is deliberately narrow."
 
 msgid "day_ticket_deal.confirm_checkbox"
 msgstr "I have read and understood this."
 
 msgid "day_ticket_deal.confirm_button"
-msgstr "Yes, I want the 5h day-ticket deal, bindingly"
+msgstr "Yes, I want the day-ticket deal, bindingly"
 
 msgid "day_ticket_deal.confirm_required"
 msgstr "Please confirm that you have read the notice above."
@@ -1295,13 +1289,13 @@ msgid "day_ticket_deal.pool_empty"
 msgstr "The voucher pool for this day ticket is currently empty. Please contact the Crew (helfi@saunasplash.de)."
 
 msgid "day_ticket_deal.confirmed"
-msgstr "Your 5h day ticket has been confirmed, you'll get the code by email shortly."
+msgstr "Your day ticket has been confirmed, you'll get the code by email shortly."
 
 msgid "day_ticket_deal.hint"
-msgstr "You have a 5h shift that qualifies for our 5h day-ticket deal."
+msgstr "You have a 3-5h shift that qualifies for our day-ticket deal."
 
 msgid "day_ticket_deal.hint_button"
 msgstr "Learn more"
 
 msgid "day_ticket_deal.column"
-msgstr "5h Helfi"
+msgstr "Day-ticket deal"

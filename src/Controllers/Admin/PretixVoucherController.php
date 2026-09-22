@@ -42,10 +42,9 @@ class PretixVoucherController extends BaseController
     /** @var array<string, string> helfisystem: voucher pool ids -> admin-facing labels */
     private const POOL_LABELS = [
         PretixVoucher::POOL_FULL => 'Full festival ticket (10h)',
-        PretixVoucher::POOL_DAY_ANY => 'Day ticket, free choice (Auf-/Abbau 5h)',
-        PretixVoucher::POOL_DAY_FRI => 'Day ticket Friday (5h shift on Friday)',
-        PretixVoucher::POOL_DAY_SAT => 'Day ticket Saturday (5h shift on Saturday)',
-        PretixVoucher::POOL_DAY_SUN => 'Day ticket Sunday (5h shift on Sunday)',
+        PretixVoucher::POOL_DAY_FRI => 'Day ticket Friday',
+        PretixVoucher::POOL_DAY_SAT => 'Day ticket Saturday',
+        PretixVoucher::POOL_DAY_SUN => 'Day ticket Sunday',
     ];
 
     public function index(): Response
@@ -81,9 +80,8 @@ class PretixVoucherController extends BaseController
                 'pretixVoucherLowStockThreshold' => (int) $this->config->get('pretix_voucher_low_stock_threshold', 10),
                 'pretixAdminNotifyEmail' => (string) $this->config->get('pretix_admin_notify_email', ''),
 
-                // helfisystem: 5h-Tagesticket-Deal
+                // helfisystem: Tagesticket-Deal (3-5h-Schichten)
                 'enable5hDeal' => (bool) $this->config->get('enable_5h_deal', false),
-                'fiveHourDealShiftTypes' => (string) $this->config->get('pretix_5h_deal_shift_types', 'Aufbau,Abbau'),
                 'eventDayFri' => (string) $this->config->get('pretix_event_day_fri', ''),
                 'eventDaySat' => (string) $this->config->get('pretix_event_day_sat', ''),
                 'eventDaySun' => (string) $this->config->get('pretix_event_day_sun', ''),
@@ -158,7 +156,6 @@ class PretixVoucherController extends BaseController
             'pretix_admin_notify_email' => 'optional|email',
             'pretix_voucher_low_stock_threshold' => 'optional|number|min:0',
             'enable_5h_deal' => 'optional|checked',
-            'pretix_5h_deal_shift_types' => 'optional',
             'pretix_event_day_fri' => 'optional',
             'pretix_event_day_sat' => 'optional',
             'pretix_event_day_sun' => 'optional',
@@ -187,10 +184,6 @@ class PretixVoucherController extends BaseController
         );
 
         $this->setConfig('enable_5h_deal', !empty($data['enable_5h_deal']));
-        $this->setConfig(
-            'pretix_5h_deal_shift_types',
-            trim((string) ($data['pretix_5h_deal_shift_types'] ?? 'Aufbau,Abbau'))
-        );
         $this->setConfig('pretix_event_day_fri', trim((string) ($data['pretix_event_day_fri'] ?? '')));
         $this->setConfig('pretix_event_day_sat', trim((string) ($data['pretix_event_day_sat'] ?? '')));
         $this->setConfig('pretix_event_day_sun', trim((string) ($data['pretix_event_day_sun'] ?? '')));

@@ -57,11 +57,7 @@
 
                     {{ f.switch('enable_5h_deal', __('day_ticket_deal.admin.enable'), {
                         'checked': enable5hDeal,
-                    }) }}
-
-                    {{ f.input('pretix_5h_deal_shift_types', __('day_ticket_deal.admin.shift_types'), {
-                        'value': fiveHourDealShiftTypes,
-                        'info': __('day_ticket_deal.admin.shift_types.info'),
+                        'info': __('day_ticket_deal.admin.enable.info'),
                     }) }}
 
                     <div class="row">

@@ -1119,29 +1119,23 @@ msgstr "Telefon"
 msgid "Full festival ticket (10h)"
 msgstr "Volles Festivalticket (10h)"
 
-msgid "Day ticket, free choice (Auf-/Abbau 5h)"
-msgstr "Tagesticket, frei wählbar (Auf-/Abbau 5h)"
+msgid "Day ticket Friday"
+msgstr "Tagesticket Freitag"
 
-msgid "Day ticket Friday (5h shift on Friday)"
-msgstr "Tagesticket Freitag (5h-Schicht am Freitag)"
+msgid "Day ticket Saturday"
+msgstr "Tagesticket Samstag"
 
-msgid "Day ticket Saturday (5h shift on Saturday)"
-msgstr "Tagesticket Samstag (5h-Schicht am Samstag)"
-
-msgid "Day ticket Sunday (5h shift on Sunday)"
-msgstr "Tagesticket Sonntag (5h-Schicht am Sonntag)"
+msgid "Day ticket Sunday"
+msgstr "Tagesticket Sonntag"
 
 msgid "day_ticket_deal.admin.title"
-msgstr "5h-Tagesticket-Deal"
+msgstr "Tagesticket-Deal (3-5h-Schichten)"
 
 msgid "day_ticket_deal.admin.enable"
-msgstr "5h-Tagesticket-Deal aktivieren"
+msgstr "Tagesticket-Deal aktivieren"
 
-msgid "day_ticket_deal.admin.shift_types"
-msgstr "Qualifizierende Schichttypen"
-
-msgid "day_ticket_deal.admin.shift_types.info"
-msgstr "Kommagetrennte Namen der Schichttypen, deren 5h-Schichten das frei wählbare Tagesticket auslösen (z.B. Aufbau,Abbau). 5h-Schichten an den Festivaltagen selbst qualifizieren immer zusätzlich, unabhängig vom Schichttyp."
+msgid "day_ticket_deal.admin.enable.info"
+msgstr "Wer eine einzelne Schicht mit 3 bis 5 Stunden Dauer übernimmt (egal welcher Schichttyp), kann sich statt der 10h-Regel für ein Tagesticket entscheiden. Liegt die Schicht an einem der drei Festivaltage, gibt es automatisch das Ticket für genau diesen Tag; sonst muss der Helfi einen der drei Tage auswählen. Eine frei wählbare Variante gibt es nicht."
 
 msgid "day_ticket_deal.admin.day_fri"
 msgstr "Festivaltag Freitag"
@@ -1153,10 +1147,10 @@ msgid "day_ticket_deal.admin.day_sun"
 msgstr "Festivaltag Sonntag"
 
 msgid "day_ticket_deal.signup_locked"
-msgstr "du hast dich für das 5h-Tagesticket-Angebot entschieden und kannst dich für keine weiteren Schichten mehr eintragen"
+msgstr "du hast dich für das Tagesticket-Angebot entschieden und kannst dich für keine weiteren Schichten mehr eintragen"
 
 msgid "day_ticket_deal.title"
-msgstr "5h-Tagesticket-Angebot"
+msgstr "Tagesticket-Angebot"
 
 msgid "day_ticket_deal.day.fri"
 msgstr "Freitag"
@@ -1171,19 +1165,19 @@ msgid "day_ticket_deal.your_day"
 msgstr "Dein Tagesticket-Tag:"
 
 msgid "day_ticket_deal.not_eligible"
-msgstr "Du qualifizierst dich aktuell nicht für das 5h-Tagesticket-Angebot. Voraussetzung: Du bist für genau eine einzelne 5-Stunden-Schicht eingetragen, die entweder eine Auf-/Abbau-Schicht ist oder direkt an einem der drei Festivaltage liegt."
+msgstr "Du qualifizierst dich aktuell nicht für das Tagesticket-Angebot. Voraussetzung: Du bist für genau eine einzelne Schicht mit 3 bis 5 Stunden Dauer eingetragen."
 
 msgid "day_ticket_deal.already_confirmed"
-msgstr "Du hast das 5h-Tagesticket-Angebot bereits bestätigt und dein Tagesticket für %s erhalten. Für Änderungen an deiner Schicht stelle bitte einen Tauschantrag."
+msgstr "Du hast das Tagesticket-Angebot bereits bestätigt und dein Tagesticket für %s erhalten. Für Änderungen an deiner Schicht stelle bitte einen Tauschantrag."
 
 msgid "day_ticket_deal.warning_text"
-msgstr "Achtung, das ist eine absolute Ausnahme, die wir auf vielfachen Wunsch anbieten: Da es sich um eine Auf-/Abbau-Schicht bzw. eine 5-Stunden-Schicht direkt an einem Festivaltag handelt, können wir dir dafür nur ein Tagesticket statt des vollen Festivaltickets anbieten. Das heißt, du hast nur wenig Zeit, um wirklich in die Saunen zu gehen. Die einzige Alternative wäre, eine reguläre 10-Stunden-Schicht zu übernehmen und dafür das volle Ticket zu bekommen. Wenn du das 5h-Angebot hier bestätigst, ist das endgültig: Du kannst dich danach für keine weiteren Schichten mehr eintragen und später nicht mehr auf 10 Stunden aufstocken, um ein größeres Ticket zu bekommen. Wir freuen uns nämlich, wenn Menschen mehrere Tage beim Festival dabei sind und sich mit der Community verbinden, statt nur für einen Tag vorbeizukommen — deshalb ist diese Ausnahme bewusst eng gefasst."
+msgstr "Achtung, das ist eine absolute Ausnahme, die wir auf vielfachen Wunsch anbieten: Da deine Schicht nur 3 bis 5 Stunden dauert, können wir dir dafür nur ein Tagesticket statt des vollen Festivaltickets anbieten. Das heißt, du hast nur wenig Zeit, um wirklich in die Saunen zu gehen. Die einzige Alternative wäre, eine reguläre 10-Stunden-Schicht zu übernehmen und dafür das volle Ticket zu bekommen. Wenn du das Angebot hier bestätigst, ist das endgültig: Du kannst dich danach für keine weiteren Schichten mehr eintragen und später nicht mehr auf 10 Stunden aufstocken, um ein größeres Ticket zu bekommen. Wir freuen uns nämlich, wenn Menschen mehrere Tage beim Festival dabei sind und sich mit der Community verbinden, statt nur für einen Tag vorbeizukommen — deshalb ist diese Ausnahme bewusst eng gefasst."
 
 msgid "day_ticket_deal.confirm_checkbox"
 msgstr "Ich habe das gelesen und verstanden."
 
 msgid "day_ticket_deal.confirm_button"
-msgstr "Ja, ich will das 5h-Tagesticket-Angebot verbindlich"
+msgstr "Ja, ich will das Tagesticket-Angebot verbindlich"
 
 msgid "day_ticket_deal.confirm_required"
 msgstr "Bitte bestätige, dass du den Hinweistext gelesen hast."
@@ -1195,13 +1189,13 @@ msgid "day_ticket_deal.pool_empty"
 msgstr "Der Voucher-Pool für dieses Tagesticket ist gerade leer. Bitte wende dich an die Crew (helfi@saunasplash.de)."
 
 msgid "day_ticket_deal.confirmed"
-msgstr "Dein 5h-Tagesticket wurde bestätigt, den Code bekommst du gleich per Mail."
+msgstr "Dein Tagesticket wurde bestätigt, den Code bekommst du gleich per Mail."
 
 msgid "day_ticket_deal.hint"
-msgstr "Du hast eine 5h-Schicht, die für unser 5h-Tagesticket-Angebot qualifiziert."
+msgstr "Du hast eine 3-5h-Schicht, die für unser Tagesticket-Angebot qualifiziert."
 
 msgid "day_ticket_deal.hint_button"
 msgstr "Mehr erfahren"
 
 msgid "day_ticket_deal.column"
-msgstr "5h-Helfi"
+msgstr "Tagesticket-Deal"

@@ -6,17 +6,19 @@ use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\User\User;
 
 /**
- * helfisystem: 5h-Tagesticket-Deal (Ausnahme fuer Auf-/Abbau-Schichten bzw. 5h-Schichten
- * direkt an einem Festivaltag - Tagesticket statt Wochenendticket).
+ * helfisystem: Tagesticket-Deal (Ausnahme fuer kurze 3-5h-Schichten - Tagesticket statt
+ * Wochenendticket). Liegt die Schicht direkt an einem Festivaltag, gibt es automatisch das
+ * Ticket fuer genau diesen Tag. Liegt sie ausserhalb (z.B. Auf-/Abbau), muss der Helfi einen
+ * der drei Tage auswaehlen - eine frei waehlbare Variante gibt es nicht (keine Voucher dafuer).
  */
 
 /**
- * Prueft, ob ein Helfi fuer den 5h-Tagesticket-Deal qualifiziert.
+ * Prueft, ob ein Helfi fuer den Tagesticket-Deal qualifiziert.
  *
- * Voraussetzung: die Summe der eingeplanten Stunden ist exakt eine einzelne 5h-Schicht,
- * und diese Schicht ist entweder ein konfigurierter Auf-/Abbau-Schichttyp (-> freie
- * Tageswahl) oder liegt an einem der drei konfigurierten Festivaltage (-> Ticket fuer
- * genau diesen Tag).
+ * Voraussetzung: die Summe der eingeplanten Stunden ist exakt eine einzelne Schicht mit
+ * 3 bis 5 Stunden Dauer (unabhaengig vom Schichttyp). Liegt sie an einem der drei
+ * konfigurierten Festivaltage, gibt es das Ticket fuer genau diesen Tag; sonst muss der
+ * Helfi einen der drei Tage auswaehlen.
  *
  * @return array{eligible: bool, freeChoice: bool, fixedDay: ?string, shift: ?\Engelsystem\Models\Shifts\Shift}
  */
@@ -43,7 +45,7 @@ function DayTicketDeal_check_eligibility(User $user): array
     }
 
     $hours = ($shift->end->getTimestamp() - $shift->start->getTimestamp()) / 3600;
-    if (abs($hours - 5.0) > 0.01) {
+    if ($hours < 3.0 - 0.01 || $hours > 5.0 + 0.01) {
         return $none;
     }
 
@@ -59,23 +61,12 @@ function DayTicketDeal_check_eligibility(User $user): array
         }
     }
 
-    $qualifyingTypes = array_filter(array_map(
-        'trim',
-        explode(',', (string) config('pretix_5h_deal_shift_types', 'Aufbau,Abbau'))
-    ));
-    $shiftTypeName = $shift->shiftType->name ?? '';
-    foreach ($qualifyingTypes as $type) {
-        if (strcasecmp($type, $shiftTypeName) === 0) {
-            return ['eligible' => true, 'freeChoice' => true, 'fixedDay' => null, 'shift' => $shift];
-        }
-    }
-
-    return $none;
+    return ['eligible' => true, 'freeChoice' => true, 'fixedDay' => null, 'shift' => $shift];
 }
 
 /**
  * Vergibt einen Voucher aus dem angegebenen Pool und markiert den Deal als bestaetigt.
- * Gibt den Voucher-Code zurueck, oder null wenn der Pool leer ist.
+ * Gibt den Voucher-Code zurueck, oder null wenn der Pool leer ist oder der Tag ungueltig ist.
  */
 function DayTicketDeal_confirm(User $user, string $day): ?string
 {
@@ -83,8 +74,12 @@ function DayTicketDeal_confirm(User $user, string $day): ?string
         'fri' => PretixVoucher::POOL_DAY_FRI,
         'sat' => PretixVoucher::POOL_DAY_SAT,
         'sun' => PretixVoucher::POOL_DAY_SUN,
-        default => PretixVoucher::POOL_DAY_ANY,
+        default => null,
     };
+
+    if ($pool === null) {
+        return null;
+    }
 
     $code = null;
     (new PretixVoucher())->getConnection()->transaction(function () use ($user, $day, $pool, &$code): void {
