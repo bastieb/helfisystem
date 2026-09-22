@@ -8,6 +8,7 @@ use Engelsystem\Config\Config;
 use Engelsystem\Helpers\PretixClient;
 use Engelsystem\Models\PretixRefund;
 use Engelsystem\Models\Shifts\ShiftEntry;
+use Engelsystem\Models\User\PersonalData;
 use Engelsystem\Models\User\User;
 use Psr\Log\LoggerInterface;
 
@@ -41,24 +42,40 @@ syncPendingRefunds($testMode, $pretix, $log);
 
 function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix, LoggerInterface $log): void
 {
-    if ($minHours <= 0) {
-        echo 'No minimum hours configured (pretix_refund_min_hours), skipping detection.' . PHP_EOL;
+    // Gleiche Logik wie die "Summe geleisteter Stunden"-Spalte in der Benutzerliste:
+    // nur Schichten mit shift_completed=1 zaehlen. helfisystem: Pro-User-Override
+    // (users_personal_data.refund_hours_override) erlaubt Admin-Ausnahmen mit
+    // abweichender Mindeststundenzahl (z.B. bei manuell zugewiesenen Vouchern ausserhalb
+    // des normalen Schemas), unabhaengig vom globalen pretix_refund_min_hours.
+    $completedHours = ShiftEntry::query()
+        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+        ->where('shift_entries.shift_completed', 1)
+        ->selectRaw(
+            'shift_entries.user_id as user_id, '
+            . 'COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)), 0) / 3600 as hours'
+        )
+        ->groupBy('shift_entries.user_id')
+        ->pluck('hours', 'user_id');
+
+    if ($completedHours->isEmpty()) {
+        echo 'No helpers have any completed shifts yet.' . PHP_EOL;
 
         return;
     }
 
-    // Gleiche Logik wie die "Summe geleisteter Stunden"-Spalte in der Benutzerliste:
-    // nur Schichten mit shift_completed=1 zaehlen.
-    $eligibleUserIds = ShiftEntry::query()
-        ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
-        ->where('shift_entries.shift_completed', 1)
-        ->selectRaw('shift_entries.user_id as user_id')
-        ->groupBy('shift_entries.user_id')
-        ->havingRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)), 0) / 3600 >= ?', [$minHours])
-        ->pluck('user_id');
+    $overrides = PersonalData::query()
+        ->whereIn('user_id', $completedHours->keys())
+        ->whereNotNull('refund_hours_override')
+        ->pluck('refund_hours_override', 'user_id');
+
+    $eligibleUserIds = $completedHours->filter(function ($hours, $userId) use ($overrides, $minHours) {
+        $threshold = (float) $overrides->get($userId, $minHours);
+
+        return $threshold > 0 && $hours >= $threshold;
+    })->keys();
 
     if ($eligibleUserIds->isEmpty()) {
-        echo 'No helpers reached the minimum completed hours yet.' . PHP_EOL;
+        echo 'No helpers reached the required completed hours yet.' . PHP_EOL;
 
         return;
     }

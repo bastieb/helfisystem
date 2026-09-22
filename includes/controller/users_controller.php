@@ -287,12 +287,20 @@ function users_list_controller()
     }
     $perPage = is_numeric($perPage) ? (int) $perPage : config('display_users');
 
+    // helfisystem: Suchfeld ueber Name/Vorname/Nachname in der Helfi-Liste
+    $search = trim((string) $request->query->get('q', ''));
+
     /** @var User[]|Collection|LengthAwarePaginator $users */
     $users = User::with(['contact', 'personalData', 'state'])
         ->select('users.*')
         ->leftJoin('users_personal_data', 'users.id', '=', 'users_personal_data.user_id')
         ->leftJoin('users_contact', 'users.id', '=', 'users_contact.user_id')
         ->leftJoin('users_state', 'users.id', '=', 'users_state.user_id')
+        ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search): void {
+            $query->where('users.name', 'like', '%' . $search . '%')
+                ->orWhere('users_personal_data.first_name', 'like', '%' . $search . '%')
+                ->orWhere('users_personal_data.last_name', 'like', '%' . $search . '%');
+        }))
         ->selectSub(
             ShiftEntry::selectRaw('COUNT(*)')
                 ->whereColumn('shift_entries.user_id', 'users.id')
@@ -366,6 +374,7 @@ function users_list_controller()
             $pretixOrderPaidCount,
             $dayTicketDealCount,
             auth()->can('admin_user'),
+            $search,
         ),
     ];
 }

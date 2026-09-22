@@ -6,6 +6,7 @@ use Engelsystem\Helpers\Carbon;
 use Engelsystem\Helpers\UserVouchers;
 use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Group;
+use Engelsystem\Models\PretixVoucher;
 use Engelsystem\Models\Shifts\Shift;
 use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\User\PasswordReset;
@@ -54,6 +55,7 @@ function User_delete_view($user)
  * @param int $pretix_order_paid_count
  * @param int $day_ticket_deal_count
  * @param bool $admin_user_privilege
+ * @param string $search
  * @return string
  */
 function Users_view(
@@ -72,7 +74,8 @@ function Users_view(
     $has_payday_count,
     $pretix_order_paid_count,
     $day_ticket_deal_count,
-    $admin_user_privilege
+    $admin_user_privilege,
+    $search = ''
 ) {
     $auth = auth();
     $goodie = GoodieType::from(config('goodie_type'));
@@ -156,7 +159,29 @@ EOT;
         $u['departure_date'] = $user->personalData->planned_departure_date
             ? $user->personalData->planned_departure_date->format(__('general.date')) : '';
         $u['last_login_at'] = $user->last_login_at ? $user->last_login_at->format(__('general.datetime')) : '';
+
+        // helfisystem: Anrufen/E-Mail-senden-Buttons (tel:/mailto:). Diese Seite ist ohnehin
+        // admin_user-geschuetzt (Schicht-Koordination), daher ohne die Peer-Sichtbarkeits-
+        // Haekchen (mobile_show/email_human) - die sind auf dieser Instanz eh nie ueber die UI
+        // erreichbar (enable_mobile_show ist aus) und Handynummer ist Pflichtfeld bei Anmeldung.
+        $listContactPhone = $user->contact->mobile ?: $user->contact->dect;
+        $listContactEmail = $user->contact->email ?: $user->email;
+
         $u['actions'] = table_buttons([
+            $listContactPhone ? button(
+                'tel:' . htmlspecialchars($listContactPhone),
+                icon('phone'),
+                'btn-sm',
+                '',
+                __('user.call')
+            ) : '',
+            $listContactEmail ? button(
+                'mailto:' . htmlspecialchars($listContactEmail),
+                icon('envelope'),
+                'btn-sm',
+                '',
+                __('user.send_email')
+            ) : '',
             button(
                 url(
                     '/admin-user',
@@ -258,8 +283,19 @@ EOT;
         $pagination = pagination($users, config('display_users'));
     }
     $link = button(url('/register'), icon('plus-lg'), 'btn-sm add');
+
+    // helfisystem: Suchfeld nach Name/Vorname/Nachname
+    $searchForm = '<form method="get" action="' . url('/users') . '" class="d-flex mb-3" style="max-width:400px;gap:.5rem;">'
+        . '<input type="text" name="q" class="form-control" placeholder="' . htmlspecialchars(__('Search'))
+        . '" value="' . htmlspecialchars($search) . '">'
+        . '<button type="submit" class="btn btn-secondary">' . icon('search') . '</button>'
+        . ($search !== '' ? '<a href="' . url('/users') . '" class="btn btn-outline-secondary">'
+            . icon('x-lg') . '</a>' : '')
+        . '</form>';
+
     return page_with_title(__('All users') . ' ' . $link, [
         msg(),
+        $searchForm,
         $pagination,
         table($user_table_headers, $usersList),
         $pagination,
@@ -274,11 +310,15 @@ EOT;
  */
 function Users_table_header_link($column, $label, $order_by)
 {
-    // Preserve pagination count when changing sort order
+    // Preserve pagination count and search term when changing sort order
     $params = ['OrderBy' => $column];
     $count = request()->query->get('c');
     if ($count) {
         $params['c'] = $count;
+    }
+    $search = request()->query->get('q');
+    if ($search) {
+        $params['q'] = $search;
     }
     return '<a href="'
         . url('/users', $params)
@@ -778,6 +818,18 @@ function User_view(
 
     $self_worklog = config('enable_self_worklog') || !$its_me;
 
+    // helfisystem: Anrufen/E-Mail-senden-Buttons (tel:/mailto:). Anders als die Liste ist diese
+    // Profilseite fuer jeden eingeloggten Helfi einsehbar (nicht nur Admins) - daher hier bewusst
+    // weiterhin auf Admin/eigenes Profil beschraenkt, damit nicht plötzlich alle Handynummern
+    // fuer die ganze Community sichtbar werden (die Peer-Sichtbarkeits-Haekchen mobile_show/
+    // email_human greifen auf dieser Instanz eh nie, da enable_mobile_show aus ist).
+    $contactPhone = ($admin_user_privilege || $its_me)
+        ? ($user_source->contact->mobile ?: $user_source->contact->dect)
+        : null;
+    $contactEmail = ($admin_user_privilege || $its_me)
+        ? ($user_source->contact->email ?: $user_source->email)
+        : null;
+
     return page_with_title(
         '<span class="icon-icon_angel"></span> '
         . htmlspecialchars($user_source->name)
@@ -792,6 +844,14 @@ function User_view(
             div('row', [
                 div('col-md-12', [
                     table_buttons([
+                        $contactPhone ? button(
+                            'tel:' . htmlspecialchars($contactPhone),
+                            icon('phone') . __('user.call')
+                        ) : '',
+                        $contactEmail ? button(
+                            'mailto:' . htmlspecialchars($contactEmail),
+                            icon('envelope') . __('user.send_email')
+                        ) : '',
                         $auth->can('user.goodie.edit') && $goodie_enabled ? button(
                             url('/admin/user/' . $user_source->id . '/goodie'),
                             icon('gift') . __('Goodie')
@@ -967,20 +1027,29 @@ function User_view_state($admin_user_privilege, $freeloader, $user_source)
     }
 
     if (config('enable_pretix_voucher') && ($admin_user_privilege || $its_me)) {
-        $voucherCode = $user_source->personalData->voucher_code;
-        if ($voucherCode) {
-            $redeemLink = config('pretix_redeem_link');
-            $redeemLink = ($redeemLink && str_contains($redeemLink, '{code}'))
-                ? str_replace('{code}', $voucherCode, $redeemLink)
-                : $redeemLink;
-            $state[] = '<span class="text-success">'
-                . icon('ticket-perforated')
-                . ' '
-                . ($redeemLink
-                    ? '<a href="' . htmlspecialchars($redeemLink) . '" target="_blank" rel="noopener">'
-                        . htmlspecialchars($voucherCode) . '</a>'
-                    : htmlspecialchars($voucherCode))
-                . '</span>';
+        // helfisystem: alle jemals zugewiesenen Voucher zeigen (kann mehr als einer sein,
+        // z.B. bei einer Admin-Ausnahme mit zwei Tagesticket-Vouchern)
+        $assignedVouchers = PretixVoucher::query()
+            ->where('used_by_user_id', $user_source->id)
+            ->orderBy('used_at')
+            ->get();
+
+        if ($assignedVouchers->count()) {
+            $redeemLinkTemplate = config('pretix_redeem_link');
+            foreach ($assignedVouchers as $voucher) {
+                $redeemLink = ($redeemLinkTemplate && str_contains($redeemLinkTemplate, '{code}'))
+                    ? str_replace('{code}', $voucher->code, $redeemLinkTemplate)
+                    : $redeemLinkTemplate;
+                $state[] = '<span class="text-success">'
+                    . icon('ticket-perforated')
+                    . ' '
+                    . PretixVoucher::poolLabel($voucher->pool) . ': '
+                    . ($redeemLink
+                        ? '<a href="' . htmlspecialchars($redeemLink) . '" target="_blank" rel="noopener">'
+                            . htmlspecialchars($voucher->code) . '</a>'
+                        : htmlspecialchars($voucher->code))
+                    . '</span>';
+            }
         } else {
             $state[] = '<span class="text-muted">'
                 . icon('ticket-perforated')

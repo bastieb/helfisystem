@@ -20,6 +20,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property bool        $pretix_order_paid
  * @property bool        $day_ticket_deal_confirmed
  * @property string|null $day_ticket_deal_day
+ * @property float|null  $refund_hours_override
  *
  * @method static QueryBuilder|PersonalData[] whereFirstName($value)
  * @method static QueryBuilder|PersonalData[] whereLastName($value)
@@ -48,6 +49,7 @@ class PersonalData extends HasUserModel
         'pretix_order_paid'      => false,
         'day_ticket_deal_confirmed' => false,
         'day_ticket_deal_day'    => null,
+        'refund_hours_override'  => null,
     ];
 
     /** @var array<string, string> */
@@ -58,6 +60,7 @@ class PersonalData extends HasUserModel
         'has_payday'             => 'boolean',
         'pretix_order_paid'      => 'boolean',
         'day_ticket_deal_confirmed' => 'boolean',
+        'refund_hours_override'  => 'float',
     ];
 
     /**
@@ -78,5 +81,6 @@ class PersonalData extends HasUserModel
         'pretix_order_paid',
         'day_ticket_deal_confirmed',
         'day_ticket_deal_day',
+        'refund_hours_override',
     ];
 }

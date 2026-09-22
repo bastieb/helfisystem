@@ -132,3 +132,73 @@ function DayTicketDeal_confirm(User $user, string $day): ?string
 
     return $code;
 }
+
+/**
+ * helfisystem: Admin-Ausnahme - manuelle Voucher-Zuweisung fuer Sonderfaelle, die nicht ins normale
+ * Schema passen (z.B. mehrere kurze Schichten statt einer). Unabhaengig vom Tagesticket-Deal-Workflow:
+ * setzt KEINE Tagesticket-Deal-Flags und sperrt daher auch keine weiteren Schichtanmeldungen.
+ *
+ * @return string|null Voucher-Code, oder null wenn der Pool ungueltig/leer ist
+ */
+function PretixVoucherException_assign(User $admin, User $target, string $pool, string $reason): ?string
+{
+    $validPools = [
+        PretixVoucher::POOL_FULL,
+        PretixVoucher::POOL_DAY_FRI,
+        PretixVoucher::POOL_DAY_SAT,
+        PretixVoucher::POOL_DAY_SUN,
+    ];
+    if (!in_array($pool, $validPools, true)) {
+        return null;
+    }
+
+    $code = null;
+    (new PretixVoucher())->getConnection()->transaction(function () use ($admin, $target, $pool, $reason, &$code): void {
+        /** @var PretixVoucher|null $voucher */
+        $voucher = PretixVoucher::query()
+            ->where('pool', $pool)
+            ->whereNull('used_by_user_id')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$voucher) {
+            return;
+        }
+
+        $voucher->used_by_user_id = $target->id;
+        $voucher->used_at = new \Carbon\Carbon();
+        $voucher->save();
+
+        $target->personalData->voucher_code = $voucher->code;
+        $target->personalData->save();
+
+        $code = $voucher->code;
+
+        engelsystem_log(
+            'Admin voucher exception: ' . User_Nick_render($admin, true)
+            . ' assigned ' . PretixVoucher::poolLabel($pool) . ' (' . $voucher->code . ') to '
+            . User_Nick_render($target, true) . '. Reason: ' . $reason
+        );
+
+        $redeemLinkTemplate = (string) config('pretix_redeem_link', '');
+        $redeemLink = ($redeemLinkTemplate && str_contains($redeemLinkTemplate, '{code}'))
+            ? str_replace('{code}', $voucher->code, $redeemLinkTemplate)
+            : $redeemLinkTemplate;
+
+        /** @var EngelsystemMailer $mailer */
+        $mailer = app(EngelsystemMailer::class);
+        $mailer->sendViewTranslated(
+            $target,
+            'You have earned a Pretix voucher!',
+            'emails/pretix-voucher',
+            [
+                'code' => $voucher->code,
+                'link' => $redeemLink,
+                'username' => $target->displayName,
+            ]
+        );
+    });
+
+    return $code;
+}

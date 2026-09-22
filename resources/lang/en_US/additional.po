@@ -1246,6 +1246,45 @@ msgstr "Festival day Saturday"
 msgid "day_ticket_deal.admin.day_sun"
 msgstr "Festival day Sunday"
 
+msgid "day_ticket_deal.admin.exception.checkbox"
+msgstr "Admin exception: assign voucher manually"
+
+msgid "day_ticket_deal.admin.exception.info"
+msgstr "For edge cases that don't fit the normal scheme (e.g. several short shifts instead of one): assign this person one or two vouchers from any pool directly (full festival ticket or day tickets), independent of the automatic day-ticket deal. The person immediately gets an email with the code(s); no further shift signups get blocked."
+
+msgid "day_ticket_deal.admin.exception.voucher1"
+msgstr "Voucher 1"
+
+msgid "day_ticket_deal.admin.exception.voucher2"
+msgstr "Voucher 2 (optional)"
+
+msgid "day_ticket_deal.admin.exception.refund_hours"
+msgstr "Required hours for refund (exception)"
+
+msgid "day_ticket_deal.admin.exception.refund_hours.info"
+msgstr "Optional: if this person's required completed hours for the automatic refund differs from the global minimum (e.g. because they took on fewer hours overall), set it here. Leave empty to keep using the global minimum."
+
+msgid "day_ticket_deal.admin.exception.refund_hours.saved"
+msgstr "Required refund hours saved."
+
+msgid "day_ticket_deal.admin.exception.reason"
+msgstr "Reason (for the log)"
+
+msgid "day_ticket_deal.admin.exception.submit"
+msgstr "Assign voucher(s)"
+
+msgid "day_ticket_deal.admin.exception.success"
+msgstr "Voucher(s) assigned: %s"
+
+msgid "day_ticket_deal.admin.exception.pool_empty"
+msgstr "Warning: this pool was empty, no voucher could be assigned: %s"
+
+msgid "day_ticket_deal.admin.exception.none_selected"
+msgstr "Please select at least one voucher."
+
+msgid "day_ticket_deal.admin.exception.no_perm"
+msgstr "You don't have permission for this action."
+
 msgid "day_ticket_deal.signup_locked"
 msgstr "you opted into the day-ticket deal and can no longer sign up for further shifts"
 
@@ -1299,3 +1338,15 @@ msgstr "Learn more"
 
 msgid "day_ticket_deal.column"
 msgstr "Day-ticket deal"
+
+msgid "user.call"
+msgstr "Call"
+
+msgid "user.send_email"
+msgstr "Send email"
+
+msgid "Here you can change the user entry."
+msgstr "Here you can change the user entry."
+
+msgid "Search"
+msgstr "Search"

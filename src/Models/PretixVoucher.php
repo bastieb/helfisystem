@@ -57,4 +57,16 @@ class PretixVoucher extends BaseModel
     {
         return $this->belongsTo(User::class, 'used_by_user_id');
     }
+
+    /** helfisystem: kurzes, uebersetztes Label fuer einen Pool-Bezeichner */
+    public static function poolLabel(string $pool): string
+    {
+        return match ($pool) {
+            self::POOL_FULL => __('Full festival ticket (10h)'),
+            self::POOL_DAY_FRI => __('Day ticket Friday'),
+            self::POOL_DAY_SAT => __('Day ticket Saturday'),
+            self::POOL_DAY_SUN => __('Day ticket Sunday'),
+            default => $pool,
+        };
+    }
 }

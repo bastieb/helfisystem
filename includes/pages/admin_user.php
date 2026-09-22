@@ -1,9 +1,9 @@
 <?php
 
-use Carbon\Carbon;
 use Engelsystem\Config\GoodieType;
 use Engelsystem\Http\Validation\Rules\Username;
 use Engelsystem\Models\Group;
+use Engelsystem\Models\PretixVoucher;
 use Engelsystem\Models\User\User;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection;
@@ -31,7 +31,7 @@ function admin_user()
     $user_info_edit = auth()->can('user.info.edit');
     $user_goodie_edit = auth()->can('user.goodie.edit');
     $user_nick_edit = auth()->can('user.nick.edit');
-    $admin_arrive = auth()->can('admin_arrive');
+    $pretix_edit = auth()->can('pretix.edit');
 
     if (!$request->has('id')) {
         throw_redirect(users_link());
@@ -45,7 +45,7 @@ function admin_user()
             throw_redirect(users_link());
         }
 
-        $html .= __('Here you can change the user entry. Under the item \'Arrived\' the angel is marked as present, a yes at Active means that the angel was active.');
+        $html .= __('Here you can change the user entry.');
         if ($goodie_enabled && $user_goodie_edit) {
             $html .= ' ' . __('If the angel is active, it can claim a goodie. If goodie is set to \'Yes\', the angel already got their goodie.');
         }
@@ -117,20 +117,6 @@ function admin_user()
             '0' => __('No'),
         ];
 
-        // Arrived?
-        $html .= '  <tr><td>' . __('user.arrived') . '</td><td>' . "\n";
-        $html .= $admin_arrive
-            ? html_options('arrive', $options, $user_source->state->arrived)
-            : icon_bool($user_source->state->arrived);
-        $html .= '</td></tr>' . "\n";
-
-        // Active?
-        $html .= '  <tr><td>' . __('user.active') . '</td><td>' . "\n";
-        $html .= $user_goodie_edit
-            ? html_options('active', $options, $user_source->state->active)
-            : icon_bool($user_source->state->active);
-        $html .= '</td></tr>' . "\n";
-
         // Forced active?
         if (config('enable_force_active')) {
             $html .= '  <tr><td>' . __('Force active') . '</td><td>' . "\n";
@@ -200,6 +186,61 @@ function admin_user()
         $html .= '</form>';
 
         $html .= '<hr>';
+
+        // helfisystem: Admin-Ausnahme - manuelle Voucher-Zuweisung fuer Sonderfaelle
+        // Auf-/Zuklappen bewusst per CSS (:checked ~ Sibling), da die CSP kein
+        // inline onclick erlaubt (kein 'unsafe-inline' im script-src).
+        if ($pretix_edit) {
+            $html .= '<style>#voucher-exception-toggle:checked ~ #voucher-exception-panel '
+                . '{ display: block !important; }</style>';
+            // checkbox, label und panel muessen direkte Geschwister sein (kein wrapping div
+            // um die checkbox), sonst greift der CSS-Sibling-Selektor nicht
+            $html .= '<input class="form-check-input" type="checkbox" id="voucher-exception-toggle" '
+                . 'style="margin-right:6px;">'
+                . '<label class="form-check-label mb-2" for="voucher-exception-toggle">'
+                . __('day_ticket_deal.admin.exception.checkbox')
+                . '</label>';
+
+            $html .= '<div id="voucher-exception-panel" style="display:none;">';
+            $html .= '<div class="alert alert-info">' . __('day_ticket_deal.admin.exception.info') . '</div>';
+
+            $html .= '<form action="'
+                . url('/admin-user', ['action' => 'assign_voucher_exception', 'id' => $user_id])
+                . '" method="post">' . "\n";
+            $html .= form_csrf();
+
+            $poolOptions = [
+                PretixVoucher::POOL_FULL => PretixVoucher::poolLabel(PretixVoucher::POOL_FULL),
+                PretixVoucher::POOL_DAY_FRI => PretixVoucher::poolLabel(PretixVoucher::POOL_DAY_FRI),
+                PretixVoucher::POOL_DAY_SAT => PretixVoucher::poolLabel(PretixVoucher::POOL_DAY_SAT),
+                PretixVoucher::POOL_DAY_SUN => PretixVoucher::poolLabel(PretixVoucher::POOL_DAY_SUN),
+            ];
+
+            $html .= '<table>' . "\n";
+            $html .= '  <tr><td>' . __('day_ticket_deal.admin.exception.voucher1') . '</td><td>'
+                . html_select_key('pool1', 'pool1', $poolOptions, '', __('form.select_placeholder'))
+                . '</td></tr>' . "\n";
+            $html .= '  <tr><td>' . __('day_ticket_deal.admin.exception.voucher2') . '</td><td>'
+                . html_select_key('pool2', 'pool2', $poolOptions, '', __('form.select_placeholder'))
+                . '</td></tr>' . "\n";
+            $html .= '  <tr><td>' . __('day_ticket_deal.admin.exception.refund_hours') . '</td><td>'
+                . '<input type="number" step="0.5" min="0" size="10" name="refund_hours" '
+                . 'value="' . htmlspecialchars((string) ($user_source->personalData->refund_hours_override ?? ''))
+                . '" class="form-control" placeholder="' . htmlspecialchars((string) config('pretix_refund_min_hours', 0)) . '">'
+                . '<div class="form-text">' . __('day_ticket_deal.admin.exception.refund_hours.info') . '</div>'
+                . '</td></tr>' . "\n";
+            $html .= '  <tr><td>' . __('day_ticket_deal.admin.exception.reason') . '</td><td>'
+                . '<input size="40" name="reason" class="form-control" maxlength="255">'
+                . '</td></tr>' . "\n";
+            $html .= '</table>' . "\n" . '<br>' . "\n";
+
+            $html .= '<button type="submit" class="btn btn-warning">'
+                . icon('ticket-perforated') . ' ' . __('day_ticket_deal.admin.exception.submit') . '</button>' . "\n";
+            $html .= '</form>';
+            $html .= '</div>';
+
+            $html .= '<hr>';
+        }
 
         /** @var Group $my_highest_group */
         $my_highest_group = $user->groups()->orderByDesc('id')->first();
@@ -375,19 +416,6 @@ function admin_user()
                 if ($user_info_edit) {
                     $user_source->state->user_info = $request->postData('userInfo');
                 }
-                if ($admin_arrive) {
-                    if ($user_source->state->arrived != $request->postData('arrive')) {
-                        if ($request->postData('arrive')) {
-                            $user_source->state->arrival_date = new Carbon();
-                        } else {
-                            $user_source->state->arrival_date = null;
-                        }
-                    }
-                }
-
-                if ($user_goodie_edit) {
-                    $user_source->state->active = $request->postData('active');
-                }
                 if (auth()->can('user.fa.edit') && config('enable_force_active')) {
                     $user_source->state->force_active = $request->input('force_active');
                 }
@@ -403,14 +431,69 @@ function admin_user()
                     . ' (' . $user_source->id . ')'
                     . ($changed_email ? ', e-mail modified' : '')
                     . ($goodie_tshirt ? ', T-shirt size: ' . $user_source->personalData->shirt_size : '')
-                    . ', arrived: ' . $user_source->state->arrived
-                    . ', active: ' . $user_source->state->active
                     . (config('enable_force_active') ? (', force-active: ' . $user_source->state->force_active) : '')
                     . (config('enable_force_food') ? (', force-food: ' . $user_source->state->force_food) : '')
                     . ($goodie_enabled ? ', goodie: ' . $user_source->state->got_goodie : '')
                     . ($user_info_edit ? ', user-info: ' . $user_source->state->user_info : '')
                 );
                 $html .= success(__('Changes were saved.') . "\n", true);
+                break;
+
+            case 'assign_voucher_exception':
+                if (!$pretix_edit) {
+                    $html .= error(__('day_ticket_deal.admin.exception.no_perm'), true);
+                    break;
+                }
+
+                $target = User::findOrFail($user_id);
+                $pool1 = (string) $request->postData('pool1');
+                $pool2 = (string) $request->postData('pool2');
+                $reason = trim((string) $request->postData('reason'));
+                $pools = array_values(array_unique(array_filter([$pool1, $pool2], fn ($p) => $p !== '')));
+
+                $refundHours = trim((string) $request->postData('refund_hours'));
+                if ($refundHours !== '') {
+                    $target->personalData->refund_hours_override = (float) $refundHours;
+                    $target->personalData->save();
+                    engelsystem_log(
+                        'Admin voucher exception: ' . User_Nick_render($user, true)
+                        . ' set required completed hours for refund to ' . $refundHours . ' for '
+                        . User_Nick_render($target, true)
+                    );
+                }
+
+                if (!$pools) {
+                    if ($refundHours !== '') {
+                        $html .= success(__('day_ticket_deal.admin.exception.refund_hours.saved'), true);
+                    } else {
+                        $html .= error(__('day_ticket_deal.admin.exception.none_selected'), true);
+                    }
+                    break;
+                }
+
+                $assignedCodes = [];
+                $emptyPools = [];
+                foreach ($pools as $pool) {
+                    $code = PretixVoucherException_assign($user, $target, $pool, $reason);
+                    if ($code) {
+                        $assignedCodes[] = $code;
+                    } else {
+                        $emptyPools[] = PretixVoucher::poolLabel($pool);
+                    }
+                }
+
+                if ($assignedCodes) {
+                    $html .= success(
+                        sprintf(__('day_ticket_deal.admin.exception.success'), implode(', ', $assignedCodes)),
+                        true
+                    );
+                }
+                if ($emptyPools) {
+                    $html .= error(
+                        sprintf(__('day_ticket_deal.admin.exception.pool_empty'), implode(', ', $emptyPools)),
+                        true
+                    );
+                }
                 break;
 
             case 'change_pw':

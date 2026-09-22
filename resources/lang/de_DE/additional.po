@@ -1146,6 +1146,45 @@ msgstr "Festivaltag Samstag"
 msgid "day_ticket_deal.admin.day_sun"
 msgstr "Festivaltag Sonntag"
 
+msgid "day_ticket_deal.admin.exception.checkbox"
+msgstr "Admin-Ausnahme: Voucher manuell zuweisen"
+
+msgid "day_ticket_deal.admin.exception.info"
+msgstr "Für Sonderfälle, die nicht ins normale Schema passen (z. B. mehrere kurze Schichten statt einer): Hier kannst du dieser Person direkt ein oder zwei Voucher aus einem beliebigen Pool zuweisen (Wochenendticket oder Tagestickets), unabhängig vom automatischen Tagesticket-Deal. Die Person bekommt sofort eine E-Mail mit dem/den Code(s), es werden keine weiteren Schichtanmeldungen gesperrt."
+
+msgid "day_ticket_deal.admin.exception.voucher1"
+msgstr "Voucher 1"
+
+msgid "day_ticket_deal.admin.exception.voucher2"
+msgstr "Voucher 2 (optional)"
+
+msgid "day_ticket_deal.admin.exception.refund_hours"
+msgstr "Mindeststunden für Erstattung (Ausnahme)"
+
+msgid "day_ticket_deal.admin.exception.refund_hours.info"
+msgstr "Optional: Weicht bei dieser Person die nötige Anzahl geleisteter Stunden für die automatische Erstattung vom globalen Minimum ab (z. B. weil sie insgesamt weniger Stunden übernommen hat), hier eintragen. Leer lassen = globales Minimum gilt weiter."
+
+msgid "day_ticket_deal.admin.exception.refund_hours.saved"
+msgstr "Mindeststunden für Erstattung gespeichert."
+
+msgid "day_ticket_deal.admin.exception.reason"
+msgstr "Begründung (für Log)"
+
+msgid "day_ticket_deal.admin.exception.submit"
+msgstr "Voucher(s) zuweisen"
+
+msgid "day_ticket_deal.admin.exception.success"
+msgstr "Voucher zugewiesen: %s"
+
+msgid "day_ticket_deal.admin.exception.pool_empty"
+msgstr "Achtung: folgender Pool war leer, es konnte kein Voucher zugewiesen werden: %s"
+
+msgid "day_ticket_deal.admin.exception.none_selected"
+msgstr "Bitte mindestens einen Voucher auswählen."
+
+msgid "day_ticket_deal.admin.exception.no_perm"
+msgstr "Du hast keine Berechtigung für diese Aktion."
+
 msgid "day_ticket_deal.signup_locked"
 msgstr "du hast dich für das Tagesticket-Angebot entschieden und kannst dich für keine weiteren Schichten mehr eintragen"
 
@@ -1199,3 +1238,15 @@ msgstr "Mehr erfahren"
 
 msgid "day_ticket_deal.column"
 msgstr "Tagesticket-Deal"
+
+msgid "user.call"
+msgstr "Anrufen"
+
+msgid "user.send_email"
+msgstr "E-Mail senden"
+
+msgid "Here you can change the user entry."
+msgstr "Hier kannst du den Benutzereintrag ändern."
+
+msgid "Search"
+msgstr "Suchen"
