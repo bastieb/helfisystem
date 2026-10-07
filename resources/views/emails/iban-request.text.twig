@@ -1,0 +1,16 @@
+{% extends "emails/mail.text.twig" %}
+
+{% block introduction %}
+{{ __('iban.mail.intro') }}
+{% endblock %}
+
+{% block message %}
+{{ __(reason_key) }}
+
+{{ __('iban.mail.link_text') }}
+{{ link }}
+
+{{ __('iban.mail.valid_until', [valid_until]) }}
+
+{{ __('iban.mail.security') }}
+{% endblock %}

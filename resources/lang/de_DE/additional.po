@@ -879,6 +879,12 @@ msgstr "Aktiv"
 msgid "news.target.status.all_shifts_completed"
 msgstr "Alle Schichten geleistet"
 
+msgid "news.target.status.no_shifts_signed_up"
+msgstr "Noch für keine Schicht eingetragen"
+
+msgid "news.target.status.ticket_not_paid"
+msgstr "Voucher erhalten, aber Ticket noch nicht eingelöst/bezahlt"
+
 msgid "shift_release.title"
 msgstr "Schichtfreischaltung"
 
@@ -1011,6 +1017,15 @@ msgstr "Mindeststunden (geleistet) für eine Erstattung"
 msgid "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
 msgstr "Sobald ein Helfi mindestens so viele Stunden als \"Schicht geleistet\" markiert hat, wird für seine Bestellung eine manuelle Erstattung in Pretix angelegt."
 
+msgid "pretix.refund.day_ticket_price"
+msgstr "Preis Tagesticket (€)"
+
+msgid "pretix.refund.full_ticket_price"
+msgstr "Preis Wochenendticket (€)"
+
+msgid "pretix.refund.price_cap_info"
+msgstr "Die Erstattung ist auf den Preis des Ticket-Typs gedeckelt, für den der Voucher gedacht war (Pool). Kauft sich ein Helfi mit einem Tagesticket-Voucher stattdessen ein teureres Ticket (z. B. Wochenende), wird trotzdem nur der Tagesticket-Preis erstattet — der Aufpreis trägt der Helfi selbst."
+
 msgid "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
 msgstr "Es wird nur die Zahlungsart \"Überweisung\" unterstützt: Erstattungen werden in Pretix als ausstehend angelegt (Provider \"manual\") und müssen weiterhin von Hand überwiesen und danach in Pretix als erledigt markiert werden — helfisystem setzt \"ist ausbezahlt\" danach automatisch."
 
@@ -1110,6 +1125,18 @@ msgstr "Stunden schon belegt"
 msgid "dashboard.hours_open"
 msgstr "Stunden noch offen"
 
+msgid "dashboard.helpers_signed_up"
+msgstr "Helfis mit Schicht"
+
+msgid "dashboard.helpers_signed_up_new_7d"
+msgstr "Neue Helfis (7 Tage)"
+
+msgid "dashboard.signup_chart.title"
+msgstr "Anmeldeverlauf"
+
+msgid "dashboard.signup_chart.subtitle"
+msgstr "%d von %d Helfis haben sich bereits für eine Schicht eingetragen (%d %%)"
+
 msgid "shifttype.delete.blocked"
 msgstr "Schichttyp kann nicht gelöscht werden: %d Schicht(en) mit insgesamt %d Anmeldung(en) hängen noch daran (auch bereits volle Schichten werden hier nicht in der Übersicht angezeigt). Bitte zuerst die Helfis austragen oder die Schichten löschen."
 
@@ -1129,13 +1156,13 @@ msgid "Day ticket Sunday"
 msgstr "Tagesticket Sonntag"
 
 msgid "day_ticket_deal.admin.title"
-msgstr "Tagesticket-Deal (3-5h-Schichten)"
+msgstr "Tagesticket-Deal (3 bis unter 10h)"
 
 msgid "day_ticket_deal.admin.enable"
 msgstr "Tagesticket-Deal aktivieren"
 
 msgid "day_ticket_deal.admin.enable.info"
-msgstr "Wer eine einzelne Schicht mit 3 bis 5 Stunden Dauer übernimmt (egal welcher Schichttyp), kann sich statt der 10h-Regel für ein Tagesticket entscheiden. Liegt die Schicht an einem der drei Festivaltage, gibt es automatisch das Ticket für genau diesen Tag; sonst muss der Helfi einen der drei Tage auswählen. Eine frei wählbare Variante gibt es nicht."
+msgstr "Wer insgesamt mindestens 3 und weniger als 10 Stunden eingeplant ist (egal auf wie viele Schichten verteilt, egal welcher Schichttyp), kann sich statt der 10h-Regel für ein Tagesticket entscheiden. Liegen alle Schichten an demselben der drei Festivaltage, gibt es automatisch das Ticket für genau diesen Tag; sonst muss der Helfi einen der drei Tage auswählen. Eine frei wählbare Variante gibt es nicht."
 
 msgid "day_ticket_deal.admin.day_fri"
 msgstr "Festivaltag Freitag"
@@ -1166,6 +1193,9 @@ msgstr "Optional: Weicht bei dieser Person die nötige Anzahl geleisteter Stunde
 
 msgid "day_ticket_deal.admin.exception.refund_hours.saved"
 msgstr "Mindeststunden für Erstattung gespeichert."
+
+msgid "pretix_voucher.deposit_info"
+msgstr "Das Ticket gilt als Pfand: Sobald du deine Schichten abgeleistet hast, wird der Betrag automatisch auf dein Konto zurückerstattet."
 
 msgid "day_ticket_deal.admin.exception.reason"
 msgstr "Begründung (für Log)"
@@ -1204,13 +1234,13 @@ msgid "day_ticket_deal.your_day"
 msgstr "Dein Tagesticket-Tag:"
 
 msgid "day_ticket_deal.not_eligible"
-msgstr "Du qualifizierst dich aktuell nicht für das Tagesticket-Angebot. Voraussetzung: Du bist für genau eine einzelne Schicht mit 3 bis 5 Stunden Dauer eingetragen."
+msgstr "Du qualifizierst dich aktuell nicht für das Tagesticket-Angebot. Voraussetzung: Deine eingetragenen Schichten ergeben zusammen mindestens 3 und weniger als 10 Stunden und liegen höchstens an einem der drei Festivaltage (bei Schichten an mehreren Festivaltagen brauchst du das Wochenendticket)."
 
 msgid "day_ticket_deal.already_confirmed"
 msgstr "Du hast das Tagesticket-Angebot bereits bestätigt und dein Tagesticket für %s erhalten. Für Änderungen an deiner Schicht stelle bitte einen Tauschantrag."
 
 msgid "day_ticket_deal.warning_text"
-msgstr "Achtung, das ist eine absolute Ausnahme, die wir auf vielfachen Wunsch anbieten: Da deine Schicht nur 3 bis 5 Stunden dauert, können wir dir dafür nur ein Tagesticket statt des vollen Festivaltickets anbieten. Das heißt, du hast nur wenig Zeit, um wirklich in die Saunen zu gehen. Die einzige Alternative wäre, eine reguläre 10-Stunden-Schicht zu übernehmen und dafür das volle Ticket zu bekommen. Wenn du das Angebot hier bestätigst, ist das endgültig: Du kannst dich danach für keine weiteren Schichten mehr eintragen und später nicht mehr auf 10 Stunden aufstocken, um ein größeres Ticket zu bekommen. Wir freuen uns nämlich, wenn Menschen mehrere Tage beim Festival dabei sind und sich mit der Community verbinden, statt nur für einen Tag vorbeizukommen — deshalb ist diese Ausnahme bewusst eng gefasst."
+msgstr "Achtung, das ist eine absolute Ausnahme, die wir auf vielfachen Wunsch anbieten: Da deine Schichten zusammen weniger als 10 Stunden dauern, können wir dir dafür nur ein Tagesticket statt des vollen Festivaltickets anbieten. Das heißt, du hast nur wenig Zeit, um wirklich in die Saunen zu gehen. Die einzige Alternative wäre, eine reguläre 10-Stunden-Schicht zu übernehmen und dafür das volle Ticket zu bekommen. Wenn du das Angebot hier bestätigst, ist das endgültig: Du kannst dich danach für keine weiteren Schichten mehr eintragen und später nicht mehr auf 10 Stunden aufstocken, um ein größeres Ticket zu bekommen. Wir freuen uns nämlich, wenn Menschen mehrere Tage beim Festival dabei sind und sich mit der Community verbinden, statt nur für einen Tag vorbeizukommen — deshalb ist diese Ausnahme bewusst eng gefasst."
 
 msgid "day_ticket_deal.confirm_checkbox"
 msgstr "Ich habe das gelesen und verstanden."
@@ -1231,7 +1261,7 @@ msgid "day_ticket_deal.confirmed"
 msgstr "Dein Tagesticket wurde bestätigt, den Code bekommst du gleich per Mail."
 
 msgid "day_ticket_deal.hint"
-msgstr "Du hast eine 3-5h-Schicht, die für unser Tagesticket-Angebot qualifiziert."
+msgstr "Deine Schichten (3 bis unter 10 Stunden insgesamt) qualifizieren für unser Tagesticket-Angebot."
 
 msgid "day_ticket_deal.hint_button"
 msgstr "Mehr erfahren"
@@ -1250,3 +1280,237 @@ msgstr "Hier kannst du den Benutzereintrag ändern."
 
 msgid "Search"
 msgstr "Suchen"
+
+msgid "shift_swap.button"
+msgstr "Tauschen"
+
+msgid "shift_swap.admin.title"
+msgstr "Schichttausch vorschlagen"
+
+msgid "shift_swap.entry_not_found"
+msgstr "Schicht-Eintrag nicht gefunden."
+
+msgid "shift_swap.shift_not_found"
+msgstr "Schicht nicht gefunden."
+
+msgid "shift_swap.reason_required"
+msgstr "Bitte eine Begründung eingeben."
+
+msgid "shift_swap.request_sent"
+msgstr "Tausch-Anfrage wurde an den Helfi geschickt."
+
+msgid "shift_swap.current_shift"
+msgstr "Aktuelle Schicht"
+
+msgid "shift_swap.new_shift"
+msgstr "Neue Schicht"
+
+msgid "shift_swap.choose_shift"
+msgstr "-- Schicht auswählen --"
+
+msgid "shift_swap.next"
+msgstr "Weiter"
+
+msgid "shift_swap.angeltype"
+msgstr "Engeltyp"
+
+msgid "shift_swap.free"
+msgstr "frei"
+
+msgid "shift_swap.no_angeltypes"
+msgstr "Diese Schicht hat keine Engeltypen mit Bedarf."
+
+msgid "shift_swap.reason"
+msgstr "Begründung"
+
+msgid "shift_swap.review.warning"
+msgstr "%s wird gebeten, diesem Tausch zuzustimmen, bevor er wirksam wird. Erst nach Bestätigung wird die alte Schicht entfernt und die neue eingetragen."
+
+msgid "shift_swap.send"
+msgstr "Jetzt Anfrage senden"
+
+msgid "shift_swap.intro"
+msgstr "Wähle eine neue Schicht für %s aus."
+
+msgid "shift_swap.respond.title"
+msgstr "Schichttausch bestätigen"
+
+msgid "shift_swap.respond.intro"
+msgstr "Hallo %s, dir wurde ein Schichttausch vorgeschlagen. Bitte bestätige oder lehne ihn ab:"
+
+msgid "shift_swap.confirm"
+msgstr "Bestätigen"
+
+msgid "shift_swap.decline"
+msgstr "Ablehnen"
+
+msgid "shift_swap.respond.confirmed"
+msgstr "Danke! Du bist jetzt für die neue Schicht eingetragen: %s (%s)."
+
+msgid "shift_swap.respond.declined"
+msgstr "Ok, der Tausch wurde abgelehnt. Du bleibst in deiner ursprünglichen Schicht."
+
+msgid "shift_swap.respond.failed"
+msgstr "Diese Schicht ist inzwischen leider voll. Dein Admin wurde informiert und meldet sich bei dir."
+
+msgid "shift_swap.respond.already_decided"
+msgstr "Diese Anfrage wurde bereits bearbeitet (%s)."
+
+msgid "shift_swap.respond.invalid"
+msgstr "Dieser Link ist ungültig oder abgelaufen."
+
+msgid "shift_swap.status.confirmed"
+msgstr "bestätigt"
+
+msgid "shift_swap.status.declined"
+msgstr "abgelehnt"
+
+msgid "shift_swap.status.failed"
+msgstr "fehlgeschlagen (Schicht war voll)"
+
+msgid "shift_swap.failed.shift_full"
+msgstr "Zielschicht war beim Bestätigen bereits voll."
+
+msgid "shift_swap.message.body"
+msgstr "Hallo,\n\nfür deine Schicht gibt es eine Änderung:\n\nBisherige Schicht:\n%s\n%s - %s\n\nVorgeschlagene neue Schicht:\n%s\n%s - %s\nAls: %s\n\nBegründung: %s\n\nBitte bestätige oder lehne diesen Tausch hier ab (kein Login nötig):\n%s"
+
+msgid "shift_swap.message.admin_confirmed"
+msgstr "%s hat den vorgeschlagenen Schichttausch bestätigt."
+
+msgid "shift_swap.message.admin_declined"
+msgstr "%s hat den vorgeschlagenen Schichttausch abgelehnt."
+
+msgid "shift_swap.message.admin_failed"
+msgstr "%s wollte den vorgeschlagenen Schichttausch bestätigen, aber die Zielschicht war inzwischen voll. Bitte manuell nachfassen."
+
+msgid "shift.creator_notify.signout_body"
+msgstr "Hallo,\n\n%s hat sich aus deiner Schicht \"%s\" (%s - %s) als %s ausgetragen."
+
+msgid "shift_swap.self.title"
+msgstr "Schicht tauschen"
+
+msgid "shift_swap.self.intro"
+msgstr "Wähle die Schicht aus, in die du wechseln möchtest. Der Tausch passiert sofort, sobald du ihn bestätigst."
+
+msgid "shift_swap.self.review.warning"
+msgstr "Beim Bestätigen wirst du sofort aus deiner alten Schicht ausgetragen und in die neue eingetragen."
+
+msgid "shift_swap.self.confirm"
+msgstr "Jetzt tauschen"
+
+msgid "shift_swap.self.success"
+msgstr "Schicht getauscht!"
+
+msgid "shift_swap.self.shrinking_blocked"
+msgstr "Die neue Schicht ist kürzer als deine aktuelle. Ein Selbst-Tausch würde deine Gesamtstunden verringern und braucht deshalb eine Freigabe: Bitte trag dich stattdessen ganz normal aus deiner aktuellen Schicht aus (mit Begründung) und melde dich danach für die neue Schicht an."
+
+msgid "shifts.export.shifttypes"
+msgstr "Schichttypen"
+
+msgid "shifts.export.xlsx"
+msgstr "Als Excel (XLSX) exportieren"
+
+msgid "shifts.export.col.date"
+msgstr "Datum"
+
+msgid "shifts.export.col.start"
+msgstr "Start"
+
+msgid "shifts.export.col.end"
+msgstr "Ende"
+
+msgid "shifts.export.col.shifttype"
+msgstr "Schichttyp"
+
+msgid "shifts.export.col.title"
+msgstr "Titel"
+
+msgid "shifts.export.col.location"
+msgstr "Ort"
+
+msgid "shifts.export.col.needed"
+msgstr "Benötigt"
+
+msgid "shifts.export.col.taken"
+msgstr "Besetzt"
+
+msgid "shifts.export.col.free"
+msgstr "Frei"
+
+msgid "shifts.export.col.helpers"
+msgstr "Eingetragene Helfis"
+
+msgid "shifts.export.col.tags"
+msgstr "Tags"
+
+msgid "shifts.overview.hint"
+msgstr "Tipp: Siehst du hier kaum oder keine Schichten? Dann sind wahrscheinlich zu viele Filter aktiv. Nutze bei Ort, Engeltyp, Schichttyp und Zeitraum jeweils den \"Alle\"-Button, um wirklich alle verfügbaren Schichten zu sehen. <a href=\"%s\">Mehr dazu in der FAQ</a>."
+
+msgid "user.sms_reminder"
+msgstr "SMS-Erinnerung (morgen)"
+
+msgid "user.sms_reminder.none"
+msgstr "Keine Schicht morgen"
+
+msgid "user.sms_reminder.body"
+msgstr "Hallo %s! Kleine Erinnerung: Morgen hast du folgende Schicht(en):\n%s\nBitte denk dran und sei pünktlich da. Danke dir und bis morgen!"
+
+msgid "iban.form.title"
+msgstr "IBAN für deine Pfand-Erstattung"
+
+msgid "iban.form.intro"
+msgstr "Danke für deine Schichten! Für die Erstattung deines Helfi-Pfands (Bestellung %s) brauchen wir eine gültige IBAN. Bitte trag deine Kontodaten hier ein."
+
+msgid "iban.form.holder"
+msgstr "Kontoinhaber*in"
+
+msgid "iban.form.iban"
+msgstr "IBAN"
+
+msgid "iban.form.bic"
+msgstr "BIC (optional)"
+
+msgid "iban.form.bic.info"
+msgstr "Bei Konten im SEPA-Raum nicht nötig."
+
+msgid "iban.form.submit"
+msgstr "IBAN speichern"
+
+msgid "iban.form.privacy"
+msgstr "Deine Daten werden ausschließlich für die Rückerstattung deines Pfands verwendet und nur auf unserem eigenen Server gespeichert."
+
+msgid "iban.form.error.holder"
+msgstr "Bitte gib den Namen der Kontoinhaber*in an."
+
+msgid "iban.form.error.iban"
+msgstr "Diese IBAN ist ungültig. Bitte prüfe sie auf Tippfehler."
+
+msgid "iban.form.error.bic"
+msgstr "Diese BIC ist ungültig. Du kannst das Feld auch leer lassen."
+
+msgid "iban.done.title"
+msgstr "Danke, deine IBAN ist gespeichert"
+
+msgid "iban.done.text"
+msgstr "Wir haben die IBAN %s gespeichert und überweisen dein Pfand in Kürze. Du musst nichts weiter tun."
+
+msgid "iban.mail.subject"
+msgstr "Deine IBAN für die Pfand-Erstattung"
+
+msgid "iban.mail.intro"
+msgstr "Danke für deine Schichten beim SAUNASPLASH! Deine Schichten sind geleistet, dein Pfand kann erstattet werden."
+
+msgid "iban.mail.reason.invalid"
+msgstr "Die IBAN, die du beim Ticketkauf angegeben hast, ist leider ungültig (vermutlich ein Tippfehler), daher können wir dein Pfand nicht überweisen."
+
+msgid "iban.mail.reason.missing"
+msgstr "Beim Ticketkauf haben wir keine IBAN von dir erhalten, daher können wir dein Pfand nicht überweisen."
+
+msgid "iban.mail.link_text"
+msgstr "Über diesen persönlichen Link kannst du deine IBAN sicher eintragen:"
+
+msgid "iban.mail.valid_until"
+msgstr "Der Link ist einmalig nutzbar und gültig bis %s."
+
+msgid "iban.mail.security"
+msgstr "Bitte gib den Link nicht weiter. Wir fragen niemals per Mail oder Telefon nach deiner IBAN außer über diesen Link. Antworte bitte nicht mit deiner IBAN auf diese Mail."

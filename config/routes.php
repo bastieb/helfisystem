@@ -72,6 +72,10 @@ $route->addGroup(
     }
 );
 
+// helfisystem: IBAN fuer Pfand-Erstattung per Token-Link (kein Login)
+$route->get('/iban/{token:[a-f0-9]{64}}', 'PretixIbanController@form');
+$route->post('/iban/{token:[a-f0-9]{64}}', 'PretixIbanController@save');
+
 // Metrics
 $route->get('/metrics', 'Metrics\\Controller@metrics');
 

@@ -1,0 +1,11 @@
+{% extends 'layouts/app.twig' %}
+
+{% block title %}{{ __('iban.done.title') }}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <meta name="robots" content="noindex,nofollow,noarchive">
+        <h1>{{ __('iban.done.title') }}</h1>
+        <p>{{ __('iban.done.text', [masked_iban]) }}</p>
+    </div>
+{% endblock %}

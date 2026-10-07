@@ -964,6 +964,12 @@ msgstr "Active"
 msgid "news.target.status.all_shifts_completed"
 msgstr "All shifts completed"
 
+msgid "news.target.status.no_shifts_signed_up"
+msgstr "Not signed up for any shift yet"
+
+msgid "news.target.status.ticket_not_paid"
+msgstr "Got voucher, but ticket not redeemed/paid yet"
+
 msgid "shift_release.title"
 msgstr "Shift release schedule"
 
@@ -1111,6 +1117,15 @@ msgstr "Minimum completed hours for a refund"
 msgid "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
 msgstr "As soon as a helper has completed (\"Schicht geleistet\") at least this many hours, a manual refund is created in Pretix for their order."
 
+msgid "pretix.refund.day_ticket_price"
+msgstr "Day ticket price (€)"
+
+msgid "pretix.refund.full_ticket_price"
+msgstr "Weekend ticket price (€)"
+
+msgid "pretix.refund.price_cap_info"
+msgstr "The refund is capped at the price of the ticket type the voucher was meant for (pool). If a helper uses a day-ticket voucher to buy a pricier ticket instead (e.g. weekend), only the day-ticket price is refunded — the helper pays the difference themselves."
+
 msgid "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
 msgstr "Only payment method \"bank transfer\" is supported: refunds are created in Pretix as pending (provider \"manual\") and still need to be paid out by hand, then marked done in Pretix — helfisystem then automatically marks the helper as paid."
 
@@ -1210,6 +1225,18 @@ msgstr "Hours already filled"
 msgid "dashboard.hours_open"
 msgstr "Hours still open"
 
+msgid "dashboard.helpers_signed_up"
+msgstr "Helpers with shift"
+
+msgid "dashboard.helpers_signed_up_new_7d"
+msgstr "New helpers (7 days)"
+
+msgid "dashboard.signup_chart.title"
+msgstr "Signup progress"
+
+msgid "dashboard.signup_chart.subtitle"
+msgstr "%d of %d helpers have signed up for a shift so far (%d%%)"
+
 msgid "shifttype.delete.blocked"
 msgstr "Shift type cannot be deleted: %d shift(s) with a total of %d signup(s) are still attached to it (already-full shifts are not shown in the overview either). Please remove the Helfis first or delete the shifts."
 
@@ -1229,13 +1256,13 @@ msgid "Day ticket Sunday"
 msgstr "Day ticket Sunday"
 
 msgid "day_ticket_deal.admin.title"
-msgstr "Day-ticket deal (3-5h shifts)"
+msgstr "Day-ticket deal (3 to under 10h)"
 
 msgid "day_ticket_deal.admin.enable"
 msgstr "Enable day-ticket deal"
 
 msgid "day_ticket_deal.admin.enable.info"
-msgstr "Anyone who takes on a single shift lasting 3 to 5 hours (any shift type) can opt for a day ticket instead of the 10h rule. If the shift falls on one of the three festival days, they automatically get the ticket for that exact day; otherwise they have to pick one of the three days. There is no free-choice option."
+msgstr "Anyone signed up for at least 3 and less than 10 hours in total (spread over any number of shifts, any shift type) can opt for a day ticket instead of the 10h rule. If all shifts fall on the same one of the three festival days, they automatically get the ticket for that exact day; otherwise they have to pick one of the three days. There is no free-choice option."
 
 msgid "day_ticket_deal.admin.day_fri"
 msgstr "Festival day Friday"
@@ -1266,6 +1293,9 @@ msgstr "Optional: if this person's required completed hours for the automatic re
 
 msgid "day_ticket_deal.admin.exception.refund_hours.saved"
 msgstr "Required refund hours saved."
+
+msgid "pretix_voucher.deposit_info"
+msgstr "The ticket works as a deposit: once you've completed your shifts, the amount will automatically be refunded to your bank account."
 
 msgid "day_ticket_deal.admin.exception.reason"
 msgstr "Reason (for the log)"
@@ -1304,13 +1334,13 @@ msgid "day_ticket_deal.your_day"
 msgstr "Your day-ticket day:"
 
 msgid "day_ticket_deal.not_eligible"
-msgstr "You don't currently qualify for the day-ticket deal. Requirement: you are signed up for exactly one single shift lasting 3 to 5 hours."
+msgstr "You don't currently qualify for the day-ticket deal. Requirement: your signed-up shifts add up to at least 3 and less than 10 hours and fall on at most one of the three festival days (with shifts on several festival days you need the weekend ticket)."
 
 msgid "day_ticket_deal.already_confirmed"
 msgstr "You already confirmed the day-ticket deal and received your day ticket for %s. Please submit a shift change request if you need to change anything."
 
 msgid "day_ticket_deal.warning_text"
-msgstr "Heads up, this is an absolute exception we're offering by popular demand: since your shift is only 3 to 5 hours long, we can only offer you a day ticket instead of the full festival ticket. That means you'll only have a little time to actually enjoy the saunas. The alternative would be to take a regular 10-hour shift and get the full ticket for that instead. If you confirm the deal here, it's final: you won't be able to sign up for any further shifts afterwards, and you can't later add hours to reach 10 for a bigger ticket. We're happiest when people join us for several days and connect with the community, rather than just dropping by for one day — that's why this exception is deliberately narrow."
+msgstr "Heads up, this is an absolute exception we're offering by popular demand: since your shifts add up to less than 10 hours, we can only offer you a day ticket instead of the full festival ticket. That means you'll only have a little time to actually enjoy the saunas. The alternative would be to take a regular 10-hour shift and get the full ticket for that instead. If you confirm the deal here, it's final: you won't be able to sign up for any further shifts afterwards, and you can't later add hours to reach 10 for a bigger ticket. We're happiest when people join us for several days and connect with the community, rather than just dropping by for one day — that's why this exception is deliberately narrow."
 
 msgid "day_ticket_deal.confirm_checkbox"
 msgstr "I have read and understood this."
@@ -1331,7 +1361,7 @@ msgid "day_ticket_deal.confirmed"
 msgstr "Your day ticket has been confirmed, you'll get the code by email shortly."
 
 msgid "day_ticket_deal.hint"
-msgstr "You have a 3-5h shift that qualifies for our day-ticket deal."
+msgstr "Your shifts (3 to under 10 hours in total) qualify for our day-ticket deal."
 
 msgid "day_ticket_deal.hint_button"
 msgstr "Learn more"
@@ -1350,3 +1380,237 @@ msgstr "Here you can change the user entry."
 
 msgid "Search"
 msgstr "Search"
+
+msgid "shift_swap.button"
+msgstr "Swap"
+
+msgid "shift_swap.admin.title"
+msgstr "Propose shift swap"
+
+msgid "shift_swap.entry_not_found"
+msgstr "Shift entry not found."
+
+msgid "shift_swap.shift_not_found"
+msgstr "Shift not found."
+
+msgid "shift_swap.reason_required"
+msgstr "Please enter a reason."
+
+msgid "shift_swap.request_sent"
+msgstr "Swap request has been sent to the helper."
+
+msgid "shift_swap.current_shift"
+msgstr "Current shift"
+
+msgid "shift_swap.new_shift"
+msgstr "New shift"
+
+msgid "shift_swap.choose_shift"
+msgstr "-- Choose a shift --"
+
+msgid "shift_swap.next"
+msgstr "Next"
+
+msgid "shift_swap.angeltype"
+msgstr "Angel type"
+
+msgid "shift_swap.free"
+msgstr "free"
+
+msgid "shift_swap.no_angeltypes"
+msgstr "This shift has no needed angel types."
+
+msgid "shift_swap.reason"
+msgstr "Reason"
+
+msgid "shift_swap.review.warning"
+msgstr "%s will be asked to agree to this swap before it takes effect. Only after confirming will the old shift be removed and the new one added."
+
+msgid "shift_swap.send"
+msgstr "Send request now"
+
+msgid "shift_swap.intro"
+msgstr "Choose a new shift for %s."
+
+msgid "shift_swap.respond.title"
+msgstr "Confirm shift swap"
+
+msgid "shift_swap.respond.intro"
+msgstr "Hi %s, a shift swap has been proposed to you. Please confirm or decline it:"
+
+msgid "shift_swap.confirm"
+msgstr "Confirm"
+
+msgid "shift_swap.decline"
+msgstr "Decline"
+
+msgid "shift_swap.respond.confirmed"
+msgstr "Thanks! You are now signed up for the new shift: %s (%s)."
+
+msgid "shift_swap.respond.declined"
+msgstr "Ok, the swap was declined. You remain in your original shift."
+
+msgid "shift_swap.respond.failed"
+msgstr "Unfortunately this shift is full by now. Your admin has been notified and will get back to you."
+
+msgid "shift_swap.respond.already_decided"
+msgstr "This request has already been handled (%s)."
+
+msgid "shift_swap.respond.invalid"
+msgstr "This link is invalid or expired."
+
+msgid "shift_swap.status.confirmed"
+msgstr "confirmed"
+
+msgid "shift_swap.status.declined"
+msgstr "declined"
+
+msgid "shift_swap.status.failed"
+msgstr "failed (shift was full)"
+
+msgid "shift_swap.failed.shift_full"
+msgstr "Target shift was already full when confirmed."
+
+msgid "shift_swap.message.body"
+msgstr "Hi,\n\nthere's a change to your shift:\n\nCurrent shift:\n%s\n%s - %s\n\nProposed new shift:\n%s\n%s - %s\nAs: %s\n\nReason: %s\n\nPlease confirm or decline this swap here (no login needed):\n%s"
+
+msgid "shift_swap.message.admin_confirmed"
+msgstr "%s confirmed the proposed shift swap."
+
+msgid "shift_swap.message.admin_declined"
+msgstr "%s declined the proposed shift swap."
+
+msgid "shift_swap.message.admin_failed"
+msgstr "%s tried to confirm the proposed shift swap, but the target shift was full by then. Please follow up manually."
+
+msgid "shift.creator_notify.signout_body"
+msgstr "Hi,\n\n%s signed off from your shift \"%s\" (%s - %s) as %s."
+
+msgid "shift_swap.self.title"
+msgstr "Swap shift"
+
+msgid "shift_swap.self.intro"
+msgstr "Choose the shift you want to switch to. The swap happens immediately once you confirm it."
+
+msgid "shift_swap.self.review.warning"
+msgstr "Confirming will immediately sign you off your old shift and sign you up for the new one."
+
+msgid "shift_swap.self.confirm"
+msgstr "Swap now"
+
+msgid "shift_swap.self.success"
+msgstr "Shift swapped!"
+
+msgid "shift_swap.self.shrinking_blocked"
+msgstr "The new shift is shorter than your current one. A self-swap would reduce your total hours and therefore needs approval: please sign off your current shift normally instead (with a reason) and sign up for the new shift afterwards."
+
+msgid "shifts.export.shifttypes"
+msgstr "Shift types"
+
+msgid "shifts.export.xlsx"
+msgstr "Export as Excel (XLSX)"
+
+msgid "shifts.export.col.date"
+msgstr "Date"
+
+msgid "shifts.export.col.start"
+msgstr "Start"
+
+msgid "shifts.export.col.end"
+msgstr "End"
+
+msgid "shifts.export.col.shifttype"
+msgstr "Shift type"
+
+msgid "shifts.export.col.title"
+msgstr "Title"
+
+msgid "shifts.export.col.location"
+msgstr "Location"
+
+msgid "shifts.export.col.needed"
+msgstr "Needed"
+
+msgid "shifts.export.col.taken"
+msgstr "Taken"
+
+msgid "shifts.export.col.free"
+msgstr "Free"
+
+msgid "shifts.export.col.helpers"
+msgstr "Signed-up helpers"
+
+msgid "shifts.export.col.tags"
+msgstr "Tags"
+
+msgid "shifts.overview.hint"
+msgstr "Tip: seeing few or no shifts? You probably have too many filters active. Use the \"All\" button for location, angel type, shift type and time range to see every available shift. <a href=\"%s\">More in the FAQ</a>."
+
+msgid "user.sms_reminder"
+msgstr "SMS reminder (tomorrow)"
+
+msgid "user.sms_reminder.none"
+msgstr "No shift tomorrow"
+
+msgid "user.sms_reminder.body"
+msgstr "Hi %s! Friendly reminder: tomorrow you have the following shift(s):\n%s\nPlease don't forget and be on time. Thanks and see you tomorrow!"
+
+msgid "iban.form.title"
+msgstr "IBAN for your deposit refund"
+
+msgid "iban.form.intro"
+msgstr "Thanks for your shifts! To refund your helper deposit (order %s) we need a valid IBAN. Please enter your bank details here."
+
+msgid "iban.form.holder"
+msgstr "Account holder"
+
+msgid "iban.form.iban"
+msgstr "IBAN"
+
+msgid "iban.form.bic"
+msgstr "BIC (optional)"
+
+msgid "iban.form.bic.info"
+msgstr "Not required for accounts in the SEPA area."
+
+msgid "iban.form.submit"
+msgstr "Save IBAN"
+
+msgid "iban.form.privacy"
+msgstr "Your data is used solely to refund your deposit and is stored only on our own server."
+
+msgid "iban.form.error.holder"
+msgstr "Please enter the account holder's name."
+
+msgid "iban.form.error.iban"
+msgstr "This IBAN is invalid. Please check it for typos."
+
+msgid "iban.form.error.bic"
+msgstr "This BIC is invalid. You may also leave the field empty."
+
+msgid "iban.done.title"
+msgstr "Thanks, your IBAN has been saved"
+
+msgid "iban.done.text"
+msgstr "We saved the IBAN %s and will transfer your deposit shortly. Nothing else to do."
+
+msgid "iban.mail.subject"
+msgstr "Your IBAN for the deposit refund"
+
+msgid "iban.mail.intro"
+msgstr "Thanks for your shifts at SAUNASPLASH! Your shifts are done, your deposit can be refunded."
+
+msgid "iban.mail.reason.invalid"
+msgstr "The IBAN you entered when buying your ticket is unfortunately invalid (probably a typo), so we cannot transfer your deposit."
+
+msgid "iban.mail.reason.missing"
+msgstr "We did not receive an IBAN from you when you bought your ticket, so we cannot transfer your deposit."
+
+msgid "iban.mail.link_text"
+msgstr "You can safely enter your IBAN via this personal link:"
+
+msgid "iban.mail.valid_until"
+msgstr "The link can be used once and is valid until %s."
+
+msgid "iban.mail.security"
+msgstr "Please do not share the link. We never ask for your IBAN by mail or phone except via this link. Please do not reply to this mail with your IBAN."

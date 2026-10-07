@@ -5,8 +5,12 @@ declare(strict_types=1);
 
 use Carbon\Carbon;
 use Engelsystem\Config\Config;
+use Engelsystem\Helpers\IbanValidator;
 use Engelsystem\Helpers\PretixClient;
+use Engelsystem\Mail\EngelsystemMailer;
+use Engelsystem\Models\PretixIbanRequest;
 use Engelsystem\Models\PretixRefund;
+use Engelsystem\Models\PretixVoucher;
 use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\User\PersonalData;
 use Engelsystem\Models\User\User;
@@ -37,10 +41,10 @@ if (!$pretix->isConfigured()) {
 
 echo $testMode ? '=== TEST MODE: no real Pretix writes will happen ===' . PHP_EOL : '';
 
-detectNewRefunds($minHours, $testMode, $pretix, $log);
+detectNewRefunds($minHours, $testMode, $pretix, $log, $config);
 syncPendingRefunds($testMode, $pretix, $log);
 
-function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix, LoggerInterface $log): void
+function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix, LoggerInterface $log, Config $config): void
 {
     // Gleiche Logik wie die "Summe geleisteter Stunden"-Spalte in der Benutzerliste:
     // nur Schichten mit shift_completed=1 zaehlen. helfisystem: Pro-User-Override
@@ -99,7 +103,7 @@ function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix,
 
     foreach ($candidates as $user) {
         try {
-            processCandidate($user, $testMode, $pretix, $log);
+            processCandidate($user, $testMode, $pretix, $log, $config);
         } catch (\Throwable $e) {
             $log->error(
                 'Pretix refund check failed for {name} ({id}): {message}',
@@ -110,7 +114,7 @@ function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix,
     }
 }
 
-function processCandidate(User $user, bool $testMode, PretixClient $pretix, LoggerInterface $log): void
+function processCandidate(User $user, bool $testMode, PretixClient $pretix, LoggerInterface $log, Config $config): void
 {
     $voucherCode = $user->personalData->voucher_code;
 
@@ -144,18 +148,30 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
         return;
     }
 
-    $bankDetails = $pretix->extractBankDetails($order);
-    if (!$bankDetails['iban'] || !$bankDetails['account_holder']) {
+    // helfisystem: Das Ticket ist ein Pfand in Hoehe des dem Voucher-Pool entsprechenden
+    // Ticketpreises, nicht in Hoehe des tatsaechlich bezahlten Betrags. Wer z.B. seinen
+    // Tagesticket-Voucher fuer ein Wochenendticket einsetzt (Pretix zeigt wegen
+    // show_hidden_items=true den ganzen Shop, nicht nur das zugeteilte Ticket), zahlt den
+    // Aufpreis selbst - die Erstattung bleibt auf den Tagesticket-Preis gedeckelt.
+    $priceCap = refundPriceCapFor($user, $config);
+    if ($priceCap !== null && $outstanding > $priceCap) {
         $log->warning(
-            'Pretix refund check: no IBAN/account holder found in order {order} for {name} ({id})',
-            ['order' => $orderCode, 'name' => $user->name, 'id' => $user->id]
+            'Pretix refund check: capping refund for {name} ({id}) from {paid} EUR to {cap} EUR '
+            . '(order {order} total exceeds the voucher pool\'s ticket price - likely upgraded to a pricier ticket)',
+            ['name' => $user->name, 'id' => $user->id, 'paid' => $outstanding, 'cap' => $priceCap, 'order' => $orderCode]
         );
         echo sprintf(
-            'SKIP %s: order %s has no IBAN/account holder answer, refund not created',
+            'NOTE %s: order %s total is %.2f EUR, capped refund to %.2f EUR (voucher pool ticket price)',
             $user->name,
-            $orderCode
+            $orderCode,
+            $outstanding,
+            $priceCap
         ) . PHP_EOL;
+        $outstanding = $priceCap;
+    }
 
+    $bankDetails = resolveBankDetails($user, $orderCode, $order, $testMode, $pretix, $log);
+    if ($bankDetails === null) {
         return;
     }
 
@@ -197,6 +213,187 @@ function processCandidate(User $user, bool $testMode, PretixClient $pretix, Logg
         ['name' => $user->name, 'id' => $user->id, 'order' => $orderCode, 'amount' => $outstanding]
     );
     echo sprintf('CREATED refund for %s: order %s, %.2f EUR (pending, needs manual bank transfer)', $user->name, $orderCode, $outstanding) . PHP_EOL;
+}
+
+/**
+ * helfisystem: Liefert gueltige Bankdaten fuer die Erstattung oder null (dann wird uebersprungen).
+ * Reihenfolge: 1. vom Helfi per Link nachgetragene IBAN, 2. IBAN aus der Pretix-Bestellung (nur wenn
+ * formal gueltig), 3. sonst wird der Helfi per Mail mit einem sicheren Einmal-Link um eine IBAN gebeten.
+ *
+ * @return array{account_holder: ?string, iban: ?string, bic: ?string}|null
+ */
+function resolveBankDetails(
+    User $user,
+    string $orderCode,
+    array $order,
+    bool $testMode,
+    PretixClient $pretix,
+    LoggerInterface $log
+): ?array {
+    $submitted = PretixIbanRequest::query()
+        ->where('user_id', $user->id)
+        ->where('order_code', $orderCode)
+        ->where('status', PretixIbanRequest::STATUS_SUBMITTED)
+        ->latest('submitted_at')
+        ->first();
+
+    if ($submitted && IbanValidator::isValid($submitted->iban) && $submitted->account_holder) {
+        return [
+            'account_holder' => $submitted->account_holder,
+            'iban' => IbanValidator::normalize($submitted->iban),
+            'bic' => $submitted->bic,
+        ];
+    }
+
+    $bankDetails = $pretix->extractBankDetails($order);
+    $ibanError = IbanValidator::error($bankDetails['iban']);
+
+    if ($ibanError === null && $bankDetails['account_holder']) {
+        $bankDetails['iban'] = IbanValidator::normalize($bankDetails['iban']);
+
+        return $bankDetails;
+    }
+
+    // Fehlende/ungueltige IBAN -> Helfi um korrigierte IBAN bitten
+    $reason = $ibanError === 'empty' ? 'missing' : 'invalid';
+    if ($ibanError === null) {
+        $reason = 'missing'; // IBAN ok, aber Kontoinhaber fehlt
+    }
+
+    requestIban($user, $orderCode, $reason, $testMode, $log);
+
+    return null;
+}
+
+function requestIban(User $user, string $orderCode, string $reason, bool $testMode, LoggerInterface $log): void
+{
+    $maxRequests = 3;
+    $reminderDays = (int) config('pretix_iban_reminder_days', 3);
+    $maxReminders = (int) config('pretix_iban_max_reminders', 2);
+    $validDays = (int) config('pretix_iban_link_valid_days', 14);
+
+    $requests = PretixIbanRequest::query()
+        ->where('user_id', $user->id)
+        ->where('order_code', $orderCode)
+        ->orderBy('id')
+        ->get();
+
+    $pending = $requests->firstWhere('status', PretixIbanRequest::STATUS_PENDING);
+
+    if ($pending && $pending->failed_attempts >= PretixIbanRequest::MAX_FAILED_ATTEMPTS) {
+        echo sprintf('SKIP %s: IBAN link locked after too many invalid attempts (needs manual handling)', $user->name) . PHP_EOL;
+
+        return;
+    }
+
+    if ($pending && $pending->expires_at->isPast()) {
+        if (!$testMode) {
+            $pending->status = PretixIbanRequest::STATUS_EXPIRED;
+            $pending->save();
+        }
+        $pending = null;
+        $requests = $requests->reject(fn ($r) => $r->status === PretixIbanRequest::STATUS_PENDING);
+    }
+
+    if ($pending) {
+        $lastContact = $pending->last_reminder_at ?? $pending->sent_at;
+        $due = $lastContact && $lastContact->copy()->addDays($reminderDays)->isPast();
+
+        if (!$due || $pending->reminders_sent >= $maxReminders) {
+            echo sprintf('SKIP %s: waiting for IBAN via link (sent %s)', $user->name, $pending->sent_at?->toDateString() ?? '-') . PHP_EOL;
+
+            return;
+        }
+
+        if ($testMode) {
+            echo sprintf('WOULD REMIND %s about IBAN link (reminder %d, test mode, no mail sent)', $user->name, $pending->reminders_sent + 1) . PHP_EOL;
+
+            return;
+        }
+
+        // Token wird nur gehasht gespeichert -> fuer die Erinnerung ein neuer Link, der alte wird ungueltig
+        $token = bin2hex(random_bytes(32));
+        $pending->token_hash = PretixIbanRequest::hashToken($token);
+        $pending->expires_at = Carbon::now()->addDays($validDays);
+        $pending->reminders_sent++;
+        $pending->last_reminder_at = Carbon::now();
+        $pending->save();
+        sendIbanMail($user, $pending, $token, $reason);
+        $log->info('IBAN reminder sent to {name} ({id})', ['name' => $user->name, 'id' => $user->id]);
+        echo sprintf('REMINDED %s about IBAN link', $user->name) . PHP_EOL;
+
+        return;
+    }
+
+    if ($requests->count() >= $maxRequests) {
+        echo sprintf('SKIP %s: IBAN link requested %d times without result (needs manual handling)', $user->name, $requests->count()) . PHP_EOL;
+
+        return;
+    }
+
+    if ($testMode) {
+        echo sprintf('WOULD REQUEST IBAN from %s: order %s, reason=%s (test mode, no mail sent)', $user->name, $orderCode, $reason) . PHP_EOL;
+
+        return;
+    }
+
+    $token = bin2hex(random_bytes(32));
+    $request = PretixIbanRequest::query()->create([
+        'user_id' => $user->id,
+        'order_code' => $orderCode,
+        'token_hash' => PretixIbanRequest::hashToken($token),
+        'status' => PretixIbanRequest::STATUS_PENDING,
+        'reason' => $reason,
+        'sent_at' => Carbon::now(),
+        'expires_at' => Carbon::now()->addDays($validDays),
+    ]);
+
+    sendIbanMail($user, $request, $token, $reason);
+    $log->info(
+        'IBAN request sent to {name} ({id}) for order {order}, reason {reason}',
+        ['name' => $user->name, 'id' => $user->id, 'order' => $orderCode, 'reason' => $reason]
+    );
+    echo sprintf('REQUESTED IBAN from %s: order %s, reason=%s', $user->name, $orderCode, $reason) . PHP_EOL;
+}
+
+function sendIbanMail(User $user, PretixIbanRequest $request, string $token, string $reason): void
+{
+    /** @var EngelsystemMailer $mailer */
+    $mailer = app(EngelsystemMailer::class);
+    $mailer->sendViewTranslated(
+        $user,
+        'iban.mail.subject',
+        'emails/iban-request',
+        [
+            'username' => $user->displayName,
+            'link' => url('/iban/' . $token),
+            'reason_key' => 'iban.mail.reason.' . $reason,
+            'valid_until' => $request->expires_at->format('d.m.Y'),
+        ]
+    );
+}
+
+/**
+ * helfisystem: Obergrenze fuer die Erstattung, abhaengig vom Voucher-Pool, aus dem der
+ * zugewiesene Code stammt (Tagesticket vs. Wochenendticket) - siehe processCandidate().
+ * Gibt null zurueck, wenn kein passender Voucher gefunden wird (dann keine Deckelung).
+ */
+function refundPriceCapFor(User $user, Config $config): ?float
+{
+    $voucher = PretixVoucher::query()
+        ->where('code', $user->personalData->voucher_code)
+        ->where('used_by_user_id', $user->id)
+        ->first();
+
+    if (!$voucher) {
+        return null;
+    }
+
+    if ($voucher->pool === PretixVoucher::POOL_FULL) {
+        return (float) $config->get('pretix_full_ticket_price', 90);
+    }
+
+    return (float) $config->get('pretix_day_ticket_price', 45);
 }
 
 function syncPendingRefunds(bool $testMode, PretixClient $pretix, LoggerInterface $log): void
