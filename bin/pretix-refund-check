@@ -241,7 +241,7 @@ function resolveBankDetails(
         return [
             'account_holder' => $submitted->account_holder,
             'iban' => IbanValidator::normalize($submitted->iban),
-            'bic' => $submitted->bic,
+            'bic' => normalizeBic($submitted->bic),
         ];
     }
 
@@ -250,6 +250,7 @@ function resolveBankDetails(
 
     if ($ibanError === null && $bankDetails['account_holder']) {
         $bankDetails['iban'] = IbanValidator::normalize($bankDetails['iban']);
+        $bankDetails['bic'] = normalizeBic($bankDetails['bic'] ?? null);
 
         return $bankDetails;
     }
@@ -263,6 +264,18 @@ function resolveBankDetails(
     requestIban($user, $orderCode, $reason, $testMode, $log);
 
     return null;
+}
+
+/**
+ * helfisystem: BIC fuer den SEPA-XML-Export normalisieren. Helfis tippen die BIC im Pretix-Formular teils klein
+ * oder gemischt ein (z.B. "Ingddeff"); Pretix reicht sie 1:1 in die XML durch, das SEPA-Schema verlangt aber
+ * Grossbuchstaben (sonst 500er beim Export). Formal ungueltige BIC -> null (im SEPA-Raum optional).
+ */
+function normalizeBic(?string $bic): ?string
+{
+    $bic = strtoupper(preg_replace('/\s+/', '', (string) $bic));
+
+    return preg_match('/^[A-Z]{6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3})?$/', $bic) === 1 ? $bic : null;
 }
 
 function requestIban(User $user, string $orderCode, string $reason, bool $testMode, LoggerInterface $log): void
