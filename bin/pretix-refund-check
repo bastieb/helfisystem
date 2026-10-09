@@ -72,8 +72,19 @@ function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix,
         ->whereNotNull('refund_hours_override')
         ->pluck('refund_hours_override', 'user_id');
 
-    $eligibleUserIds = $completedHours->filter(function ($hours, $userId) use ($overrides, $minHours) {
-        $threshold = (float) $overrides->get($userId, $minHours);
+    // helfisystem: Tagesticket-Deal (Voucher aus einem day_*-Pool) hat eine eigene, niedrigere
+    // Mindeststundenzahl (pretix_refund_min_hours_day, Default 3h). Reihenfolge der Schwelle:
+    // Pro-User-Override > Tagesticket-Schwelle (bei Tagesticket-Voucher) > globale Schwelle.
+    $dayMinHours = (float) $config->get('pretix_refund_min_hours_day', 3);
+    $dayTicketUserIds = PretixVoucher::query()
+        ->whereIn('used_by_user_id', $completedHours->keys())
+        ->where('pool', '!=', PretixVoucher::POOL_FULL)
+        ->pluck('used_by_user_id')
+        ->flip();
+
+    $eligibleUserIds = $completedHours->filter(function ($hours, $userId) use ($overrides, $minHours, $dayMinHours, $dayTicketUserIds) {
+        $baseThreshold = $dayTicketUserIds->has($userId) ? $dayMinHours : $minHours;
+        $threshold = (float) $overrides->get($userId, $baseThreshold);
 
         return $threshold > 0 && $hours >= $threshold;
     })->keys();
