@@ -138,7 +138,12 @@ EOT;
         $u['sum_hours_rostered'] = number_format((float) $user->getAttribute('sum_hours_rostered'), 1);
         $u['sum_hours_completed'] = number_format((float) $user->getAttribute('sum_hours_completed'), 1);
         $u['all_shifts_completed'] = icon_bool((bool) $user->getAttribute('all_shifts_completed'));
-        $u['has_payday'] = icon_bool((bool) $user->personalData->has_payday);
+        // helfisystem: ausbezahlt (has_payday) > Erstattung in Pretix eingetragen, Überweisung steht noch aus > nein
+        $refundRegistered = $user->pretixRefund && $user->pretixRefund->state !== 'canceled';
+        $u['has_payday'] = $user->personalData->has_payday || !$refundRegistered
+            ? icon_bool((bool) $user->personalData->has_payday)
+            : '<span class="text-warning" title="Pretix-Refund angelegt, Überweisung steht noch aus">'
+                . '<span class="bi bi-hourglass-split"></span> Erstattung eingetragen</span>';
         $u['pretix_order_paid'] = icon_bool((bool) $user->personalData->pretix_order_paid);
         $u['day_ticket_deal'] = icon_bool((bool) $user->personalData->day_ticket_deal_confirmed);
         $u['active'] = icon_bool($user->state->active);
@@ -537,6 +542,26 @@ function User_view_myshift(Shift $shift, $user_source, $its_me, $supporter)
         );
     }
 
+    // helfisystem: eigene Schicht sofort selbst tauschen
+    if ($its_me) {
+        $myshift['actions'][] = button(
+            url('/shift-self-swap-new', ['entry_id' => $shift->shift_entry_id]),
+            icon('arrow-left-right'),
+            'btn-sm btn-warning',
+            '',
+            __('shift_swap.button')
+        );
+    } elseif (shift_swap_user_can_manage()) {
+        // helfisystem: Schichttausch fuer diesen Helfi anstossen (Shift Coordinator/Orga-Admin/Admin)
+        $myshift['actions'][] = button(
+            url('/shift-swap-new', ['entry_id' => $shift->shift_entry_id]),
+            icon('arrow-left-right'),
+            'btn-sm btn-warning',
+            '',
+            __('shift_swap.button')
+        );
+    }
+
     if (Shift_signout_allowed($shift, (new AngelType())->forceFill(['id' => $shift->angel_type_id]), $user_source->id)) {
         $myshift['actions'][] = button(
             shift_entry_delete_link($shift),
@@ -830,6 +855,46 @@ function User_view(
         ? ($user_source->contact->email ?: $user_source->email)
         : null;
 
+    // helfisystem: SMS-Erinnerung an die Schichten von morgen (sms:-Link, oeffnet die SMS-App
+    // mit Nummer + vorgefertigtem Text inkl. Schicht-Links). Nur fuer Admins auf fremden Profilen.
+    $smsReminderButton = '';
+    if ($admin_user_privilege && !$its_me && $contactPhone) {
+        $tomorrowStart = Carbon::now()->addDay()->startOfDay();
+        $tomorrowEnd = $tomorrowStart->copy()->endOfDay();
+        $tomorrowLines = [];
+        foreach ($shifts as $shift) {
+            if ($shift->start < $tomorrowStart || $shift->start > $tomorrowEnd) {
+                continue;
+            }
+            $tomorrowLines[] = sprintf(
+                '- %s-%s Uhr, %s (%s): %s',
+                $shift->start->format('H:i'),
+                $shift->end->format('H:i'),
+                $shift->shiftType->name,
+                $shift->location->name,
+                shift_link($shift)
+            );
+        }
+
+        if ($tomorrowLines) {
+            $smsBody = __('user.sms_reminder.body', [$user_source->name, implode("\n", $tomorrowLines)]);
+            $smsNumber = preg_replace('/[^0-9+]/', '', $contactPhone);
+            // "?&body=" funktioniert sowohl auf Android als auch auf iOS
+            $smsReminderButton = button(
+                htmlspecialchars('sms:' . $smsNumber . '?&body=' . rawurlencode($smsBody)),
+                icon('chat-dots') . __('user.sms_reminder')
+            );
+        } else {
+            $smsReminderButton = button(
+                '#',
+                icon('chat-dots') . __('user.sms_reminder'),
+                'disabled',
+                '',
+                __('user.sms_reminder.none')
+            );
+        }
+    }
+
     return page_with_title(
         '<span class="icon-icon_angel"></span> '
         . htmlspecialchars($user_source->name)
@@ -852,6 +917,7 @@ function User_view(
                             'mailto:' . htmlspecialchars($contactEmail),
                             icon('envelope') . __('user.send_email')
                         ) : '',
+                        $smsReminderButton,
                         $auth->can('user.goodie.edit') && $goodie_enabled ? button(
                             url('/admin/user/' . $user_source->id . '/goodie'),
                             icon('gift') . __('Goodie')
@@ -1050,6 +1116,7 @@ function User_view_state($admin_user_privilege, $freeloader, $user_source)
                         : htmlspecialchars($voucher->code))
                     . '</span>';
             }
+            $state[] = '<span class="text-muted small">' . __('pretix_voucher.deposit_info') . '</span>';
         } else {
             $state[] = '<span class="text-muted">'
                 . icon('ticket-perforated')

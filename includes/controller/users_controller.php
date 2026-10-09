@@ -291,7 +291,7 @@ function users_list_controller()
     $search = trim((string) $request->query->get('q', ''));
 
     /** @var User[]|Collection|LengthAwarePaginator $users */
-    $users = User::with(['contact', 'personalData', 'state'])
+    $users = User::with(['contact', 'personalData', 'state', 'pretixRefund'])
         ->select('users.*')
         ->leftJoin('users_personal_data', 'users.id', '=', 'users_personal_data.user_id')
         ->leftJoin('users_contact', 'users.id', '=', 'users_contact.user_id')

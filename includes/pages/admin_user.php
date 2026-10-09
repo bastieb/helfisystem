@@ -32,6 +32,7 @@ function admin_user()
     $user_goodie_edit = auth()->can('user.goodie.edit');
     $user_nick_edit = auth()->can('user.nick.edit');
     $pretix_edit = auth()->can('pretix.edit');
+    $voucher_exception = auth()->can('pretix.voucher_exception');
 
     if (!$request->has('id')) {
         throw_redirect(users_link());
@@ -150,6 +151,11 @@ function admin_user()
         if ($user_goodie_edit) {
             $html .= '  <tr><td>' . __('Has been paid') . '</td><td>' . "\n";
             $html .= html_options('has_payday', $options, (int) $user_source->personalData->has_payday);
+            $refund = $user_source->pretixRefund;
+            if ($refund && $refund->state !== 'canceled' && !$user_source->personalData->has_payday) {
+                $html .= ' <span class="text-warning">Erstattung eingetragen (Pretix-Status: '
+                    . htmlspecialchars($refund->state) . '), Überweisung steht noch aus</span>';
+            }
             $html .= '</td></tr>' . "\n";
         }
 
@@ -190,7 +196,7 @@ function admin_user()
         // helfisystem: Admin-Ausnahme - manuelle Voucher-Zuweisung fuer Sonderfaelle
         // Auf-/Zuklappen bewusst per CSS (:checked ~ Sibling), da die CSP kein
         // inline onclick erlaubt (kein 'unsafe-inline' im script-src).
-        if ($pretix_edit) {
+        if ($voucher_exception) {
             $html .= '<style>#voucher-exception-toggle:checked ~ #voucher-exception-panel '
                 . '{ display: block !important; }</style>';
             // checkbox, label und panel muessen direkte Geschwister sein (kein wrapping div
@@ -440,7 +446,7 @@ function admin_user()
                 break;
 
             case 'assign_voucher_exception':
-                if (!$pretix_edit) {
+                if (!$voucher_exception) {
                     $html .= error(__('day_ticket_deal.admin.exception.no_perm'), true);
                     break;
                 }

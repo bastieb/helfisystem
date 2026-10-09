@@ -172,6 +172,14 @@ class User extends BaseModel
             ->withDefault();
     }
 
+    /**
+     * helfisystem: Pretix-Erstattung dieses Helfis (falls angelegt)
+     */
+    public function pretixRefund(): HasOne
+    {
+        return $this->hasOne(\Engelsystem\Models\PretixRefund::class);
+    }
+
     public function settings(): HasOne
     {
         return $this
