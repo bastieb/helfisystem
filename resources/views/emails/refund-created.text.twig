@@ -1,0 +1,16 @@
+{% extends "emails/mail.text.twig" %}
+
+{% block introduction %}
+Wir haben deine Pfand-Erstattung veranlasst.
+{% endblock %}
+
+{% block message %}
+Danke für deine Schichten! Dein Ticket-Pfand ({{ amount }} EUR) ist zur Erstattung vorgemerkt.
+
+Kontoinhaber: {{ holder }}
+IBAN: {{ masked_iban }}
+
+Die Überweisung machen wir in den nächsten Tagen von Hand. Ein weiterer Schritt von dir ist nicht nötig.
+
+Falls das nicht dein richtiges Konto ist: Melde dich bitte kurz bei uns, bevor wir überweisen.
+{% endblock %}

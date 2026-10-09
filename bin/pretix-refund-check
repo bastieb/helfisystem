@@ -43,6 +43,7 @@ echo $testMode ? '=== TEST MODE: no real Pretix writes will happen ===' . PHP_EO
 
 detectNewRefunds($minHours, $testMode, $pretix, $log, $config);
 syncPendingRefunds($testMode, $pretix, $log);
+notifyUnnotifiedRefunds($testMode, $log);
 
 function detectNewRefunds(float $minHours, bool $testMode, PretixClient $pretix, LoggerInterface $log, Config $config): void
 {
@@ -418,6 +419,69 @@ function refundPriceCapFor(User $user, Config $config): ?float
     }
 
     return (float) $config->get('pretix_day_ticket_price', 45);
+}
+
+/**
+ * helfisystem: Informiert Helfis per Mail, dass ihre Erstattung veranlasst wurde (notified_at = NULL).
+ * Faengt neu angelegte Refunds und nachtraeglich nicht informierte ab. Bereits abgeschlossene
+ * (done/canceled) Refunds werden nicht mehr benachrichtigt. In der Mail steht nur die maskierte IBAN.
+ */
+function notifyUnnotifiedRefunds(bool $testMode, LoggerInterface $log): void
+{
+    $open = PretixRefund::query()
+        ->whereNull('notified_at')
+        ->whereNotIn('state', ['done', 'canceled'])
+        ->with('user.contact')
+        ->get();
+
+    if ($open->isEmpty()) {
+        return;
+    }
+
+    if ($testMode) {
+        echo sprintf('TEST MODE: would notify %d helper(s) about their refund.', $open->count()) . PHP_EOL;
+
+        return;
+    }
+
+    /** @var EngelsystemMailer $mailer */
+    $mailer = app(EngelsystemMailer::class);
+
+    foreach ($open as $refund) {
+        $user = $refund->user;
+        if (!$user || !($user->contact->email ?: $user->email)) {
+            echo sprintf('SKIP notify order %s: no e-mail address', $refund->order_code) . PHP_EOL;
+
+            continue;
+        }
+
+        try {
+            $mailer->sendViewTranslated(
+                $user,
+                'Deine Pfand-Erstattung wurde veranlasst',
+                'emails/refund-created',
+                [
+                    'username' => $user->displayName,
+                    'amount' => number_format($refund->amount, 2, ',', '.'),
+                    'holder' => $refund->account_holder,
+                    'masked_iban' => IbanValidator::mask($refund->iban),
+                ]
+            );
+        } catch (\Throwable $e) {
+            $log->error(
+                'Refund info mail failed for user {id}, order {order}: {message}',
+                ['id' => $user->id, 'order' => $refund->order_code, 'message' => $e->getMessage()]
+            );
+            echo sprintf('ERROR notifying order %s: %s', $refund->order_code, $e->getMessage()) . PHP_EOL;
+
+            continue;
+        }
+
+        $refund->notified_at = new Carbon();
+        $refund->save();
+        $log->info('Refund info mail sent to user {id}, order {order}', ['id' => $user->id, 'order' => $refund->order_code]);
+        echo sprintf('NOTIFIED %s about refund for order %s', $user->name, $refund->order_code) . PHP_EOL;
+    }
 }
 
 function syncPendingRefunds(bool $testMode, PretixClient $pretix, LoggerInterface $log): void

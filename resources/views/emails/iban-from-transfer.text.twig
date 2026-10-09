@@ -1,0 +1,18 @@
+{% extends "emails/mail.text.twig" %}
+
+{% block introduction %}
+Deine Pfand-Erstattung für die Helfi-Schichten ist vorbereitet.
+{% endblock %}
+
+{% block message %}
+Du hast deine Schichten abgeleistet, daher erstatten wir dir dein Ticket-Pfand ({{ amount }} EUR).
+
+Wir haben dich nicht mehr nach deiner IBAN gefragt, sondern das Konto genommen, von dem du das Ticket per Überweisung bezahlt hast:
+
+Kontoinhaber laut Überweisung: {{ holder }}
+IBAN: {{ masked_iban }}
+
+Die Überweisung machen wir in den nächsten Tagen von Hand.
+
+Falls das nicht dein richtiges Konto ist, du auf ein anderes Konto erstattet bekommen möchtest oder du für jemand anderen bezahlt hast: Melde dich kurz bei uns, bevor wir überweisen. Den Link aus der früheren Mail zur IBAN-Abfrage brauchst du nicht mehr.
+{% endblock %}

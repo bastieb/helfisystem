@@ -20,6 +20,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string|null $bic
  * @property string      $state
  * @property Carbon|null $synced_at
+ * @property Carbon|null $notified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -39,6 +40,7 @@ class PretixRefund extends BaseModel
         'pretix_refund_local_id' => 'integer',
         'amount' => 'float',
         'synced_at' => 'datetime',
+        'notified_at' => 'datetime',
     ];
 
     /** @var array<string> */
@@ -52,6 +54,7 @@ class PretixRefund extends BaseModel
         'bic',
         'state',
         'synced_at',
+        'notified_at',
     ];
 
     public function user(): BelongsTo
