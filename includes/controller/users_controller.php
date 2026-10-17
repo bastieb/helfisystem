@@ -322,13 +322,13 @@ function users_list_controller()
             'all_shifts_completed'
         )
         // helfisystem: geleistete (abgeleistete) Stunden
-        ->selectSub(
-            ShiftEntry::query()
-                ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
-                ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0)')
-                ->whereColumn('shift_entries.user_id', 'users.id')
-                ->where('shift_entries.shift_completed', 1),
-            'sum_hours_completed'
+        // inkl. manuell eingetragener Arbeitsstunden (worklogs)
+        ->selectRaw(
+            '(SELECT COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) '
+            . 'FROM shift_entries JOIN shifts ON shifts.id = shift_entries.shift_id '
+            . 'WHERE shift_entries.user_id = users.id AND shift_entries.shift_completed = 1) '
+            . '+ (SELECT COALESCE(SUM(worklogs.hours), 0) FROM worklogs WHERE worklogs.user_id = users.id) '
+            . 'AS sum_hours_completed'
         )
         ->addSelect(['arrived' => fn(Builder $q) => $q->select($q->raw('users_state.arrival_date is not null'))])
         ->orderBy($columnMap[$order_by], $orderDirection)
@@ -345,6 +345,7 @@ function users_list_controller()
         ->where('shift_entries.shift_completed', 1)
         ->selectRaw('COALESCE(SUM(TIMESTAMPDIFF(SECOND, shifts.start, shifts.end)) / 3600, 0) as total')
         ->value('total');
+    $sumHoursCompletedTotal += (float) \Engelsystem\Models\Worklog::query()->sum('hours');
     $allShiftsCompletedCount = ShiftEntry::query()
         ->select('user_id')
         ->groupBy('user_id')
